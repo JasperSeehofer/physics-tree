@@ -51,6 +51,7 @@ Users can visually explore the interconnected landscape of physics and deeply le
 ## Constraints
 
 - **Tech stack**: Rust + WebAssembly — performance-critical for interactive physics simulations
+- **Database**: SurrealDB — multi-model database with native graph queries, ideal for the knowledge graph
 - **Hosting**: Self-hosted — full control over infrastructure
 - **Content scope**: v1 limited to classical mechanics — framework must be content-agnostic to support future branches
 - **Audience breadth**: Must be accessible to beginners while not boring advanced learners — adaptive difficulty needed
