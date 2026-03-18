@@ -6,9 +6,13 @@ edition = "2021"
 [dependencies]
 domain = { path = "../domain" }
 leptos = { workspace = true }
+leptos_meta = { workspace = true }
 leptos_router = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gloo-net = { version = "0.6", features = ["http"] }
 
 [features]
 default = []
