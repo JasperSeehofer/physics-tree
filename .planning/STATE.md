@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation/01-01-PLAN.md
-last_updated: "2026-03-18T14:19:34.182Z"
+stopped_at: Completed 01-foundation/01-02-PLAN.md
+last_updated: "2026-03-18T14:26:57.241Z"
 last_activity: 2026-03-17 — Roadmap created
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 4 | 3 tasks | 16 files |
+| Phase 01-foundation P02 | 5 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: domain crate has optional sqlx behind ssr feature so types compile for both WASM client and server without carrying sqlx into the WASM bundle
 - [Phase 01-foundation]: NodeType enum uses pedagogical categories (Concept/Formula/Theorem/Application/Consequence) not physics-domain types — branch-agnostic by design
 - [Phase 01-foundation]: branch column stored as TEXT not ENUM to allow new physics domains without migrations
+- [Phase 01-foundation]: gloo-net scoped via cfg(target_arch = wasm32) to avoid pulling WASM HTTP into the SSR binary
+- [Phase 01-foundation]: Nunito font uses v32 API URL (v26 weight-700 URL returned HTML error page); all weights use same WOFF2 variable font
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T14:19:34.174Z
-Stopped at: Completed 01-foundation/01-01-PLAN.md
+Last session: 2026-03-18T14:26:57.233Z
+Stopped at: Completed 01-foundation/01-02-PLAN.md
 Resume file: None
