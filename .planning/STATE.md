@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation/01-02-PLAN.md
-last_updated: "2026-03-18T14:26:57.241Z"
+stopped_at: Completed 01-foundation/01-03-PLAN.md
+last_updated: "2026-03-18T15:07:27.463Z"
 last_activity: 2026-03-17 — Roadmap created
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 4 | 3 tasks | 16 files |
 | Phase 01-foundation P02 | 5 | 2 tasks | 11 files |
+| Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: branch column stored as TEXT not ENUM to allow new physics domains without migrations
 - [Phase 01-foundation]: gloo-net scoped via cfg(target_arch = wasm32) to avoid pulling WASM HTTP into the SSR binary
 - [Phase 01-foundation]: Nunito font uses v32 API URL (v26 weight-700 URL returned HTML error page); all weights use same WOFF2 variable font
+- [Phase 01-foundation]: HashedStylesheet from leptos_meta used in SSR shell — generates correct /pkg/physics-tree.css link tag
+- [Phase 01-foundation]: Dev server on port 3001, live-reload WebSocket on port 3002 — permanent dev configuration
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T14:26:57.233Z
-Stopped at: Completed 01-foundation/01-02-PLAN.md
+Last session: 2026-03-18T15:07:27.456Z
+Stopped at: Completed 01-foundation/01-03-PLAN.md
 Resume file: None

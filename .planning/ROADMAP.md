@@ -12,7 +12,7 @@ PhysicsTree is built in strict dependency order: the foundation (workspace, sche
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Rust workspace, database schema, design system, and CI pipeline
+- [x] **Phase 1: Foundation** - Rust workspace, database schema, design system, and CI pipeline (completed 2026-03-18)
 - [ ] **Phase 2: Graph Explorer** - Zoomable botanical knowledge graph with WebGL rendering
 - [ ] **Phase 3: Content and Simulations** - Per-concept learning modules, quizzes, and interactive simulations
 - [ ] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/3 | In Progress|  |
+| 1. Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Graph Explorer | 0/TBD | Not started | - |
 | 3. Content and Simulations | 0/TBD | Not started | - |
 | 4. Accounts and Progress | 0/TBD | Not started | - |
