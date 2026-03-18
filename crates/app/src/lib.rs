@@ -2,6 +2,7 @@ pub mod components;
 pub mod pages;
 
 use leptos::prelude::*;
+use leptos_meta::HashedStylesheet;
 use pages::landing::LandingPage;
 
 /// Shell function for Leptos SSR — provides the HTML document wrapper.
@@ -14,6 +15,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>"PhysicsTree \u{2014} Explore the physics universe"</title>
+                <HashedStylesheet options=options.clone() id="main-stylesheet" />
                 <AutoReload options=options.clone() />
                 <HydrationScripts options />
                 <leptos_meta::MetaTags />
