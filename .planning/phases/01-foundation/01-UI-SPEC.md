@@ -57,9 +57,10 @@ Exceptions:
 | Role | Size | Weight | Line Height | Tailwind token |
 |------|------|--------|-------------|----------------|
 | Body | 16px | 400 (regular) | 1.6 | `text-base font-normal` |
-| Label | 14px | 500 (medium) | 1.4 | `text-sm font-medium` |
+| Label | 14px | 400 (regular) | 1.4 | `text-sm font-normal` |
 | Heading | 24px | 700 (bold) | 1.3 | `text-2xl font-bold` |
-| Display | 48px | 800 (extrabold) | 1.1 | `text-5xl font-extrabold` |
+
+**Wordmark-only exception:** The PhysicsTree hero wordmark uses 48px / 800 (extrabold) / line-height 1.1 (`text-5xl font-extrabold`). This is not a system weight — it applies exclusively to the `<h1>` wordmark text on the landing page and does not extend to any other element.
 
 Font family declaration in `@theme {}`:
 ```css
@@ -68,13 +69,12 @@ Font family declaration in `@theme {}`:
 ```
 
 Notes:
-- Display size (48px) is used exclusively for the PhysicsTree wordmark text on the landing page hero.
 - Heading size (24px) is used for section labels and the tagline.
-- Label size (14px) is used for the health-check pill text and metadata.
-- Only 2 weights active in Phase 1: 400 (body/label/tagline) and 700 (heading). Weight 800 for wordmark only.
-- Nunito must be loaded at weights 400, 700, 800 from `public/fonts/`.
+- Label size (14px) is used for the health-check pill text and metadata. At 14px, `font-normal` is visually distinct from 16px body without a weight change.
+- System weights are 400 (regular) and 700 (bold) only.
+- Nunito must be loaded at weights 400, 700, 800 from `public/fonts/`. Weight 800 is loaded solely for the wordmark exception.
 
-**Source:** Nunito selection from RESEARCH.md discretion recommendation. Sizes chosen to establish a clear visual hierarchy for the landing page. 48px display follows Kurzgesagt-scale boldness for the hero wordmark.
+**Source:** Nunito selection from RESEARCH.md discretion recommendation. Sizes chosen to establish a clear visual hierarchy for the landing page. 48px wordmark follows Kurzgesagt-scale boldness for the hero.
 
 ---
 
@@ -138,7 +138,7 @@ No navigation component in Phase 1 — the top bar shell is scaffolded as a `<he
 │                                              │
 │  64px top padding                            │
 │  ┌───────────────────────────────────────┐  │
-│  │  [WordmarkSvg 40×40] PhysicsTree      │  │  ← Display 48px, leaf-green on "Tree"
+│  │  [WordmarkSvg 40×40] PhysicsTree      │  │  ← Display 48px extrabold, leaf-green on "Tree"
 │  │  Tagline text (24px heading weight)   │  │
 │  └───────────────────────────────────────┘  │
 │                                              │
