@@ -60,10 +60,8 @@
 }
 
 /* Apply dark background to root — dark-only app */
+/* The HTML shell has class="dark" so @custom-variant dark activates automatically */
 @layer base {
-  html {
-    @apply dark;
-  }
   body {
     background-color: var(--color-void);
     color: var(--color-petal-white);

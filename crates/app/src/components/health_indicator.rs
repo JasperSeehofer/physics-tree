@@ -4,26 +4,24 @@ use leptos::prelude::*;
 /// Fetches /api/health on mount and displays system status.
 #[component]
 pub fn HealthIndicator() -> impl IntoView {
-    let health_status = Resource::new(
-        || (),
-        |_| async move {
-            #[cfg(target_arch = "wasm32")]
-            {
-                let resp = gloo_net::http::Request::get("/api/health")
-                    .send()
-                    .await;
-                match resp {
-                    Ok(r) => r.ok(),
-                    Err(_) => false,
-                }
+    // LocalResource for non-Send futures (gloo-net on WASM is not Send)
+    let health_status = LocalResource::new(|| async move {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let resp = gloo_net::http::Request::get("/api/health")
+                .send()
+                .await;
+            match resp {
+                Ok(r) => r.ok(),
+                Err(_) => false,
             }
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                // During SSR, assume healthy (client will re-check on hydration)
-                true
-            }
-        },
-    );
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // During SSR, assume healthy (client will re-check on hydration)
+            true
+        }
+    });
 
     view! {
         <Suspense fallback=move || view! {
