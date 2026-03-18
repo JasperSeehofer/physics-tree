@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* Scan Rust source files for Tailwind class names */
+@source "../crates/app/src/**/*.rs";
+
+/* Force dark mode — dark-only app, no toggle */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Self-hosted Nunito font */
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/nunito-v400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/nunito-v700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/nunito-v800.woff2") format("woff2");
+}
+
+/* Botanical design tokens — Kurzgesagt-inspired dark palette */
+@theme {
+  /* Background scale */
+  --color-void: #0d0f14;
+  --color-bark-dark: #1a1d24;
+  --color-bark-mid: #252932;
+  --color-bark-light: #2e3340;
+
+  /* Accent colors — bold, saturated */
+  --color-leaf-green: #4caf7d;
+  --color-bloom-pink: #e8547a;
+  --color-sun-amber: #f4b942;
+  --color-sky-teal: #3fc8d4;
+  --color-nebula-purple: #8b5cf6;
+
+  /* Text */
+  --color-petal-white: #f0f2f5;
+  --color-mist: #8892a4;
+
+  /* Typography */
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --font-display: "Nunito", system-ui, sans-serif;
+
+  /* Radii */
+  --radius-node: 0.75rem;
+  --radius-card: 0.5rem;
+}
+
+/* Apply dark background to root — dark-only app */
+@layer base {
+  html {
+    @apply dark;
+  }
+  body {
+    background-color: var(--color-void);
+    color: var(--color-petal-white);
+    font-family: var(--font-sans);
+  }
+}
