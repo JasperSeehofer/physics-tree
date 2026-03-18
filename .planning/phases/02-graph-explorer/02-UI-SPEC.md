@@ -21,7 +21,7 @@ created: 2026-03-19
 | Preset | not applicable |
 | Component library | none (Leptos 0.8 native components) |
 | Icon library | none — inline SVG only (per Phase 1 pattern) |
-| Font | Nunito (self-hosted WOFF2, weights 400/700/800) — source: style/main.css |
+| Font | Nunito (self-hosted WOFF2, weights 400/700 used in this phase) — source: style/main.css |
 
 No shadcn gate required: no components.json, not a React/Next.js/Vite project (Leptos/Rust).
 
@@ -57,11 +57,11 @@ All text uses Nunito. Exactly 4 sizes, 2 weights in use.
 | Body | 16px | 400 (regular) | 1.5 | Panel description text, prereq list items |
 | Label | 14px | 700 (bold) | 1.4 | Node labels on graph, tooltip concept title, badge text, search result items |
 | Heading | 20px | 700 (bold) | 1.2 | Panel concept title |
-| Display | 28px | 800 (extrabold) | 1.1 | Reserved — not rendered in this phase (carried from Phase 1 landing) |
+| Display | 28px | 700 (bold) | 1.1 | Reserved — not rendered in this phase (carried from Phase 1 landing) |
 
 Source notes:
 - Font family from style/main.css `--font-sans: "Nunito"`
-- Weights 400/700/800 already loaded via @font-face in style/main.css
+- Weights 400 and 700 are the declared weights for this phase. Weight 800 (extrabold) is loaded in style/main.css but is not used in this phase — it will be introduced when Display text is first rendered.
 - 14px label is the minimum rendered size — never smaller on graph canvas
 
 ---
