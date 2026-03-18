@@ -55,7 +55,7 @@ All text uses Nunito. Exactly 4 sizes, 2 weights in use.
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 16px | 400 (regular) | 1.5 | Panel description text, prereq list items |
-| Label | 14px | 700 (bold) | 1.4 | Node labels on graph, tooltip concept title, badge text, search result items |
+| Label | 14px | 700 (bold) | 1.4 | Node labels on graph, tooltip concept title, NodeType badge text, search result items, branch labels |
 | Heading | 20px | 700 (bold) | 1.2 | Panel concept title |
 | Display | 28px | 700 (bold) | 1.1 | Reserved — not rendered in this phase (carried from Phase 1 landing) |
 
@@ -114,7 +114,7 @@ All components are Leptos 0.8 RSX. No external component library.
 ### NodeTooltip
 - Appears on node hover, 200ms delay, disappears on mouse-leave
 - Position: offset 12px above cursor (not above node center — avoids obscuring adjacent nodes)
-- Contents: concept title (14px bold), NodeType badge (12px, `--color-mist` background)
+- Contents: concept title (14px bold), NodeType badge (14px, `--color-mist` background)
 - Dismissed automatically when node is clicked (panel opens instead)
 - Max width: 200px, wraps if needed
 - Background: `--color-bark-mid` at 95% opacity, 8px border-radius (`--radius-card`)
@@ -133,7 +133,7 @@ All components are Leptos 0.8 RSX. No external component library.
 - In existing top nav bar (slot: right side of nav, left of user menu area)
 - Input width: 240px at rest, expands to 360px on focus (CSS transition 150ms)
 - Typeahead dropdown: appears below input, max 6 results, `--color-bark-mid` background
-- Each result row: concept title (14px bold), branch label (12px, `--color-mist`), 40px row height
+- Each result row: concept title (14px bold), branch label (14px, `--color-mist`), 40px row height
 - Keyboard: arrow keys navigate results, Enter selects, Escape clears
 - Debounce: 200ms after last keystroke before query fires
 
