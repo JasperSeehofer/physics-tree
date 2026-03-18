@@ -60,8 +60,6 @@ Exceptions:
 | Label | 14px | 400 (regular) | 1.4 | `text-sm font-normal` |
 | Heading | 24px | 700 (bold) | 1.3 | `text-2xl font-bold` |
 
-**Wordmark-only exception:** The PhysicsTree hero wordmark uses 48px / 800 (extrabold) / line-height 1.1 (`text-5xl font-extrabold`). This is not a system weight — it applies exclusively to the `<h1>` wordmark text on the landing page and does not extend to any other element.
-
 Font family declaration in `@theme {}`:
 ```css
 --font-sans: "Nunito", system-ui, sans-serif;
@@ -72,9 +70,9 @@ Notes:
 - Heading size (24px) is used for section labels and the tagline.
 - Label size (14px) is used for the health-check pill text and metadata. At 14px, `font-normal` is visually distinct from 16px body without a weight change.
 - System weights are 400 (regular) and 700 (bold) only.
-- Nunito must be loaded at weights 400, 700, 800 from `public/fonts/`. Weight 800 is loaded solely for the wordmark exception.
+- Nunito must be loaded at weights 400 and 700 from `public/fonts/`.
 
-**Source:** Nunito selection from RESEARCH.md discretion recommendation. Sizes chosen to establish a clear visual hierarchy for the landing page. 48px wordmark follows Kurzgesagt-scale boldness for the hero.
+**Source:** Nunito selection from RESEARCH.md discretion recommendation. Sizes chosen to establish a clear visual hierarchy for the landing page.
 
 ---
 
@@ -121,6 +119,7 @@ Phase 1 introduces these components. All are hand-rolled Leptos components — n
 | `App` | `crates/app/src/lib.rs` | Root Leptos app component; applies `.dark` class to `<html>` |
 | `Shell` | `crates/app/src/pages/landing.rs` | Full-page layout wrapper with `bg-void` background |
 | `LandingPage` | `crates/app/src/pages/landing.rs` | Hero section: wordmark + tagline + health indicator |
+| `WordmarkDisplay` | `crates/app/src/pages/landing.rs` | Hero `<h1>` wordmark text. Asset-level properties: 48px / weight 800 (extrabold) / line-height 1.1 (`text-5xl font-extrabold`). Applies `text-leaf-green` to the word "Tree". These values are one-off properties of this single component and are NOT typographic system tokens. |
 | `WordmarkSvg` | `crates/app/src/pages/landing.rs` | 40×40 flat vector tree SVG integrated into hero |
 | `HealthIndicator` | `crates/app/src/components/health_indicator.rs` | Pill badge showing PASS/FAIL status from `/api/health` |
 
@@ -138,7 +137,7 @@ No navigation component in Phase 1 — the top bar shell is scaffolded as a `<he
 │                                              │
 │  64px top padding                            │
 │  ┌───────────────────────────────────────┐  │
-│  │  [WordmarkSvg 40×40] PhysicsTree      │  │  ← Display 48px extrabold, leaf-green on "Tree"
+│  │  [WordmarkSvg 40×40] PhysicsTree      │  │  ← WordmarkDisplay: 48px extrabold, leaf-green on "Tree"
 │  │  Tagline text (24px heading weight)   │  │
 │  └───────────────────────────────────────┘  │
 │                                              │
