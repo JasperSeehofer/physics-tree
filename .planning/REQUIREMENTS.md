@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Design
 
-- [ ] **DSGN-01**: Visual design follows Kurzgesagt/In a Nutshell style: bold saturated colors, dark backgrounds, flat vector art, playful tone
+- [x] **DSGN-01**: Visual design follows Kurzgesagt/In a Nutshell style: bold saturated colors, dark backgrounds, flat vector art, playful tone
 
 ## v2 Requirements
 
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-03 | Phase 5 | Pending |
 | GAME-04 | Phase 3 | Pending |
 | GAME-05 | Phase 6 | Pending |
-| DSGN-01 | Phase 1 | Pending |
+| DSGN-01 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 19 total
