@@ -11,7 +11,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **GRAPH-01**: User can explore a zoomable, pannable physics knowledge graph with concept nodes and dependency edges
 - [ ] **GRAPH-02**: User can search concepts by name and navigate directly to a node
-- [ ] **GRAPH-03**: User can see prerequisite dependencies for any concept before engaging with it
+- [x] **GRAPH-03**: User can see prerequisite dependencies for any concept before engaging with it
 - [x] **GRAPH-04**: Graph renders with botanical metaphor: roots (prerequisites), trunk (foundations), branches (fields), leaves (research frontiers)
 - [ ] **GRAPH-05**: User sees a personal knowledge tree that grows visually as they master concepts
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | GRAPH-01 | Phase 2 | Complete |
 | GRAPH-02 | Phase 2 | Pending |
-| GRAPH-03 | Phase 2 | Pending |
+| GRAPH-03 | Phase 2 | Complete |
 | GRAPH-04 | Phase 2 | Complete |
 | GRAPH-05 | Phase 5 | Pending |
 | CONT-01 | Phase 3 | Pending |

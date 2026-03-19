@@ -121,7 +121,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Graph Explorer | 0/3 | Not started | - |
+| 2. Graph Explorer | 2/3 | In Progress|  |
 | 3. Content and Simulations | 0/TBD | Not started | - |
 | 4. Accounts and Progress | 0/TBD | Not started | - |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |

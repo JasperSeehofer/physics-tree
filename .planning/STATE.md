@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 02-02-PLAN.md (Sigma.js npm infrastructure and GraphCanvas component)"
-last_updated: "2026-03-19T07:50:00.000Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-19T07:50:42.216Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 5
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 2 of 3
 | Phase 01-foundation P01 | 4 | 3 tasks | 16 files |
 | Phase 01-foundation P02 | 5 | 2 tasks | 11 files |
 | Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
+| Phase 02-graph-explorer P01 | 25 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 02-graph-explorer P02]: Closure::forget() intentionally leaks JS callbacks for Sigma event handlers — bounded by killSigma() in on_cleanup
 - [Phase 02-graph-explorer P02]: Non-solid edges (dashed/dotted/double) implemented via canvas overlay on afterRender event; WebGL hides them via botanicalEdgeReducer hidden=true
 - [Phase 02-graph-explorer P02]: GraphState context struct groups selected_node/hovered_node/panel_open RwSignals for Plan 03 panel/tooltip components
+- [Phase 02-graph-explorer]: api_routes(pool) uses Router::merge pattern — PgPool state in API routes, LeptosOptions state in outer router, merged cleanly
+- [Phase 02-graph-explorer]: serde, sqlx, uuid added as direct server crate deps (handlers/graph.rs uses them directly in function signatures)
+- [Phase 02-graph-explorer]: GraphExplorerPage kept as placeholder — Plan 02 owns Sigma.js integration to reduce Plan 01 scope and merge risk
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:50:00.000Z
-Stopped at: Completed 02-02-PLAN.md (Sigma.js npm infrastructure and GraphCanvas component)
-Resume file: .planning/phases/02-graph-explorer/02-03-PLAN.md
+Last session: 2026-03-19T07:50:42.211Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
