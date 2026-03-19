@@ -113,3 +113,34 @@ pub fn GraphCanvas(
         />
     }
 }
+
+// Public wrapper functions for JS bridge calls — usable from any Rust module regardless of target.
+
+/// Navigate the Sigma camera to a specific node by ID.
+#[cfg(target_arch = "wasm32")]
+pub fn call_navigate_to_node(node_id: &str) {
+    navigateToNode(node_id);
+}
+
+/// Highlight the prerequisite chain for the selected node.
+/// prereq_ids_json is a JSON array string of node ID strings.
+#[cfg(target_arch = "wasm32")]
+pub fn call_highlight_prereq_chain(node_id: &str, prereq_ids_json: &str) {
+    highlightPrereqChain(node_id, prereq_ids_json);
+}
+
+/// Clear current node selection and dim state.
+#[cfg(target_arch = "wasm32")]
+pub fn call_clear_selection() {
+    clearSelection();
+}
+
+// SSR stubs — no-ops so the server binary compiles without WASM deps.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn call_navigate_to_node(_node_id: &str) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn call_highlight_prereq_chain(_node_id: &str, _prereq_ids_json: &str) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn call_clear_selection() {}

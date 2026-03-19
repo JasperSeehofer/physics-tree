@@ -61,6 +61,8 @@ dependencies = [
  "leptos_router",
  "serde",
  "serde_json",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -2462,11 +2464,14 @@ dependencies = [
  "domain",
  "leptos",
  "leptos_axum",
+ "serde",
  "serde_json",
+ "sqlx",
  "tokio",
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
