@@ -32,9 +32,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. CI pipeline passes: Rust compile, tests, and WASM bundle size check under 1 MB compressed
 **Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
-- [ ] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
-- [ ] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
+- [x] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
+- [x] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
+- [x] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
 
 ### Phase 2: Graph Explorer
 **Goal**: Users can visually explore the physics knowledge graph — zooming, panning, searching concepts, following prerequisite chains — rendered in the botanical metaphor at 60fps with hundreds of nodes.
@@ -47,9 +47,9 @@ Plans:
   4. Graph layout is computed in a Web Worker and does not block the UI during initial load
 **Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
-- [ ] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
-- [ ] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
+- [ ] 02-01-PLAN.md — Graph repository, API endpoints, seed data expansion, Leptos router
+- [ ] 02-02-PLAN.md — npm/Sigma.js setup, sigma_bridge.js, GraphCanvas component
+- [ ] 02-03-PLAN.md — Search, detail panel, tooltip, prereq highlighting, full page wiring
 
 ### Phase 3: Content and Simulations
 **Goal**: Each concept node has a full educational module — motivation, derivation with rendered math, examples, misconception-targeting, and quizzes — plus interactive physics simulations that students can control; classical mechanics is fully populated.
@@ -121,7 +121,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Graph Explorer | 0/TBD | Not started | - |
+| 2. Graph Explorer | 0/3 | Not started | - |
 | 3. Content and Simulations | 0/TBD | Not started | - |
 | 4. Accounts and Progress | 0/TBD | Not started | - |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |
