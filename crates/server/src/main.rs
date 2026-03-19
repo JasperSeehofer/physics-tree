@@ -14,14 +14,24 @@ async fn main() {
         .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse().unwrap()))
         .init();
 
+    // Connect to PostgreSQL
+    let database_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = db::create_pool(&database_url)
+        .await
+        .expect("Failed to connect to database");
+
     let conf = get_configuration(None).unwrap();
     let leptos_options = conf.leptos_options;
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(app::App);
 
+    // api_routes calls .with_state(pool) internally, producing a Router<()>.
+    // Merging a Router<()> into Router<_> is always valid.
+    let api = routes::api_routes(pool);
+
     let app = Router::new()
-        // API routes BEFORE Leptos catch-all
-        .route("/api/health", axum::routing::get(handlers::health::health_check))
+        .merge(api)
         // Leptos SSR handles all remaining routes
         .leptos_routes(&leptos_options, routes, {
             let leptos_options = leptos_options.clone();

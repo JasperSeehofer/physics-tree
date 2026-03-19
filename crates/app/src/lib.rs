@@ -3,6 +3,9 @@ pub mod pages;
 
 use leptos::prelude::*;
 use leptos_meta::HashedStylesheet;
+use leptos_router::components::{Route, Router, Routes};
+use leptos_router::path;
+use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
 
 /// Shell function for Leptos SSR — provides the HTML document wrapper.
@@ -27,10 +30,15 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
     }
 }
 
-/// Root application component.
+/// Root application component with client-side routing.
 #[component]
 pub fn App() -> impl IntoView {
     view! {
-        <LandingPage />
+        <Router>
+            <Routes fallback=|| "Page not found.">
+                <Route path=path!("/") view=LandingPage />
+                <Route path=path!("/graph") view=GraphExplorerPage />
+            </Routes>
+        </Router>
     }
 }
