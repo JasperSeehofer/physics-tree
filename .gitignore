@@ -3,3 +3,4 @@
 *.woff2
 !public/fonts/*.woff2
 .sqlx/
+node_modules/

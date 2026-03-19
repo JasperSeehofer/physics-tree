@@ -1,0 +1,15 @@
+{
+  "name": "physics-tree",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "sigma": "3.0.2",
+    "graphology": "0.26.0",
+    "graphology-layout-forceatlas2": "0.10.1",
+    "@sigma/utils": "^3.0.0",
+    "@sigma/node-square": "^3.0.0",
+    "graphology-shortest-path": "^2.1.0",
+    "graphology-traversal": "^0.3.1"
+  }
+}
