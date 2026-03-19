@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-19T07:50:42.216Z"
+stopped_at: Completed 02-03 Task 1 — paused at human-verify checkpoint
+last_updated: "2026-03-19T07:59:03.341Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -50,6 +50,7 @@ Plan: 2 of 3
 | Phase 01-foundation P02 | 5 | 2 tasks | 11 files |
 | Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
 | Phase 02-graph-explorer P01 | 25 | 2 tasks | 11 files |
+| Phase 02-graph-explorer P03 | 6 | 1 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - [Phase 02-graph-explorer]: api_routes(pool) uses Router::merge pattern — PgPool state in API routes, LeptosOptions state in outer router, merged cleanly
 - [Phase 02-graph-explorer]: serde, sqlx, uuid added as direct server crate deps (handlers/graph.rs uses them directly in function signatures)
 - [Phase 02-graph-explorer]: GraphExplorerPage kept as placeholder — Plan 02 owns Sigma.js integration to reduce Plan 01 scope and merge risk
+- [Phase 02-graph-explorer]: filter_nodes extracted as pure fn outside SearchInput component — enables #[test] without leptos runtime
+- [Phase 02-graph-explorer]: StoredValue::new(nodes) in SearchInput to share node list across multiple closures without ownership conflict
+- [Phase 02-graph-explorer]: serde_json::Value used in graph_explorer.rs instead of domain types — avoids JSON double-parsing and works cleanly with gloo-net
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:50:42.211Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-19T07:59:03.337Z
+Stopped at: Completed 02-03 Task 1 — paused at human-verify checkpoint
 Resume file: None
