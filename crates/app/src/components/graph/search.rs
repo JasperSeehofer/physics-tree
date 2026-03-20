@@ -32,9 +32,9 @@ pub fn filter_nodes(
 /// Filters the full node list client-side (already loaded in GraphExplorerPage).
 #[component]
 pub fn SearchInput(
-    /// Full list of nodes (titles and IDs) for client-side filtering
-    #[prop(into)]
-    nodes: Vec<SearchableNode>,
+    /// Full list of nodes (titles and IDs) for client-side filtering — reactive so it
+    /// updates after async data fetch completes.
+    nodes: Signal<Vec<SearchableNode>>,
 ) -> impl IntoView {
     let graph_state = use_context::<GraphState>();
 
@@ -42,10 +42,7 @@ pub fn SearchInput(
     let focused = RwSignal::new(false);
     let highlighted_index: RwSignal<Option<usize>> = RwSignal::new(None);
 
-    // Store nodes in a signal so closures can access it without ownership issues
-    let nodes_signal = StoredValue::new(nodes);
-
-    let filtered = move || filter_nodes(&nodes_signal.get_value(), &query.get(), 6);
+    let filtered = move || filter_nodes(&nodes.get(), &query.get(), 6);
 
     let on_input = move |ev: web_sys::Event| {
         let input = event_target_value(&ev);

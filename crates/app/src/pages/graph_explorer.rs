@@ -118,7 +118,8 @@ pub fn GraphExplorerPage() -> impl IntoView {
     let panel_prereqs: RwSignal<Vec<PrereqItem>> = RwSignal::new(vec![]);
     let nav_history: RwSignal<Vec<String>> = RwSignal::new(vec![]);
 
-    // ── Fetch graph data on mount ─────────────────────────────────────────────
+    // ── Fetch graph data on mount (client-only — SSR renders loading state) ──
+    #[cfg(target_arch = "wasm32")]
     leptos::task::spawn_local(async move {
         match fetch_graph_data().await {
             Ok((nodes, edges)) => {
@@ -179,8 +180,9 @@ pub fn GraphExplorerPage() -> impl IntoView {
                     }
                 });
 
-                // Fetch prereq chain async
+                // Fetch prereq chain async (client-only)
                 let id_clone = id.clone();
+                #[cfg(target_arch = "wasm32")]
                 leptos::task::spawn_local(async move {
                     match fetch_prereqs(&id_clone).await {
                         Ok(prereq_nodes) => {
@@ -244,7 +246,7 @@ pub fn GraphExplorerPage() -> impl IntoView {
         <div class="flex flex-col h-screen bg-void">
             // ── Top bar ──────────────────────────────────────────────────────
             <div class="h-14 bg-bark-dark flex items-center px-4 shrink-0 border-b border-bark-light">
-                <SearchInput nodes=search_nodes() />
+                <SearchInput nodes=Signal::derive(search_nodes) />
             </div>
 
             // ── Content area ─────────────────────────────────────────────────

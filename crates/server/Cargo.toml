@@ -18,6 +18,7 @@ sqlx = { workspace = true }
 uuid = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+dotenvy = "0.15"
 
 [features]
 default = []

@@ -9,6 +9,9 @@ async fn main() {
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use tracing_subscriber::EnvFilter;
 
+    // Load .env file (ignore if missing — production uses real env vars)
+    let _ = dotenvy::dotenv();
+
     // Initialize tracing
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse().unwrap()))
@@ -26,19 +29,19 @@ async fn main() {
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(app::App);
 
-    // api_routes calls .with_state(pool) internally, producing a Router<()>.
-    // Merging a Router<()> into Router<_> is always valid.
+    // API routes consume PgPool state internally, returning Router<()>.
     let api = routes::api_routes(pool);
 
+    // Build the Leptos router first (needs LeptosOptions as state),
+    // then merge the stateless API router.
     let app = Router::new()
-        .merge(api)
-        // Leptos SSR handles all remaining routes
         .leptos_routes(&leptos_options, routes, {
             let leptos_options = leptos_options.clone();
             move || app::shell(leptos_options.clone())
         })
         .fallback(leptos_axum::file_and_error_handler(app::shell))
-        .with_state(leptos_options);
+        .with_state(leptos_options)
+        .merge(api);
 
     tracing::info!("PhysicsTree server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
