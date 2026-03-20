@@ -12,12 +12,10 @@ Users can visually explore the interconnected landscape of physics and deeply le
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Interactive physics knowledge graph with zoomable/pannable exploration — Validated in Phase 2: graph-explorer
+- [x] Botanical metaphor: roots (prerequisites), trunk (foundations), branches (fields), leaves (frontier research) — Validated in Phase 2: graph-explorer
 
 ### Active
-
-- [ ] Interactive physics knowledge graph with zoomable/pannable exploration
-- [ ] Botanical metaphor: roots (prerequisites), trunk (foundations), branches (fields), leaves (frontier research)
 - [ ] Guided learning paths through the graph (curated syllabi)
 - [ ] Per-concept educational modules: visualization, derivation, motivation, examples, quizzes, intuition, references, code
 - [ ] Interactive physics simulations (parameter-tweakable)
@@ -67,4 +65,4 @@ Users can visually explore the interconnected landscape of physics and deeply le
 | Classical mechanics as v1 content | Well-understood domain, rich in visualization opportunities, proves the full stack | — Pending |
 
 ---
-*Last updated: 2026-03-17 after initialization*
+*Last updated: 2026-03-20 after Phase 2 completion*
