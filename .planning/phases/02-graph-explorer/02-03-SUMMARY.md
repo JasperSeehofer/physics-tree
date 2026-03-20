@@ -66,7 +66,7 @@ completed: 2026-03-19
 - **Duration:** ~6 min
 - **Started:** 2026-03-19T07:51:19Z
 - **Completed:** 2026-03-19T07:57:39Z
-- **Tasks:** 1 of 2 (paused at human-verify checkpoint)
+- **Tasks:** 2 of 2
 - **Files modified:** 6
 
 ## Accomplishments
@@ -80,8 +80,7 @@ completed: 2026-03-19
 ## Task Commits
 
 1. **Task 1: Build search, panel, tooltip components and wire GraphExplorerPage to API** - `39a047c` (feat)
-
-**Note:** Paused at Task 2 (checkpoint:human-verify) — browser verification pending.
+2. **Task 2: Verify complete graph explorer in browser** - `34bb4c8` (fix) — Human-verified, approved
 
 ## Files Created/Modified
 
@@ -136,8 +135,17 @@ completed: 2026-03-19
 
 ---
 
-**Total deviations:** 4 auto-fixed (2 blocking, 2 bugs)
-**Impact on plan:** All fixes necessary for compilation and correct behavior. No scope creep.
+**5. [Verification] Multiple compilation/runtime fixes during human verification** - `34bb4c8`
+- wasm_bindgen module path doubled crate root → fixed to `/src/js/`
+- Added dotenvy for .env loading, fixed Router state ordering for LeptosRoutes
+- Gated spawn_local with `#[cfg(target_arch = "wasm32")]` (SSR panic)
+- Added missing `hydrate()` WASM entry point
+- Bundled sigma_bridge.js with esbuild (bare imports need bundler)
+- Replaced wasm_bindgen(module) with js_sys::Reflect for window globals
+- Made SearchInput accept reactive Signal (was static Vec, empty at SSR time)
+
+**Total deviations:** 4 auto-fixed + 7 verification fixes
+**Impact on plan:** All fixes necessary for compilation and correct browser behavior. No scope creep.
 
 ## Issues Encountered
 
@@ -149,8 +157,8 @@ None — no external service configuration required.
 
 ## Next Phase Readiness
 
-- Graph explorer at /graph is ready for browser verification (Task 2 checkpoint)
-- After verification, Phase 02 is complete — Phase 03 content modules can begin
+- Graph explorer at /graph verified and approved by human tester
+- Phase 02 is complete — Phase 03 content modules can begin
 - The GraphState context pattern is established for any future graph components
 
 ---
