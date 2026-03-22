@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A 5 kg box is pushed by $F = 20\\,\\text{N}$ over $d = 8\\,\\text{m}$ with friction force $f_k = 5\\,\\text{N}$, starting from rest. What is the final kinetic energy?",
+    "options": [
+      {"id": "a", "text": "160 J", "correct": false},
+      {"id": "b", "text": "120 J", "correct": true},
+      {"id": "c", "text": "40 J", "correct": false},
+      {"id": "d", "text": "200 J", "correct": false}
+    ],
+    "hint": "Net work = work by applied force + work by friction. See the Examples section.",
+    "explanation": "W_applied = 20×8 = 160 J. W_friction = -5×8 = -40 J. W_net = 120 J. By work-energy theorem, ΔK = 120 J. Since K_i = 0, K_f = 120 J.",
+    "section": "examples"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A person carries a 10 kg box horizontally at constant speed across a room. How much work does the person do on the box?",
+    "options": [
+      {"id": "a", "text": "mg × distance", "correct": false},
+      {"id": "b", "text": "Zero", "correct": true},
+      {"id": "c", "text": "mg × height of person", "correct": false},
+      {"id": "d", "text": "Cannot be determined", "correct": false}
+    ],
+    "hint": "What is the angle between the lifting force and the horizontal displacement? See the Misconceptions section.",
+    "explanation": "The person supports the box with an upward force (equal to mg). The displacement is horizontal. W = Fd cos(90°) = 0. Force perpendicular to motion does zero work.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "A 0.5 kg ball is thrown upward at $v_0 = 15\\,\\text{m/s}$. Using the work-energy theorem, what is the maximum height? ($g = 10\\,\\text{m/s}^2$)",
+    "options": [
+      {"id": "a", "text": "7.5 m", "correct": false},
+      {"id": "b", "text": "11.25 m", "correct": true},
+      {"id": "c", "text": "22.5 m", "correct": false},
+      {"id": "d", "text": "15 m", "correct": false}
+    ],
+    "hint": "At maximum height, v = 0. W_gravity = -mgh = ΔK = 0 - ½mv₀². Solve for h. See the Examples section.",
+    "explanation": "W_gravity = -mgh = K_f - K_i = 0 - ½(0.5)(225) = -56.25 J. h = 56.25/(0.5×10) = 11.25 m.",
+    "section": "examples"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Which force NEVER does work on an object?",
+    "options": [
+      {"id": "a", "text": "Friction", "correct": false},
+      {"id": "b", "text": "Normal force on an object moving along a horizontal surface", "correct": true},
+      {"id": "c", "text": "Gravity", "correct": false},
+      {"id": "d", "text": "Applied horizontal force", "correct": false}
+    ],
+    "hint": "Work = Fd cos θ. When is cos θ = 0? See the Intuition section.",
+    "explanation": "The normal force on a flat surface is perpendicular to the horizontal displacement (θ = 90°, cos 90° = 0), so it does zero work. Friction and gravity both have components along or against displacement and do nonzero work in general.",
+    "section": "intuition"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "A 3 kg block slides 3 m down a frictionless incline at $30°$. What is the work done by gravity?",
+    "options": [
+      {"id": "a", "text": "88.2 J", "correct": false},
+      {"id": "b", "text": "44.1 J", "correct": true},
+      {"id": "c", "text": "76.4 J", "correct": false},
+      {"id": "d", "text": "29.4 J", "correct": false}
+    ],
+    "hint": "The vertical drop is h = d sin(30°) = 1.5 m. W_gravity = mgh. See the Examples section.",
+    "explanation": "Vertical drop: h = 3 × sin(30°) = 1.5 m. W_gravity = mgh = 3 × 9.8 × 1.5 = 44.1 J. Equivalently: W = Fd cos θ = mg cos(60°) × 3 = 3×9.8×0.5×3 = 44.1 J.",
+    "section": "examples"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the formula for work $W$ done by a constant force $F$ at angle $\\theta$ to displacement $d$.",
+    "expected": "F*d*cos(theta)",
+    "variables": ["F", "d", "theta"],
+    "hint": "Work is the dot product of force and displacement vectors. See the Derivation section.",
+    "explanation": "W = F·d = Fd cos θ. Only the component of force parallel to displacement (F cos θ) contributes to work.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Using the work-energy theorem, find the final speed $v_f$ of a mass $m$ starting from rest if net work $W$ is done on it.",
+    "expected": "sqrt(2*W/m)",
+    "variables": ["W", "m"],
+    "hint": "W_net = ΔK = ½mv_f² - 0. Solve for v_f. See the Derivation section.",
+    "explanation": "W = ΔK = ½mv_f². Solving: v_f = √(2W/m).",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each force scenario to whether it does positive, negative, or zero work on the moving object:",
+    "pairs": [
+      ["Gravity on a falling ball", "Positive work (force and displacement both downward)"],
+      ["Friction on a sliding box", "Negative work (force opposes motion)"],
+      ["Normal force on a box sliding on a level floor", "Zero work (perpendicular to displacement)"],
+      ["Tension in a string on a ball moving in a vertical circle at the top", "Depends on direction of motion relative to force"]
+    ],
+    "hint": "Work = Fd cos θ. Determine the angle between force and displacement in each case. See the Derivation section.",
+    "explanation": "Positive work: force parallel to motion (adds kinetic energy). Negative work: force opposes motion (removes kinetic energy). Zero work: force perpendicular to motion.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "The work-energy theorem relates net work to:",
+    "options": [
+      {"id": "a", "text": "Change in potential energy", "correct": false},
+      {"id": "b", "text": "Change in kinetic energy", "correct": true},
+      {"id": "c", "text": "Total mechanical energy", "correct": false},
+      {"id": "d", "text": "Change in momentum", "correct": false}
+    ],
+    "hint": "The statement of the theorem is in the Derivation section.",
+    "explanation": "The work-energy theorem: W_net = ΔK. Net work equals the change in kinetic energy. It does not directly give changes in potential energy or total mechanical energy.",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match the work done in each scenario to the correct value:",
+    "pairs": [
+      ["Lifting a 10 kg box 2 m straight up at constant speed", "196 J (W = mgh)"],
+      ["Pushing a 5 kg box 4 m on a frictionless surface at constant speed", "0 J (no net force, no energy change)"],
+      ["Stopping a 2 kg ball moving at 3 m/s", "-9 J (W = ΔK = 0 - ½×2×9)"],
+      ["Gravity on a ball falling 5 m", "49 J per kg of ball mass (W = mgh)"]
+    ],
+    "hint": "Apply W = F d cos θ or W = ΔK in each case. See the Examples section.",
+    "explanation": "Work equals change in kinetic energy (work-energy theorem) or force times distance times cos θ. Constant speed means zero net work overall, but individual forces can do work.",
+    "section": "examples"
+  }
+]

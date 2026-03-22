@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A 3 kg ball moving at $4\\,\\text{m/s}$ east collides with a stationary 2 kg ball and they stick together. What is the combined velocity?",
+    "options": [
+      {"id": "a", "text": "4 m/s east", "correct": false},
+      {"id": "b", "text": "2.4 m/s east", "correct": true},
+      {"id": "c", "text": "2 m/s east", "correct": false},
+      {"id": "d", "text": "1.2 m/s east", "correct": false}
+    ],
+    "hint": "Momentum is conserved: p_i = p_f. Total mass after collision = 5 kg. See the Examples section.",
+    "explanation": "p_i = 3×4 + 2×0 = 12 kg·m/s. p_f = 5×v_f = 12. v_f = 2.4 m/s east.",
+    "section": "examples"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A 5 kg firework at rest explodes. A 2 kg fragment flies off at $8\\,\\text{m/s}$ east. What is the velocity of the 3 kg fragment?",
+    "options": [
+      {"id": "a", "text": "8 m/s east", "correct": false},
+      {"id": "b", "text": "5.33 m/s west", "correct": true},
+      {"id": "c", "text": "4 m/s west", "correct": false},
+      {"id": "d", "text": "5.33 m/s east", "correct": false}
+    ],
+    "hint": "Initial momentum = 0. Final momenta must sum to zero. See the Examples section.",
+    "explanation": "0 = 2×8 + 3×v → v = -16/3 ≈ -5.33 m/s. The 3 kg piece moves west at 5.33 m/s.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "Two equal-mass balls in an elastic collision: ball 1 moves at $3\\,\\text{m/s}$, ball 2 is at rest. After the elastic collision:",
+    "options": [
+      {"id": "a", "text": "Both move at 1.5 m/s", "correct": false},
+      {"id": "b", "text": "Ball 1 stops; ball 2 moves at 3 m/s", "correct": true},
+      {"id": "c", "text": "Ball 1 moves at 3 m/s; ball 2 stays still", "correct": false},
+      {"id": "d", "text": "Ball 1 moves at 2 m/s; ball 2 at 1 m/s", "correct": false}
+    ],
+    "hint": "For equal masses in elastic collision, velocities exchange. See the Examples section.",
+    "explanation": "Solving momentum and kinetic energy conservation simultaneously for equal masses gives v_1' = 0, v_2' = v_1. Ball 1 stops; all momentum transfers to ball 2. This is Newton's cradle behavior.",
+    "section": "examples"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "In a perfectly inelastic collision, which quantities are conserved?",
+    "options": [
+      {"id": "a", "text": "Both kinetic energy and momentum", "correct": false},
+      {"id": "b", "text": "Momentum only (kinetic energy decreases)", "correct": true},
+      {"id": "c", "text": "Kinetic energy only", "correct": false},
+      {"id": "d", "text": "Neither is conserved", "correct": false}
+    ],
+    "hint": "The Misconceptions section clarifies the relationship between momentum and energy conservation.",
+    "explanation": "Momentum is always conserved (when no external force). In a perfectly inelastic collision, objects stick together; kinetic energy is lost to heat and deformation. Momentum is conserved; kinetic energy is not.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "A gun (mass 3 kg) fires a bullet (mass 0.01 kg) at $500\\,\\text{m/s}$. What is the gun's recoil speed?",
+    "options": [
+      {"id": "a", "text": "1.67 m/s", "correct": true},
+      {"id": "b", "text": "0.5 m/s", "correct": false},
+      {"id": "c", "text": "5 m/s", "correct": false},
+      {"id": "d", "text": "15 m/s", "correct": false}
+    ],
+    "hint": "Initial momentum = 0. Final: bullet forward + gun backward. See the Derivation section.",
+    "explanation": "0 = 0.01×500 + 3×v_gun → v_gun = -5/3 ≈ -1.67 m/s. The gun recoils at 1.67 m/s opposite to bullet.",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the total momentum $p_{total}$ of two objects with masses $m_1$, $m_2$ and velocities $v_1$, $v_2$ (1D, same direction).",
+    "expected": "m_1*v_1 + m_2*v_2",
+    "variables": ["m_1", "m_2", "v_1", "v_2"],
+    "hint": "Momentum is additive for a system of particles. See the Derivation section.",
+    "explanation": "p_total = m_1*v_1 + m_2*v_2. In a vector (3D) setting, add all momentum vectors. This total is conserved when no external force acts.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A force $F$ acts on an object for time $\\Delta t$. Write the change in momentum $\\Delta p$ (impulse-momentum theorem).",
+    "expected": "F*delta_t",
+    "variables": ["F", "delta_t"],
+    "hint": "Impulse = force × time. See the Derivation section.",
+    "explanation": "Δp = J = F × Δt. Impulse (force × time) equals change in momentum. The same Δp can come from large F brief time or small F long time.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each collision type with its characteristics:",
+    "pairs": [
+      ["Perfectly elastic", "Both momentum and kinetic energy conserved"],
+      ["Perfectly inelastic", "Momentum conserved; objects stick together; max KE lost"],
+      ["Inelastic (partially)", "Momentum conserved; some KE lost as heat/sound"],
+      ["Explosion", "Objects separate from rest; total momentum stays zero"]
+    ],
+    "hint": "Momentum is always conserved in isolated systems. See the Misconceptions section.",
+    "explanation": "All collisions conserve momentum (if isolated). The difference is whether kinetic energy is also conserved (elastic) or partly/fully lost (inelastic). Explosions release internal energy, but initial and final momenta still balance.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Which physical law most directly explains WHY momentum is conserved in an isolated system?",
+    "options": [
+      {"id": "a", "text": "Newton's first law", "correct": false},
+      {"id": "b", "text": "Newton's third law", "correct": true},
+      {"id": "c", "text": "Conservation of energy", "correct": false},
+      {"id": "d", "text": "Newton's second law alone", "correct": false}
+    ],
+    "hint": "Trace the derivation of momentum conservation. See the Derivation section.",
+    "explanation": "Newton's third law ensures internal forces come in equal and opposite pairs. These pairs cancel in the total momentum sum, so total momentum doesn't change. Conservation of momentum is a consequence of Newton's third law.",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each scenario to the correct application of momentum conservation:",
+    "pairs": [
+      ["Calculating recoil speed of a gun", "Initial momentum = 0; split between bullet and gun"],
+      ["Two-car collision: find combined speed", "Set p_before = p_after for the system"],
+      ["Rocket in space: gaining speed", "Exhaust momentum backward = rocket momentum forward"],
+      ["Ball bouncing off a wall", "The wall (Earth) also recoils; total momentum conserved"]
+    ],
+    "hint": "Identify the system and check whether external forces are negligible. See the Examples section.",
+    "explanation": "Momentum conservation applies to the entire system. In each case, identify what objects make up the system and ensure total external forces are zero (or negligible during collision).",
+    "section": "examples"
+  }
+]

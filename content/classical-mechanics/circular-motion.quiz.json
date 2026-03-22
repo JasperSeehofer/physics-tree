@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A car rounds a horizontal curve of radius $r = 50\\,\\text{m}$ at $v = 20\\,\\text{m/s}$. What centripetal acceleration does it experience?",
+    "options": [
+      {"id": "a", "text": "$4\\,\\text{m/s}^2$", "correct": false},
+      {"id": "b", "text": "$8\\,\\text{m/s}^2$", "correct": true},
+      {"id": "c", "text": "$2\\,\\text{m/s}^2$", "correct": false},
+      {"id": "d", "text": "$16\\,\\text{m/s}^2$", "correct": false}
+    ],
+    "hint": "Use $a_c = v^2/r$. See the Derivation section.",
+    "explanation": "a_c = v²/r = 400/50 = 8 m/s². This acceleration is directed toward the center of the curve.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "When a ball on a string is swung in a circle and the string is released, which direction does the ball travel?",
+    "options": [
+      {"id": "a", "text": "Radially outward from the center", "correct": false},
+      {"id": "b", "text": "Tangentially to the circle at the point of release", "correct": true},
+      {"id": "c", "text": "Toward the center", "correct": false},
+      {"id": "d", "text": "Spiraling outward", "correct": false}
+    ],
+    "hint": "Remove the centripetal force: what does Newton's first law predict? See the Misconceptions section.",
+    "explanation": "When the string breaks, there is no more centripetal force. By Newton's first law, the ball continues in a straight line tangent to the circle at the release point — not outward radially.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "An object moves in a circle at constant speed. Which statement is correct?",
+    "options": [
+      {"id": "a", "text": "No force acts on it since speed is constant", "correct": false},
+      {"id": "b", "text": "A net force directed toward the center acts on it", "correct": true},
+      {"id": "c", "text": "A net force directed outward acts on it", "correct": false},
+      {"id": "d", "text": "No acceleration occurs since speed doesn't change", "correct": false}
+    ],
+    "hint": "Velocity is a vector; direction change = acceleration. See the Misconceptions section.",
+    "explanation": "Even at constant speed, circular motion involves acceleration (direction of velocity changes). By Newton's second law, a net force must act — the centripetal force, directed toward the center.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "What provides the centripetal force for a satellite in circular orbit?",
+    "options": [
+      {"id": "a", "text": "The satellite's engines", "correct": false},
+      {"id": "b", "text": "Gravity from Earth", "correct": true},
+      {"id": "c", "text": "Centrifugal force", "correct": false},
+      {"id": "d", "text": "The satellite's inertia", "correct": false}
+    ],
+    "hint": "Centripetal force is always provided by a real physical force. See the Simulation section and Intuition section.",
+    "explanation": "Earth's gravity provides the centripetal force for orbital motion. The satellite is in continuous free fall toward Earth, but its tangential speed means it keeps missing Earth. Centrifugal force is fictitious.",
+    "section": "intuition"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "An astronaut in a rotating space station feels pressed against the outer wall. This is an example of:",
+    "options": [
+      {"id": "a", "text": "Real gravity", "correct": false},
+      {"id": "b", "text": "Normal force from the wall providing centripetal acceleration", "correct": true},
+      {"id": "c", "text": "Centrifugal force pushing them out", "correct": false},
+      {"id": "d", "text": "Friction keeping them in place", "correct": false}
+    ],
+    "hint": "Think from the inertial (non-rotating) frame. What real force acts? See the Misconceptions section.",
+    "explanation": "In the inertial frame: the wall pushes the astronaut inward (centripetally) to keep them moving in a circle. In the astronaut's rotating frame, they feel an apparent outward centrifugal force — but this is a fictitious force in the non-inertial frame.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the centripetal force $F_c$ needed to keep an object of mass $m$ moving in a circle of radius $r$ at speed $v$.",
+    "expected": "m*v^2/r",
+    "variables": ["m", "v", "r"],
+    "hint": "Apply Newton's second law with centripetal acceleration a_c = v²/r. See the Derivation section.",
+    "explanation": "F_c = m*a_c = m*v²/r. This force must be directed toward the center and must be provided by a real physical force (gravity, tension, friction, etc.).",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "An object moves in a circle of radius $r$ with angular velocity $\\omega$. Write its linear speed $v$.",
+    "expected": "r*omega",
+    "variables": ["r", "omega"],
+    "hint": "In one revolution (time T = 2π/ω), the object travels circumference 2πr. See the Derivation section.",
+    "explanation": "v = rω. This follows from v = circumference/period = 2πr / (2π/ω) = rω. Outer points on a rotating body move faster because they have larger r.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each circular motion quantity with its expression:",
+    "pairs": [
+      ["Centripetal acceleration", "a_c = v²/r = ω²r"],
+      ["Period of revolution", "T = 2π/ω = 2πr/v"],
+      ["Linear speed", "v = rω"],
+      ["Centripetal force", "F_c = mv²/r = mω²r"]
+    ],
+    "hint": "These follow from the derivation of centripetal acceleration. See the Derivation section.",
+    "explanation": "All circular motion quantities are interconnected via r, v, ω, and T. Memorizing one relationship and deriving the others is more reliable than memorizing all formulas.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "A car can round a level unbanked curve of radius 30 m safely if the maximum static friction force equals $0.7mg$. What is the maximum safe speed?",
+    "options": [
+      {"id": "a", "text": "About 7.8 m/s", "correct": false},
+      {"id": "b", "text": "About 14.3 m/s", "correct": true},
+      {"id": "c", "text": "About 20.6 m/s", "correct": false},
+      {"id": "d", "text": "About 10 m/s", "correct": false}
+    ],
+    "hint": "Set friction force equal to centripetal force: 0.7mg = mv²/r. Solve for v. See the Intuition section.",
+    "explanation": "0.7mg = mv²/r → v² = 0.7 × g × r = 0.7 × 9.8 × 30 = 205.8 → v ≈ 14.3 m/s.",
+    "section": "intuition"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "For each circular motion scenario, identify what provides the centripetal force:",
+    "pairs": [
+      ["Car rounding a curve", "Friction from road on tires"],
+      ["Planet orbiting the sun", "Gravitational attraction toward the sun"],
+      ["Ball on a string", "Tension in the string"],
+      ["Electron in a magnetic field", "Magnetic force (Lorentz force)"]
+    ],
+    "hint": "Centripetal force is always provided by a real physical interaction. See the Derivation section.",
+    "explanation": "There is no 'centripetal force' as a separate force type — it is always provided by an existing interaction. The term describes the role played by the net inward force.",
+    "section": "derivation"
+  }
+]

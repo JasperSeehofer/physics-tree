@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A spring-mass system has $k = 200\\,\\text{N/m}$ and $m = 2\\,\\text{kg}$. What is the angular frequency $\\omega$?",
+    "options": [
+      {"id": "a", "text": "$5\\,\\text{rad/s}$", "correct": false},
+      {"id": "b", "text": "$10\\,\\text{rad/s}$", "correct": true},
+      {"id": "c", "text": "$20\\,\\text{rad/s}$", "correct": false},
+      {"id": "d", "text": "$100\\,\\text{rad/s}$", "correct": false}
+    ],
+    "hint": "Use $\\omega = \\sqrt{k/m}$. See the Derivation section.",
+    "explanation": "ω = √(k/m) = √(200/2) = √100 = 10 rad/s.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "If you double the amplitude of a spring oscillator, how does the period change?",
+    "options": [
+      {"id": "a", "text": "The period doubles", "correct": false},
+      {"id": "b", "text": "The period is unchanged", "correct": true},
+      {"id": "c", "text": "The period halves", "correct": false},
+      {"id": "d", "text": "The period increases by $\\sqrt{2}$", "correct": false}
+    ],
+    "hint": "The period formula is $T = 2\\pi\\sqrt{m/k}$. Does it contain amplitude? See the Misconceptions section.",
+    "explanation": "T = 2π√(m/k) has no dependence on amplitude A. SHM is isochronous — the period is independent of amplitude. Doubling A doubles the energy (∝A²) but leaves T unchanged.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "At the equilibrium position of a spring oscillator, the object's kinetic energy is:",
+    "options": [
+      {"id": "a", "text": "Zero (momentarily stopped)", "correct": false},
+      {"id": "b", "text": "Maximum (moving fastest)", "correct": true},
+      {"id": "c", "text": "Equal to the potential energy", "correct": false},
+      {"id": "d", "text": "Half the total energy", "correct": false}
+    ],
+    "hint": "Think about energy conservation in SHM. See the Derivation section.",
+    "explanation": "At equilibrium, spring potential energy is zero. All energy is kinetic, so KE is maximum. The object passes through equilibrium at its maximum speed. It momentarily stops at the turning points (maximum displacement).",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "A simple pendulum of length $L = 1\\,\\text{m}$ undergoes small-angle SHM. What is its period? ($g = 9.8\\,\\text{m/s}^2$)",
+    "options": [
+      {"id": "a", "text": "About 1 s", "correct": false},
+      {"id": "b", "text": "About 2 s", "correct": true},
+      {"id": "c", "text": "About 3.14 s", "correct": false},
+      {"id": "d", "text": "About 4 s", "correct": false}
+    ],
+    "hint": "For a pendulum: $T = 2\\pi\\sqrt{L/g}$. See the Intuition section.",
+    "explanation": "T = 2π√(L/g) = 2π√(1/9.8) = 2π × 0.319 ≈ 2.0 s. The 'seconds pendulum' with T = 2 s has length ≈ 1 m.",
+    "section": "intuition"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "Which condition must hold for a system to undergo SHM?",
+    "options": [
+      {"id": "a", "text": "The restoring force must be constant", "correct": false},
+      {"id": "b", "text": "The restoring force must be proportional to displacement (Hooke's Law)", "correct": true},
+      {"id": "c", "text": "The system must be frictionless", "correct": false},
+      {"id": "d", "text": "The mass must be small", "correct": false}
+    ],
+    "hint": "The SHM equation $\\ddot{x} + \\omega^2 x = 0$ requires a specific force law. See the Derivation section.",
+    "explanation": "SHM requires F = -kx: restoring force proportional to displacement. This gives the linear ODE with sinusoidal solutions. Friction causes damped oscillation (not pure SHM), but the restoring force condition is the key requirement.",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the period $T$ of a spring-mass SHM system with spring constant $k$ and mass $m$.",
+    "expected": "2*pi*sqrt(m/k)",
+    "variables": ["m", "k"],
+    "hint": "Derived from the SHM equation solution. See the Derivation section.",
+    "explanation": "T = 2π√(m/k). This follows from ω = √(k/m) and T = 2π/ω.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "In SHM with amplitude $A$ and spring constant $k$, write the total mechanical energy $E$.",
+    "expected": "0.5*k*A^2",
+    "variables": ["k", "A"],
+    "hint": "At maximum displacement, all energy is potential (K = 0). See the Derivation section.",
+    "explanation": "E = K + U = ½kA² (constant). At maximum displacement x = A, all energy is spring PE = ½kA².",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each position in SHM to the energy distribution:",
+    "pairs": [
+      ["Maximum displacement (x = A)", "K = 0, U = ½kA²"],
+      ["Equilibrium (x = 0)", "K = ½kA², U = 0"],
+      ["x = A/2 (half amplitude)", "K = ¾ × ½kA², U = ¼ × ½kA²"],
+      ["Any position x", "K + U = ½kA² (constant)"]
+    ],
+    "hint": "At position x: U = ½kx². K = E - U = ½kA² - ½kx². See the Derivation section.",
+    "explanation": "Energy continuously converts between K and U. At x = A/2: U = ½k(A/2)² = ¼×½kA². K = E - U = ¾×½kA².",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "A mass-spring system (m = 0.5 kg, k = 50 N/m) is displaced 0.2 m from equilibrium and released. What is the maximum speed?",
+    "options": [
+      {"id": "a", "text": "1 m/s", "correct": false},
+      {"id": "b", "text": "2 m/s", "correct": true},
+      {"id": "c", "text": "4 m/s", "correct": false},
+      {"id": "d", "text": "0.5 m/s", "correct": false}
+    ],
+    "hint": "Use energy conservation: at equilibrium, ½mv²_max = ½kA². See the Derivation section.",
+    "explanation": "½mv² = ½kA². v_max = A√(k/m) = 0.2×√(50/0.5) = 0.2×10 = 2 m/s.",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each SHM system with its angular frequency:",
+    "pairs": [
+      ["Spring (k = 100 N/m, m = 1 kg)", "ω = 10 rad/s"],
+      ["Pendulum (L = 0.25 m, g = 10 m/s²)", "ω = 6.28 rad/s (= 2π rad/s)"],
+      ["Spring (k = 400 N/m, m = 4 kg)", "ω = 10 rad/s"],
+      ["SHM general formula", "ω = √(k/m)"]
+    ],
+    "hint": "For spring: ω = √(k/m). For pendulum: ω = √(g/L). See the Derivation section.",
+    "explanation": "Spring ω = √(100/1) = 10 rad/s. Pendulum ω = √(10/0.25) = √40 ≈ 6.32 rad/s. Second spring: √(400/4) = 10 rad/s.",
+    "section": "derivation"
+  }
+]

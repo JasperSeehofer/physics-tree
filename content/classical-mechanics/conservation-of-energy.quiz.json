@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A 0.5 kg ball starts from rest at $h = 10\\,\\text{m}$ on a frictionless roller coaster. What is its speed at $h = 2\\,\\text{m}$? ($g = 9.8\\,\\text{m/s}^2$)",
+    "options": [
+      {"id": "a", "text": "12.5 m/s", "correct": true},
+      {"id": "b", "text": "14.0 m/s", "correct": false},
+      {"id": "c", "text": "9.8 m/s", "correct": false},
+      {"id": "d", "text": "6.3 m/s", "correct": false}
+    ],
+    "hint": "Use K_i + U_i = K_f + U_f. The mass cancels. See the Examples section.",
+    "explanation": "mgh_i = ½mv² + mgh_f → v = √(2g(h_i - h_f)) = √(2×9.8×8) = √156.8 ≈ 12.5 m/s. Mass cancels.",
+    "section": "examples"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A spring ($k = 500\\,\\text{N/m}$) compressed by $x = 0.1\\,\\text{m}$ releases a 0.2 kg ball. What is the ball's speed after leaving the spring (on a frictionless surface)?",
+    "options": [
+      {"id": "a", "text": "2.5 m/s", "correct": false},
+      {"id": "b", "text": "5 m/s", "correct": true},
+      {"id": "c", "text": "10 m/s", "correct": false},
+      {"id": "d", "text": "7.07 m/s", "correct": false}
+    ],
+    "hint": "All spring potential energy converts to kinetic energy. See the Examples section.",
+    "explanation": "½kx² = ½mv². v = x√(k/m) = 0.1×√(500/0.2) = 0.1×50 = 5 m/s.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "A pendulum swings back and forth. At what point does it have maximum kinetic energy?",
+    "options": [
+      {"id": "a", "text": "At the highest point of its swing", "correct": false},
+      {"id": "b", "text": "At the lowest point of its swing", "correct": true},
+      {"id": "c", "text": "Midway between highest and lowest", "correct": false},
+      {"id": "d", "text": "Kinetic energy is constant throughout the swing", "correct": false}
+    ],
+    "hint": "Think about the conversion between kinetic and potential energy. See the Intuition section.",
+    "explanation": "At the lowest point, potential energy is minimum (if we set U = 0 there) and all energy is kinetic → maximum KE and speed. At the highest points, all energy is potential, KE = 0.",
+    "section": "intuition"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "A skier slides down a mountain with friction. Which statement is true about their energy?",
+    "options": [
+      {"id": "a", "text": "Total energy (kinetic + potential + thermal) is conserved", "correct": true},
+      {"id": "b", "text": "Mechanical energy is conserved", "correct": false},
+      {"id": "c", "text": "Energy is destroyed by friction", "correct": false},
+      {"id": "d", "text": "Kinetic energy is conserved", "correct": false}
+    ],
+    "hint": "Friction converts energy to heat. See the Misconceptions section.",
+    "explanation": "Friction converts mechanical energy to thermal energy (heat). Mechanical energy is NOT conserved. But total energy (mechanical + thermal) IS conserved — energy is never created or destroyed.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "You change the reference height for gravitational potential energy from ground level to table-top level. This:",
+    "options": [
+      {"id": "a", "text": "Changes the calculated speed of a falling object", "correct": false},
+      {"id": "b", "text": "Changes the potential energy values but not the calculated speeds or energy changes", "correct": true},
+      {"id": "c", "text": "Makes potential energy negative, which is physically impossible", "correct": false},
+      {"id": "d", "text": "Makes energy conservation invalid", "correct": false}
+    ],
+    "hint": "Only changes in potential energy matter. See the Misconceptions section.",
+    "explanation": "Only ΔU matters in energy conservation. Changing the reference shifts all U values by the same constant, so ΔU is unchanged. Calculated speeds and energy differences are unaffected. Negative potential energy is perfectly fine.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the gravitational potential energy $U_g$ of a mass $m$ at height $y$ above a reference point (using $g$ for gravitational acceleration).",
+    "expected": "m*g*y",
+    "variables": ["m", "g", "y"],
+    "hint": "Derived from the work done against gravity. See the Derivation section.",
+    "explanation": "U_g = mgy. This comes from W_gravity = -ΔU, and W_gravity = -mgh when raising by height h.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A mass $m$ starts from rest at height $h$ and slides down a frictionless slope. Write its speed $v$ at the bottom (at height 0).",
+    "expected": "sqrt(2*g*h)",
+    "variables": ["g", "h"],
+    "hint": "Set mgh = ½mv² and solve for v. Mass cancels. See the Examples section.",
+    "explanation": "mgh = ½mv². Canceling m: gh = ½v². v = √(2gh). The speed depends only on the height drop, not the path or mass.",
+    "section": "examples"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each type of potential energy with its formula:",
+    "pairs": [
+      ["Gravitational potential energy (near Earth)", "U = mgy"],
+      ["Elastic (spring) potential energy", "U = ½kx²"],
+      ["Kinetic energy", "K = ½mv²"],
+      ["Total mechanical energy", "E = K + U"]
+    ],
+    "hint": "These are derived in the Derivation section.",
+    "explanation": "Gravitational PE: derived from work against gravity. Spring PE: derived from integrating F = -kx. Kinetic energy: derived from work-energy theorem. Total mechanical energy is their sum.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "For which type of force is potential energy defined?",
+    "options": [
+      {"id": "a", "text": "All forces", "correct": false},
+      {"id": "b", "text": "Conservative forces only (work depends only on endpoints, not path)", "correct": true},
+      {"id": "c", "text": "Non-conservative forces only", "correct": false},
+      {"id": "d", "text": "Only gravitational forces", "correct": false}
+    ],
+    "hint": "Potential energy requires path-independence of work. See the Derivation section.",
+    "explanation": "Potential energy can only be defined for conservative forces (gravity, spring), where the work done depends only on initial and final positions. Friction is non-conservative (work depends on path length) and has no potential energy.",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "For a pendulum swinging between heights 0 (lowest) and h (highest), match each point to its energy state:",
+    "pairs": [
+      ["Lowest point", "K = maximum, U = 0 (reference at bottom)"],
+      ["Highest point", "K = 0, U = mgh"],
+      ["Midpoint (height h/2)", "K = mgh/2, U = mgh/2"],
+      ["Any point", "K + U = mgh (constant total energy)"]
+    ],
+    "hint": "Apply conservation of energy E = K + U = constant throughout the swing. See the Intuition section.",
+    "explanation": "Energy continuously converts between K and U. At any point, the total equals the initial (or maximum) potential energy mgh. The split between K and U depends on height.",
+    "section": "intuition"
+  }
+]
