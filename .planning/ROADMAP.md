@@ -13,7 +13,7 @@ PhysicsTree is built in strict dependency order: the foundation (workspace, sche
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Rust workspace, database schema, design system, and CI pipeline (completed 2026-03-18)
-- [ ] **Phase 2: Graph Explorer** - Zoomable botanical knowledge graph with WebGL rendering
+- [x] **Phase 2: Graph Explorer** - Zoomable botanical knowledge graph with WebGL rendering (completed 2026-03-22)
 - [ ] **Phase 3: Content and Simulations** - Per-concept learning modules, quizzes, and interactive simulations
 - [ ] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard
 - [ ] **Phase 5: Gamification and Personal Tree** - XP, streaks, mastery levels, and the growing personal knowledge tree
@@ -47,9 +47,9 @@ Plans:
   4. Graph layout is computed in a Web Worker and does not block the UI during initial load
 **Plans**: 3 plans
 Plans:
-- [ ] 02-01-PLAN.md — Graph repository, API endpoints, seed data expansion, Leptos router
-- [ ] 02-02-PLAN.md — npm/Sigma.js setup, sigma_bridge.js, GraphCanvas component
-- [ ] 02-03-PLAN.md — Search, detail panel, tooltip, prereq highlighting, full page wiring
+- [x] 02-01-PLAN.md — Graph repository, API endpoints, seed data expansion, Leptos router
+- [x] 02-02-PLAN.md — npm/Sigma.js setup, sigma_bridge.js, GraphCanvas component
+- [x] 02-03-PLAN.md — Search, detail panel, tooltip, prereq highlighting, full page wiring
 
 ### Phase 3: Content and Simulations
 **Goal**: Each concept node has a full educational module — motivation, derivation with rendered math, examples, misconception-targeting, and quizzes — plus interactive physics simulations that students can control; classical mechanics is fully populated.
@@ -121,7 +121,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Graph Explorer | 2/3 | In Progress|  |
+| 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
 | 3. Content and Simulations | 0/TBD | Not started | - |
 | 4. Accounts and Progress | 0/TBD | Not started | - |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |
