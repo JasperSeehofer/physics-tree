@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-03-22T12:45:34.943Z"
+stopped_at: Completed 03-content-and-simulations 03-02-PLAN.md
+last_updated: "2026-03-22T13:49:04.051Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 12
+  completed_plans: 7
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 ## Current Position
 
-Phase: 03 (content-and-simulations) — NOT STARTED
-Plan: 0 of TBD
+Phase: 03 (content-and-simulations) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 0 of TBD
 | Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
 | Phase 02-graph-explorer P01 | 25 | 2 tasks | 11 files |
 | Phase 02-graph-explorer P03 | 6 | 1 tasks | 6 files |
+| Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 02-graph-explorer]: filter_nodes extracted as pure fn outside SearchInput component — enables #[test] without leptos runtime
 - [Phase 02-graph-explorer]: StoredValue::new(nodes) in SearchInput to share node list across multiple closures without ownership conflict
 - [Phase 02-graph-explorer]: serde_json::Value used in graph_explorer.rs instead of domain types — avoids JSON double-parsing and works cleanly with gloo-net
+- [Phase 03-content-and-simulations]: rapier2d 0.32 has no wasm-bindgen feature; use f32 feature + getrandom js for WASM target
+- [Phase 03-content-and-simulations]: rapier2d 0.32 Vector is type alias Vec2 (not generic); vector![] macro needs .into() conversion; gravity in step() is by value not reference
+- [Phase 03-content-and-simulations]: Rebuild full Rapier2D pipeline on reset_sim() for clean state (no handle reuse issues)
 
 ### Pending Todos
 
@@ -93,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T12:45:34.942Z
-Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-content-and-simulations/03-UI-SPEC.md
+Last session: 2026-03-22T13:49:04.050Z
+Stopped at: Completed 03-content-and-simulations 03-02-PLAN.md
+Resume file: None
