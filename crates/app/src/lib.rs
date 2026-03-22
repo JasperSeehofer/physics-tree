@@ -5,6 +5,7 @@ use leptos::prelude::*;
 use leptos_meta::HashedStylesheet;
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
+use pages::concept::ConceptPage;
 use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
 
@@ -27,6 +28,8 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <title>"PhysicsTree \u{2014} Explore the physics universe"</title>
                 <HashedStylesheet options=options.clone() id="main-stylesheet" />
                 <script src="/js/sigma_bundle.js"></script>
+                <script src="/js/katex_bundle.js"></script>
+                <script src="/js/toc_bundle.js"></script>
                 <AutoReload options=options.clone() />
                 <HydrationScripts options />
                 <leptos_meta::MetaTags />
@@ -46,6 +49,7 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| "Page not found.">
                 <Route path=path!("/") view=LandingPage />
                 <Route path=path!("/graph") view=GraphExplorerPage />
+                <Route path=path!("/graph/:slug/learn") view=ConceptPage />
             </Routes>
         </Router>
     }

@@ -6,6 +6,7 @@ use crate::components::graph::canvas::GraphState;
 #[derive(Clone, Debug)]
 pub struct NodePanelData {
     pub id: String,
+    pub slug: String,
     pub title: String,
     pub node_type: String, // "Concept", "Formula", etc.
     pub branch: String,
@@ -167,13 +168,12 @@ pub fn RightPanel(
 
                     // Footer
                     <div class="p-6 border-t border-bark-light mt-auto">
-                        <button
-                            class="w-full py-3 px-4 rounded-lg bg-bark-mid text-mist cursor-not-allowed text-sm font-bold"
-                            disabled
-                            title="Content modules arrive in Phase 3"
+                        <a
+                            href=format!("/graph/{}/learn", n.slug)
+                            class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void cursor-pointer hover:brightness-110 text-sm font-bold block text-center"
                         >
                             "Learn this concept"
-                        </button>
+                        </a>
                     </div>
                 }
             })}

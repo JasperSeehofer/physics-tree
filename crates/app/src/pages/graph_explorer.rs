@@ -162,6 +162,7 @@ pub fn GraphExplorerPage() -> impl IntoView {
                 if let Some(node_val) = nodes.iter().find(|n| json_str(n, "id") == id) {
                     panel_node.set(Some(NodePanelData {
                         id: id.clone(),
+                        slug: json_str(node_val, "slug"),
                         title: json_str(node_val, "title"),
                         node_type: node_type_display(node_val),
                         branch: json_str(node_val, "branch"),
