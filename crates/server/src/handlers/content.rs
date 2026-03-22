@@ -9,6 +9,7 @@ use serde::Serialize;
 use sqlx::PgPool;
 
 use app::components::content::markdown_renderer::render_content_markdown;
+use domain::quiz::QuizQuestion;
 
 /// A prerequisite or next-concept item in the API response.
 #[derive(Serialize)]
@@ -118,4 +119,39 @@ pub async fn get_content(
         sections: rendered.sections,
         simulations: rendered.simulations,
     }))
+}
+
+/// GET /api/quiz/{slug}
+///
+/// Reads quiz questions from `content/classical-mechanics/{slug}.quiz.json`,
+/// randomizes order and truncates to at most 5 questions, shuffles multiple
+/// choice option order (per D-22).
+///
+/// Returns 404 if the quiz JSON file does not exist.
+pub async fn get_quiz(
+    Path(slug): Path<String>,
+) -> Result<Json<Vec<QuizQuestion>>, (StatusCode, String)> {
+    let quiz_path = format!("content/classical-mechanics/{}.quiz.json", slug);
+
+    let quiz_json = tokio::fs::read_to_string(&quiz_path)
+        .await
+        .map_err(|_| (StatusCode::NOT_FOUND, "Quiz not found".to_string()))?;
+
+    let mut questions: Vec<QuizQuestion> = serde_json::from_str(&quiz_json)
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    // Randomize question pool and limit to 5 (per D-22)
+    use rand::seq::SliceRandom;
+    let mut rng = rand::thread_rng();
+    questions.shuffle(&mut rng);
+    questions.truncate(5);
+
+    // Shuffle multiple choice options so correct answer position is random
+    for q in &mut questions {
+        if let Some(ref mut opts) = q.options {
+            opts.shuffle(&mut rng);
+        }
+    }
+
+    Ok(Json(questions))
 }

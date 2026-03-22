@@ -17,5 +17,9 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/content/{slug}",
             axum::routing::get(handlers::content::get_content),
         )
+        .route(
+            "/api/quiz/{slug}",
+            axum::routing::get(handlers::content::get_quiz),
+        )
         .with_state(pool)
 }

@@ -2,16 +2,20 @@
 //!
 //! Route: /graph/:slug/learn
 //! Fetches content from /api/content/{slug}, renders two-column layout with
-//! sticky TOC sidebar, prerequisites banner, content HTML, and next-concept nav.
+//! sticky TOC sidebar, prerequisites banner, content HTML, simulations, quizzes,
+//! and next-concept nav.
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use serde::{Deserialize, Serialize};
 
 use crate::components::content::{
-    next_concept::NextConceptNav, prereqs_banner::{PrereqInfo, PrerequisitesBanner},
+    next_concept::NextConceptNav,
+    prereqs_banner::{PrereqInfo, PrerequisitesBanner},
     toc::ConceptToc,
 };
+use crate::components::simulation::embed::SimulationEmbed;
+use crate::components::quiz::checkpoint::QuizCheckpoint;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API response types (mirroring server's ConceptContent)
@@ -31,7 +35,7 @@ pub struct ConceptContent {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Data fetch helper
+// Data fetch helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[cfg(target_arch = "wasm32")]
@@ -70,6 +74,26 @@ async fn fetch_concept_content(_slug: &str) -> Result<ConceptContent, String> {
     })
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn fetch_quiz_questions(slug: &str) -> Vec<domain::quiz::QuizQuestion> {
+    let url = format!("/api/quiz/{}", slug);
+    let resp = match gloo_net::http::Request::get(&url).send().await {
+        Ok(r) => r,
+        Err(_) => return vec![],
+    };
+    if !resp.ok() {
+        return vec![];
+    }
+    resp.json::<Vec<domain::quiz::QuizQuestion>>()
+        .await
+        .unwrap_or_default()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
+    vec![]
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ConceptPage component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -87,14 +111,20 @@ pub fn ConceptPage() -> impl IntoView {
     let content: RwSignal<Option<ConceptContent>> = RwSignal::new(None);
     let load_error: RwSignal<Option<String>> = RwSignal::new(None);
     let loading = RwSignal::new(true);
+    let quiz_questions: RwSignal<Vec<domain::quiz::QuizQuestion>> = RwSignal::new(vec![]);
+
+    // Track which quiz checkpoints have been passed (index → bool)
+    let checkpoint_passed: RwSignal<Vec<bool>> = RwSignal::new(vec![]);
 
     // Active TOC section (updated by IntersectionObserver via JS bridge)
     let (active_section, set_active_section) = signal(String::new());
 
-    // ── Fetch content on mount (client-only) ────────────────────────────────
+    // ── Fetch content and quiz on mount (client-only) ────────────────────────
     #[cfg(target_arch = "wasm32")]
     {
         let slug_val = slug();
+        let slug_for_quiz = slug_val.clone();
+
         leptos::task::spawn_local(async move {
             match fetch_concept_content(&slug_val).await {
                 Ok(c) => {
@@ -106,6 +136,13 @@ pub fn ConceptPage() -> impl IntoView {
                     loading.set(false);
                 }
             }
+        });
+
+        leptos::task::spawn_local(async move {
+            let questions = fetch_quiz_questions(&slug_for_quiz).await;
+            let n = questions.len();
+            checkpoint_passed.set(vec![false; n]);
+            quiz_questions.set(questions);
         });
     }
 
@@ -250,6 +287,7 @@ pub fn ConceptPage() -> impl IntoView {
                         let next = c.next_concepts.clone();
                         let html = c.html.clone();
                         let title = c.title.clone();
+                        let simulations = c.simulations.clone();
 
                         view! {
                             // TOC sidebar (lg+ only)
@@ -271,6 +309,66 @@ pub fn ConceptPage() -> impl IntoView {
                                     class="prose prose-invert max-w-none"
                                     inner_html=html
                                 />
+
+                                // Simulation embeds — rendered after content HTML
+                                // Per Plan 01: SimulationEmbed components are native Leptos
+                                // components in the tree, NOT injected into inner_html.
+                                <For
+                                    each=move || simulations.clone().into_iter().enumerate()
+                                    key=|(i, name)| format!("{}-{}", i, name)
+                                    children=move |(_, name)| view! {
+                                        <div class="my-8">
+                                            <SimulationEmbed sim_name=name />
+                                        </div>
+                                    }
+                                />
+
+                                // Quiz checkpoints — soft-block content below until answered/skipped
+                                {move || {
+                                    let questions = quiz_questions.get();
+                                    if questions.is_empty() {
+                                        return view! { <div /> }.into_any();
+                                    }
+
+                                    let passed = checkpoint_passed.get();
+
+                                    view! {
+                                        <div class="mt-8">
+                                            {questions.into_iter().enumerate().map(|(idx, question)| {
+                                                // Is this checkpoint (and all before it) cleared?
+                                                let this_passed = passed.get(idx).copied().unwrap_or(false);
+
+                                                // Content below is blurred until THIS checkpoint is passed
+                                                let blur_class = if this_passed {
+                                                    ""
+                                                } else {
+                                                    // Only blur if there's a previous checkpoint that's also passed
+                                                    // or this is the first unanswered one
+                                                    if idx == 0 || passed.get(idx - 1).copied().unwrap_or(false) {
+                                                        "" // checkpoint itself is not blurred
+                                                    } else {
+                                                        "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
+                                                    }
+                                                };
+
+                                                view! {
+                                                    <div class=blur_class>
+                                                        <QuizCheckpoint
+                                                            question=question
+                                                            on_answered=Callback::new(move |_answered: bool| {
+                                                                checkpoint_passed.update(|passed| {
+                                                                    if let Some(slot) = passed.get_mut(idx) {
+                                                                        *slot = true;
+                                                                    }
+                                                                });
+                                                            })
+                                                        />
+                                                    </div>
+                                                }
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_any()
+                                }}
 
                                 // Next concept navigation
                                 <NextConceptNav concepts=next />

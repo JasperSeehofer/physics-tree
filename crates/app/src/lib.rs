@@ -30,6 +30,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <script src="/js/sigma_bundle.js"></script>
                 <script src="/js/katex_bundle.js"></script>
                 <script src="/js/toc_bundle.js"></script>
+                <script src="/js/mathjs_bundle.js" defer=true></script>
                 <AutoReload options=options.clone() />
                 <HydrationScripts options />
                 <leptos_meta::MetaTags />
