@@ -22,7 +22,7 @@ created: 2026-03-22
 | Preset | not applicable | — |
 | Component library | none (hand-authored Leptos components) | crates/app/src/components/ — detected |
 | Icon library | inline SVG (hand-drawn, matches botanical aesthetic) | panel.rs, tooltip.rs — detected |
-| Font | Nunito (self-hosted WOFF2, weights 400/700/800) | style/main.css — detected |
+| Font | Nunito (self-hosted WOFF2, weights 400/700) | style/main.css — detected |
 
 No shadcn. Not applicable for this stack (Rust/Leptos, not React/Next.js). Registry safety gate: not applicable.
 
@@ -59,15 +59,14 @@ Source: 8-point default scale; exceptions derived from D-03, D-04, D-10 in CONTE
 | Body | 16px | 400 (regular) | 1.6 | Motivation, intuition, example paragraphs, misconception reveal text |
 | Label | 14px | 700 (bold) | 1.4 | Badge labels, TOC links, quiz option labels, section headers in TOC |
 | Heading | 20px | 700 (bold) | 1.3 | Section headings (Motivation, Derivation, Intuition, etc.), quiz section titles |
-| Display | 28px | 800 (extrabold) | 1.2 | Concept title at top of content page |
+| Display | 28px | 700 (bold) | 1.2 | Concept title at top of content page |
 
 Notes:
-- Nunito 800 (extrabold) is available (confirmed in style/main.css) — use for display only
 - Math blocks (KaTeX): rendered as inline or block; KaTeX inherits Nunito for surrounding text, math glyphs use KaTeX's own Computer Modern WOFF2
 - Code blocks (if any): monospace fallback `ui-monospace, monospace` at 14px weight 400
 - LaTeX display equations: block-level, centered, 20px equivalent size via KaTeX CSS
 
-Source: existing panel.rs uses `text-xl font-bold` (20px/700), `text-base` (16px), `text-sm` (14px); Nunito 800 declared in main.css. Display size derived from D-01 (full dedicated content page warrants larger title).
+Source: existing panel.rs uses `text-xl font-bold` (20px/700), `text-base` (16px), `text-sm` (14px). Display size derived from D-01 (full dedicated content page warrants larger title); 28px at weight 700 is sufficiently distinct from the 20px Heading role without a third weight.
 
 ---
 
@@ -136,7 +135,7 @@ Reused from Phase 2 (no changes):
 │ TOC sidebar    │  Content column (700px max, centered │
 │ 240px fixed    │  with auto margins)                 │
 │ sticky top-0   │                                     │
-│ text-sm labels │  [Display heading 28px/800]         │
+│ text-sm labels │  [Display heading 28px/700]         │
 │                │  [Prerequisites banner]             │
 │ Motivation     │  [Section: Motivation]              │
 │ Derivation     │  [Section: Derivation — stepper]    │
@@ -241,7 +240,7 @@ Reused from Phase 2 (no changes):
 | Quiz check button | "Check answer" |
 | Simulation play button (aria-label) | "Play simulation" |
 | Simulation pause button (aria-label) | "Pause simulation" |
-| Simulation reset button | "Reset" |
+| Simulation reset button | "Reset simulation" |
 | Simulation expand button (aria-label) | "Expand simulation" |
 | Simulation plot toggle | "Show plot" / "Hide plot" |
 | Simulation precise mode toggle | "Precise mode" |
