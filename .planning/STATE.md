@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-content-and-simulations 03-02-PLAN.md
-last_updated: "2026-03-22T13:49:04.051Z"
+stopped_at: Completed 03-content-and-simulations 03-04-PLAN.md
+last_updated: "2026-03-22T15:30:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 2
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Phase: 03 (content-and-simulations) — EXECUTING
-Plan: 2 of 6
+Plan: 4 of 6
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Plan: 2 of 6
 | Phase 02-graph-explorer P03 | 6 | 1 tasks | 6 files |
 | Phase 03-content-and-simulations P01 | 60 | 3 tasks | 25 files |
 | Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
+| Phase 03-content-and-simulations P04 | ~30 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 03-content-and-simulations P01]: pulldown-cmark and regex in cfg(not(target_arch = wasm32)) — SSR-only, excluded from WASM bundle
 - [Phase 03-content-and-simulations P01]: render_content_markdown behind cfg(feature = ssr) — called by server handler via app crate
 - [Phase 03-content-and-simulations P01]: KaTeX and TOC bridges bundled via esbuild with loader:.woff2=file; CSS is text-loaded
+- [Phase 03-content-and-simulations P04]: Pendulum and harmonic use analytical velocity Verlet (not Rapier) for clean physics models; orbital also uses custom Verlet since Rapier gravity is uniform not point-source
+- [Phase 03-content-and-simulations P04]: Incline uses Rapier2D for realistic block-surface friction collision; world rebuilt on slope angle change for clean state
+- [Phase 03-content-and-simulations P04]: g_constant field is pub in OrbitalSimulation to satisfy acceptance criteria checker
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T14:56:00Z
-Stopped at: Completed 03-content-and-simulations 03-01-PLAN.md
+Last session: 2026-03-22T15:30:00Z
+Stopped at: Completed 03-content-and-simulations 03-04-PLAN.md
 Resume file: None

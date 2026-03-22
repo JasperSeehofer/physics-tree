@@ -66,7 +66,7 @@ Plans:
 - [x] 03-01-PLAN.md — Content pipeline: markdown parser with tests, KaTeX bridge, content API, ConceptPage layout, TOC, and hydration components
 - [x] 03-02-PLAN.md — Simulation engine: Rapier2D setup, projectile motion prototype, canvas rendering
 - [ ] 03-03-PLAN.md — Interactive components: simulation embed UI with URL state sync and numeric inputs, quiz system (3 types), mathjs formula validation
-- [ ] 03-04-PLAN.md — Remaining simulations: pendulum, harmonic oscillator, inclined plane, orbital mechanics
+- [x] 03-04-PLAN.md — Remaining simulations: pendulum, harmonic oscillator, inclined plane, orbital mechanics
 - [x] 03-05-PLAN.md — Content population: 15 concept modules (by topic group), quiz question pools, content metadata migration
 - [ ] 03-06-PLAN.md — SVG illustrations: 10 custom flat vector diagrams for key concepts per D-07
 
@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
-| 3. Content and Simulations | 1/6 | In Progress|  |
+| 3. Content and Simulations | 4/6 | In Progress|  |
 | 4. Accounts and Progress | 0/TBD | Not started | - |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |
 | 6. Spaced Repetition | 0/TBD | Not started | - |
