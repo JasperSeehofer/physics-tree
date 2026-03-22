@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A train moves east at $V = 30\\,\\text{m/s}$. A passenger walks forward (east) at $v' = 2\\,\\text{m/s}$ relative to the train. What is the passenger's speed relative to the ground?",
+    "options": [
+      {"id": "a", "text": "28 m/s", "correct": false},
+      {"id": "b", "text": "32 m/s", "correct": true},
+      {"id": "c", "text": "30 m/s", "correct": false},
+      {"id": "d", "text": "60 m/s", "correct": false}
+    ],
+    "hint": "Use classical velocity addition: v = v' + V. See the Derivation section.",
+    "explanation": "v = v' + V = 2 + 30 = 32 m/s east. Classical velocities add linearly (valid for v << c).",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "In classical mechanics, which quantity is absolute (the same for all observers)?",
+    "options": [
+      {"id": "a", "text": "Velocity", "correct": false},
+      {"id": "b", "text": "Acceleration (in inertial frames)", "correct": true},
+      {"id": "c", "text": "Position", "correct": false},
+      {"id": "d", "text": "Time intervals (in special relativity)", "correct": false}
+    ],
+    "hint": "Galilean transformations preserve some quantities but not others. See the Derivation section.",
+    "explanation": "In classical mechanics, positions and velocities are frame-dependent, but accelerations are the same in all inertial frames (the Galilean transformation has constant velocity offset, so acceleration = d²x/dt² is unchanged). This is why F = ma works in any inertial frame.",
+    "section": "derivation"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "In classical mechanics, if two events are simultaneous in one inertial frame, they are simultaneous in:",
+    "options": [
+      {"id": "a", "text": "Only faster reference frames", "correct": false},
+      {"id": "b", "text": "All reference frames (time is absolute)", "correct": true},
+      {"id": "c", "text": "Only slower reference frames", "correct": false},
+      {"id": "d", "text": "No other frames (special relativity applies)", "correct": false}
+    ],
+    "hint": "Classical mechanics uses Newton's absolute time: t' = t for all observers. See the Derivation section.",
+    "explanation": "In classical (Newtonian) mechanics, time is absolute: t' = t always. All observers agree on when events happen. (This breaks down in special relativity where simultaneity is frame-dependent — but not in classical mechanics.)",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "What is the distance between points $(0, 0, 0)$ and $(3, 4, 0)$ in 3D Euclidean space?",
+    "options": [
+      {"id": "a", "text": "7", "correct": false},
+      {"id": "b", "text": "5", "correct": true},
+      {"id": "c", "text": "12", "correct": false},
+      {"id": "d", "text": "$\\sqrt{7}$", "correct": false}
+    ],
+    "hint": "Use the 3D Pythagorean theorem. See the Derivation section.",
+    "explanation": "d = √(3² + 4² + 0²) = √(9+16) = √25 = 5. The 3D Pythagorean theorem gives Euclidean distance.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "At what speeds does the classical (Galilean) velocity addition formula break down?",
+    "options": [
+      {"id": "a", "text": "Speeds above 100 m/s", "correct": false},
+      {"id": "b", "text": "Speeds comparable to the speed of light ($c \\approx 3\\times10^8\\,\\text{m/s}$)", "correct": true},
+      {"id": "c", "text": "Speeds below 1 m/s", "correct": false},
+      {"id": "d", "text": "All speeds except zero", "correct": false}
+    ],
+    "hint": "Special relativity replaces Galilean transformations at high speeds. See the Misconceptions section.",
+    "explanation": "The Galilean transformation and classical velocity addition are excellent approximations for v << c. Near the speed of light, the Lorentz transformation of special relativity must be used instead.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "In the Galilean transformation, frame S' moves at velocity $V$ relative to frame S. Write the position $x'$ in S' given position $x$ in S at time $t$.",
+    "expected": "x - V*t",
+    "variables": ["x", "V", "t"],
+    "hint": "The Galilean transformation shifts position by V*t. See the Derivation section.",
+    "explanation": "x' = x - Vt. This says that if S' moves at V relative to S, a point at x in S appears at x - Vt in S' (because S' has moved Vt forward by time t).",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Write the 3D Euclidean distance $d$ between point $(x_1, y_1, z_1)$ and point $(x_2, y_2, z_2)$.",
+    "expected": "sqrt((x_2-x_1)^2 + (y_2-y_1)^2 + (z_2-z_1)^2)",
+    "variables": ["x_1", "y_1", "z_1", "x_2", "y_2", "z_2"],
+    "hint": "Extend the Pythagorean theorem to three dimensions. See the Derivation section.",
+    "explanation": "d = √[(x₂-x₁)² + (y₂-y₁)² + (z₂-z₁)²]. This is the Euclidean metric, fundamental to 3D classical space.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each concept to its description in classical (Newtonian) mechanics:",
+    "pairs": [
+      ["Absolute space", "Fixed 3D Euclidean scaffold; the same for all observers"],
+      ["Absolute time", "Universal clock; t' = t in all frames"],
+      ["Inertial frame", "A non-accelerating reference frame where Newton's laws hold"],
+      ["Galilean transformation", "x' = x - Vt, t' = t (relates positions/times in two inertial frames)"]
+    ],
+    "hint": "These are the foundational concepts of classical space and time. See the Derivation section.",
+    "explanation": "Newtonian mechanics is built on absolute space and time, treated as a fixed background stage. Special relativity replaces this with a unified spacetime where space and time measurements depend on the observer.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "A coordinate system is chosen so that a ramp is along the x-axis. This changes:",
+    "options": [
+      {"id": "a", "text": "The actual forces on an object on the ramp", "correct": false},
+      {"id": "b", "text": "The mathematical form of force components, simplifying calculations", "correct": true},
+      {"id": "c", "text": "The physical space where the ramp exists", "correct": false},
+      {"id": "d", "text": "The acceleration of objects on the ramp", "correct": false}
+    ],
+    "hint": "Coordinate systems are mathematical tools. See the Misconceptions section.",
+    "explanation": "Choosing a convenient coordinate system (e.g., aligned with the ramp) changes the mathematical form of equations — forces along the chosen axes — but not the physics. The actual forces, accelerations, and outcomes are independent of the coordinate choice.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each pair of quantities to whether they are absolute or relative in classical mechanics:",
+    "pairs": [
+      ["The speed of an object", "Relative (depends on reference frame)"],
+      ["The time between two events", "Absolute (same for all observers in classical mechanics)"],
+      ["The distance between two points at the same time", "Absolute (preserved by Galilean transformation)"],
+      ["Whether two spatially separated events are simultaneous", "Absolute in classical mechanics (not in special relativity)"]
+    ],
+    "hint": "Classical mechanics uses absolute time and space; special relativity mixes them. See the Derivation section.",
+    "explanation": "In Newtonian mechanics: times, distances, and simultaneity are absolute. Only velocities are relative. This is replaced by special relativity at high speeds, where none of these are absolute.",
+    "section": "derivation"
+  }
+]

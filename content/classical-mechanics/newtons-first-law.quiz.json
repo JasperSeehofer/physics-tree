@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A hockey puck slides on a perfectly frictionless ice surface with no air resistance. What happens to its velocity over time?",
+    "options": [
+      {"id": "a", "text": "It gradually slows to zero", "correct": false},
+      {"id": "b", "text": "It remains constant in magnitude and direction", "correct": true},
+      {"id": "c", "text": "It gradually increases", "correct": false},
+      {"id": "d", "text": "It oscillates between fast and slow", "correct": false}
+    ],
+    "hint": "Recall what Newton's first law says about objects with zero net force. See the Motivation section.",
+    "explanation": "With no net force acting (frictionless, no air resistance), the puck's velocity remains constant in both magnitude and direction. This is the direct statement of Newton's first law.",
+    "section": "motivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A 5 kg book sits motionless on a table. Which statement about the forces on the book is correct?",
+    "options": [
+      {"id": "a", "text": "No forces act on the book", "correct": false},
+      {"id": "b", "text": "Only gravity acts on the book", "correct": false},
+      {"id": "c", "text": "Gravity and the normal force act on the book, and they cancel", "correct": true},
+      {"id": "d", "text": "The book generates an upward force that cancels gravity", "correct": false}
+    ],
+    "hint": "A stationary object has zero net force, but that doesn't mean no forces are present. See the Examples section.",
+    "explanation": "Gravity pulls the book down and the table's normal force pushes it up. These two forces are equal and opposite, giving zero net force. The book remains stationary as Newton's first law predicts.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "You are in a car that suddenly brakes hard. You feel thrown forward. Which explanation is correct?",
+    "options": [
+      {"id": "a", "text": "A mysterious forward force pushes you forward", "correct": false},
+      {"id": "b", "text": "Your body has inertia and tends to maintain its forward velocity as the car slows", "correct": true},
+      {"id": "c", "text": "Gravity temporarily increases during braking", "correct": false},
+      {"id": "d", "text": "The braking car is an inertial reference frame where Newton's first law applies", "correct": false}
+    ],
+    "hint": "Think about what inertia means and which reference frame is inertial. See the Intuition section.",
+    "explanation": "In the ground frame (inertial), your body continues forward at the car's original speed due to inertia. The car floor decelerates under you. In the ground frame, no mysterious force acts — your body simply obeys Newton's first law.",
+    "section": "intuition"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Which of the following is the correct definition of an inertial reference frame?",
+    "options": [
+      {"id": "a", "text": "Any frame moving at constant speed", "correct": false},
+      {"id": "b", "text": "A frame where Newton's first law holds without correction", "correct": true},
+      {"id": "c", "text": "A frame fixed to the surface of the Earth", "correct": false},
+      {"id": "d", "text": "A frame where all objects are at rest", "correct": false}
+    ],
+    "hint": "The definition is circular but precise. See the Derivation section.",
+    "explanation": "An inertial frame is defined as one where Newton's first law holds: objects with zero net force remain at rest or in uniform motion. Earth's surface is approximately inertial for most problems.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "What is the key difference between Newton's view and Aristotle's view of the relationship between force and motion?",
+    "options": [
+      {"id": "a", "text": "Newton thought force was needed to maintain motion; Aristotle did not", "correct": false},
+      {"id": "b", "text": "Aristotle thought force was needed to maintain motion; Newton said force causes changes in motion", "correct": true},
+      {"id": "c", "text": "Both agreed force was needed to maintain motion", "correct": false},
+      {"id": "d", "text": "There was no significant difference between their views", "correct": false}
+    ],
+    "hint": "The Motivation section explains this historical distinction.",
+    "explanation": "Aristotle held that continuous force is needed to maintain motion. Newton's first law reversed this: objects maintain motion without force. Force is needed to *change* motion, not to sustain it.",
+    "section": "motivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Express the condition for Newton's first law to apply: write the net force $F_{net}$ as a function of mass $m$ and acceleration $a$ when an object moves at constant velocity.",
+    "expected": "0",
+    "variables": [],
+    "hint": "If velocity is constant, what is the acceleration? Then use Newton's second law. See the Derivation section.",
+    "explanation": "Constant velocity means zero acceleration. By Newton's second law, F_net = m*a = m*0 = 0. The net force must be zero.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A 4 kg object moves at constant velocity. What is the net force $F_{net}$ (in Newtons) acting on it?",
+    "expected": "0",
+    "variables": [],
+    "hint": "Constant velocity implies zero acceleration. Apply Newton's first law.",
+    "explanation": "Constant velocity means zero acceleration. F_net = ma = 4 * 0 = 0 N. Any forces present must cancel exactly.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each concept to its correct description:",
+    "pairs": [
+      ["Inertia", "The tendency of an object to resist changes in its state of motion"],
+      ["Net force", "The vector sum of all forces acting on an object"],
+      ["Inertial frame", "A reference frame where Newton's first law holds without correction"],
+      ["Mass", "The quantitative measure of inertia"]
+    ],
+    "hint": "Review the definitions in the Derivation and Summary sections.",
+    "explanation": "Inertia is the physical tendency; mass is its quantitative measure. Net force is the vector sum; if it's zero, the object obeys Newton's first law. An inertial frame is defined by where Newton's first law holds.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "An astronaut floats in the International Space Station (ISS) with no contact with the walls. Which best describes the astronaut's state?",
+    "options": [
+      {"id": "a", "text": "Weightless and massless", "correct": false},
+      {"id": "b", "text": "Weightless but still has mass and inertia", "correct": true},
+      {"id": "c", "text": "Has weight but no inertia", "correct": false},
+      {"id": "d", "text": "Subject to no forces at all", "correct": false}
+    ],
+    "hint": "Remember the distinction between mass and weight. See the Misconceptions section.",
+    "explanation": "In orbit, the astronaut is in continuous free fall — experiencing apparent weightlessness. But the astronaut's mass (and inertia) is exactly the same as on Earth. Pushing the astronaut sideways requires the same force as on Earth.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Classify each scenario as an example of the first law or a violation of it (due to non-inertial frame):",
+    "pairs": [
+      ["Puck sliding on frictionless ice at constant speed", "Newton's first law holds"],
+      ["Objects accelerating inside a braking bus", "Non-inertial frame effect"],
+      ["Book resting on table with balanced forces", "Newton's first law holds"],
+      ["Person feeling 'pushed back' when a car accelerates", "Non-inertial frame effect"]
+    ],
+    "hint": "Newton's first law holds in inertial frames; apparent forces appear in non-inertial frames. See the Derivation section.",
+    "explanation": "The first law holds when zero net force gives zero acceleration. Apparent accelerations in braking/accelerating vehicles are inertial effects from being in a non-inertial frame.",
+    "section": "derivation"
+  }
+]

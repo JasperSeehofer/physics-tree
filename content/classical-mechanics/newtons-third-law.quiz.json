@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A truck (mass 5000 kg) collides with a car (mass 1000 kg). During contact, the force the truck exerts on the car compared to the force the car exerts on the truck is:",
+    "options": [
+      {"id": "a", "text": "5 times larger", "correct": false},
+      {"id": "b", "text": "Equal in magnitude and opposite in direction", "correct": true},
+      {"id": "c", "text": "5 times smaller", "correct": false},
+      {"id": "d", "text": "Zero, since the truck is much larger", "correct": false}
+    ],
+    "hint": "Newton's third law applies to all interacting pairs regardless of mass. See the Derivation section.",
+    "explanation": "By Newton's third law, the force the truck exerts on the car equals the force the car exerts on the truck in magnitude but opposite in direction. The difference in damage comes from different masses giving different accelerations.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "How does walking work according to Newton's third law?",
+    "options": [
+      {"id": "a", "text": "Your legs push you forward directly", "correct": false},
+      {"id": "b", "text": "Your foot pushes backward on the ground; the ground's reaction pushes you forward", "correct": true},
+      {"id": "c", "text": "Air resistance pushes you forward", "correct": false},
+      {"id": "d", "text": "Gravity helps propel you forward on each step", "correct": false}
+    ],
+    "hint": "Identify the action-reaction pair in walking. See the Examples section.",
+    "explanation": "Your foot exerts a backward force on the ground. By Newton's third law, the ground exerts an equal forward force on your foot — this is what propels you forward. Without this reaction (on frictionless ice), you cannot walk.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "Two ice skaters push off each other from rest. Skater A (60 kg) moves at 4 m/s. What is the speed of Skater B (80 kg)?",
+    "options": [
+      {"id": "a", "text": "4 m/s", "correct": false},
+      {"id": "b", "text": "3 m/s", "correct": true},
+      {"id": "c", "text": "2 m/s", "correct": false},
+      {"id": "d", "text": "5 m/s", "correct": false}
+    ],
+    "hint": "Total initial momentum is zero. Apply momentum conservation (derived from the third law). See the Derivation section.",
+    "explanation": "Initial momentum = 0. So m_A v_A + m_B v_B = 0. 60*4 + 80*v_B = 0, v_B = -3 m/s. Speed = 3 m/s in the opposite direction.",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Which pair of forces is a Newton's third law action-reaction pair for a book on a table?",
+    "options": [
+      {"id": "a", "text": "Gravity on the book (down) and Normal force on the book (up)", "correct": false},
+      {"id": "b", "text": "Gravity on the book (down) and Gravitational pull of the book on Earth (up)", "correct": true},
+      {"id": "c", "text": "Normal force on the book (up) and Gravity on the table (down)", "correct": false},
+      {"id": "d", "text": "Gravity and normal force always cancel, so they are a third-law pair", "correct": false}
+    ],
+    "hint": "Third-law pairs must act on DIFFERENT objects. See the Derivation section.",
+    "explanation": "Gravity on the book and the book's gravitational pull on Earth are a third-law pair — equal, opposite, different objects. Gravity and normal force on the book both act on the same object (the book) so they are NOT a third-law pair.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "If action and reaction forces are always equal and opposite, why doesn't everything remain in equilibrium?",
+    "options": [
+      {"id": "a", "text": "Action forces are slightly larger than reaction forces in practice", "correct": false},
+      {"id": "b", "text": "Action and reaction act on different objects, so they don't cancel on any single object", "correct": true},
+      {"id": "c", "text": "The reaction force acts slightly later than the action force", "correct": false},
+      {"id": "d", "text": "Newton's third law only applies when objects are in contact", "correct": false}
+    ],
+    "hint": "The Misconceptions section addresses this directly.",
+    "explanation": "Third-law pairs act on DIFFERENT objects. They cannot cancel each other's effects on any single object. Each object's acceleration depends only on the forces acting on it, not on forces it exerts on others.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "In a two-body system with no external forces, object A has mass $m_A$ and object B has mass $m_B$. If A accelerates at $a_A$, write the magnitude of B's acceleration $a_B$ using $m_A$, $m_B$, and $a_A$.",
+    "expected": "m_A*a_A/m_B",
+    "variables": ["m_A", "m_B", "a_A"],
+    "hint": "The force on B from A equals the force on A from B (third law). Use F = ma for each. See the Derivation section.",
+    "explanation": "By Newton's third law, |F_A on B| = |F_B on A| = m_A * a_A. For object B: m_B * a_B = m_A * a_A, so a_B = m_A * a_A / m_B.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A 5 kg block hangs from a rope attached to the ceiling. Write the tension $T$ in the rope as a function of mass $m$ and gravitational acceleration $g$.",
+    "expected": "m*g",
+    "variables": ["m", "g"],
+    "hint": "The block is in equilibrium. Newton's second law gives T = mg. See the Examples section.",
+    "explanation": "The block is stationary: T - mg = 0, so T = mg. The tension in the rope equals the weight of the block.",
+    "section": "examples"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "For a book resting on a table, identify the Newton's third law pairs:",
+    "pairs": [
+      ["Earth pulls book down (gravity)", "Book pulls Earth up (gravity)"],
+      ["Table pushes book up (normal force)", "Book pushes table down (normal force)"],
+      ["Gravity on book (down)", "NOT paired with normal force (same object)"],
+      ["All action forces", "Equal and opposite reaction forces on the OTHER object"]
+    ],
+    "hint": "Third-law pairs involve the same type of force between the same two objects. See the Derivation section.",
+    "explanation": "Each force has its Newton's third law pair — same magnitude, opposite direction, on the other object. Gravity and normal force on the book are NOT a pair because they act on the same object and are different force types.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "A rocket in outer space fires its engine. What provides the forward thrust?",
+    "options": [
+      {"id": "a", "text": "The rocket pushes against the surrounding vacuum", "correct": false},
+      {"id": "b", "text": "The exhaust gas pushes backward on the rocket by reaction", "correct": true},
+      {"id": "c", "text": "Gravity assists the forward motion", "correct": false},
+      {"id": "d", "text": "The rocket's engine generates forward force independently", "correct": false}
+    ],
+    "hint": "Newton's third law applies even in vacuum. See the Intuition section.",
+    "explanation": "The engine expels gas backward at high speed. By Newton's third law, the gas pushes the rocket forward with equal and opposite force. No air or external medium is needed — the interaction is between rocket and exhaust gas.",
+    "section": "intuition"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each force scenario with whether the forces are or are not a Newton's third law pair:",
+    "pairs": [
+      ["Earth pulling moon (gravity) and Moon pulling Earth (gravity)", "Newton's third law pair"],
+      ["Normal force on book and gravity on book", "NOT a Newton's third law pair"],
+      ["Your hand pushing a wall and wall pushing your hand", "Newton's third law pair"],
+      ["Two forces on the same free-body diagram", "NEVER a Newton's third law pair"]
+    ],
+    "hint": "Third-law pairs: same type of force, equal magnitude, opposite direction, different objects. See the Derivation section.",
+    "explanation": "Third-law pairs always involve two objects. Forces on the same object in a free-body diagram are never third-law pairs — they may balance, but for different reasons.",
+    "section": "derivation"
+  }
+]

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "The equation $\\ddot{x} + \\omega^2 x = 0$ describes which physical system?",
+    "options": [
+      {"id": "a", "text": "An object in free fall", "correct": false},
+      {"id": "b", "text": "A simple harmonic oscillator", "correct": true},
+      {"id": "c", "text": "A particle with constant velocity", "correct": false},
+      {"id": "d", "text": "Exponential decay", "correct": false}
+    ],
+    "hint": "This is the SHM differential equation. See the Derivation section.",
+    "explanation": "ẍ + ω²x = 0 is Newton's second law for a spring: F = -kx = mẍ, giving ẍ + (k/m)x = 0 with ω = √(k/m). Its solutions are sinusoidal — simple harmonic motion.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "What is the general solution to $\\dot{x} = -kx$ (with $k > 0$)?",
+    "options": [
+      {"id": "a", "text": "$x = x_0 + kt$", "correct": false},
+      {"id": "b", "text": "$x = x_0 e^{-kt}$", "correct": true},
+      {"id": "c", "text": "$x = x_0 \\sin(kt)$", "correct": false},
+      {"id": "d", "text": "$x = x_0 e^{kt}$", "correct": false}
+    ],
+    "hint": "Separate variables and integrate. See the Derivation section.",
+    "explanation": "Separating: dx/x = -k dt. Integrating: ln(x) = -kt + C. Exponentiating: x = x₀e^(-kt). This represents exponential decay (radioactivity, capacitor discharge, etc.).",
+    "section": "derivation"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "A spring-mass system ($k = 50\\,\\text{N/m}$, $m = 2\\,\\text{kg}$) is released from $x_0 = 0.1\\,\\text{m}$ at rest. What is the position at $t = 0$?",
+    "options": [
+      {"id": "a", "text": "0 m", "correct": false},
+      {"id": "b", "text": "0.1 m", "correct": true},
+      {"id": "c", "text": "0.05 m", "correct": false},
+      {"id": "d", "text": "-0.1 m", "correct": false}
+    ],
+    "hint": "Initial conditions specify x(0) and ẋ(0). The solution is x(t) = x₀ cos(ωt). See the Derivation section.",
+    "explanation": "With x(0) = x₀ and ẋ(0) = 0: x(t) = x₀cos(ωt). At t = 0: x = x₀ cos(0) = x₀ = 0.1 m. This is just confirming the initial condition.",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "How many initial conditions are needed to uniquely solve a second-order ODE?",
+    "options": [
+      {"id": "a", "text": "One (just the initial position)", "correct": false},
+      {"id": "b", "text": "Two (position and velocity at the initial time)", "correct": true},
+      {"id": "c", "text": "Three", "correct": false},
+      {"id": "d", "text": "None (the ODE has a unique solution by itself)", "correct": false}
+    ],
+    "hint": "A second-order ODE has two integration constants. See the Derivation section.",
+    "explanation": "A second-order ODE has two integration constants in its general solution (like C₁ and C₂ for SHM). Two initial conditions (typically x(0) and ẋ(0)) uniquely determine both constants.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "For a damped oscillator with damping ratio $\\gamma > \\omega_0$, the system is:",
+    "options": [
+      {"id": "a", "text": "Underdamped (oscillates with decaying amplitude)", "correct": false},
+      {"id": "b", "text": "Overdamped (slowly returns to equilibrium without oscillating)", "correct": true},
+      {"id": "c", "text": "Critically damped (fastest return without oscillation)", "correct": false},
+      {"id": "d", "text": "Undamped (pure SHM)", "correct": false}
+    ],
+    "hint": "Review the three damping cases. See the Derivation section.",
+    "explanation": "Overdamped (γ > ω₀): slow exponential return, no oscillation. Critically damped (γ = ω₀): fastest return without oscillation. Underdamped (γ < ω₀): oscillation with decaying amplitude.",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "The SHM differential equation is $\\ddot{x} + \\omega^2 x = 0$. Write its general solution $x(t)$ using amplitude $A$ and phase $\\phi$.",
+    "expected": "A*cos(omega*t + phi)",
+    "variables": ["A", "omega", "t", "phi"],
+    "hint": "The solution is sinusoidal. See the Derivation section.",
+    "explanation": "x(t) = A cos(ωt + φ). Also valid: x = A sin(ωt + φ), or x = C₁cos(ωt) + C₂sin(ωt). All are equivalent general solutions.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "For exponential decay $x(t) = x_0 e^{-kt}$, write the rate of change $\\dot{x}$ at time $t$.",
+    "expected": "-k*x_0*exp(-k*t)",
+    "variables": ["k", "x_0", "t"],
+    "hint": "Differentiate the exponential. d/dt[e^(-kt)] = -k e^(-kt). See the Derivation section.",
+    "explanation": "ẋ = d/dt[x₀e^(-kt)] = -kx₀e^(-kt). This confirms the ODE: ẋ = -kx = -k × x₀e^(-kt). The rate of decay is proportional to the current value.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each differential equation to its characteristic solution type:",
+    "pairs": [
+      ["ẋ = -kx (k > 0)", "Exponential decay: x = x₀e^(-kt)"],
+      ["ẍ + ω²x = 0", "Sinusoidal oscillation: x = A cos(ωt + φ)"],
+      ["ẍ + 2γẋ + ω₀²x = 0 (γ < ω₀)", "Damped oscillation: decaying sinusoid"],
+      ["ẍ = constant a", "Quadratic in t: x = x₀ + v₀t + ½at²"]
+    ],
+    "hint": "Recognize the ODE type from its structure. See the Derivation section.",
+    "explanation": "First-order linear → exponential. Second-order with negative feedback (spring) → sinusoidal. Added damping → damped sinusoid. Constant acceleration → quadratic (kinematic equations).",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Classical mechanics is often called 'deterministic.' What does this mean in terms of differential equations?",
+    "options": [
+      {"id": "a", "text": "There is always an analytic solution", "correct": false},
+      {"id": "b", "text": "Given initial position and velocity, the future motion is uniquely determined by the equations of motion", "correct": true},
+      {"id": "c", "text": "The equations of motion never change", "correct": false},
+      {"id": "d", "text": "All objects follow the same trajectory", "correct": false}
+    ],
+    "hint": "The uniqueness theorem for ODEs underlies classical determinism. See the Intuition section.",
+    "explanation": "For an initial value problem (ODE + initial conditions), uniqueness theorems guarantee exactly one solution. In classical mechanics: given x(0) and v(0), Newton's second law (a 2nd-order ODE) uniquely determines x(t) for all future t.",
+    "section": "intuition"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each physical law to its differential equation form:",
+    "pairs": [
+      ["Newton's second law (spring)", "mẍ = -kx → ẍ + (k/m)x = 0"],
+      ["Newton's second law (free fall)", "mẍ = -mg → ẍ = -g"],
+      ["Radioactive decay law", "dN/dt = -λN → N = N₀e^(-λt)"],
+      ["Simple pendulum (small angle)", "L θ̈ = -gθ → θ̈ + (g/L)θ = 0"]
+    ],
+    "hint": "Each physical law translates to an ODE form by applying Newton's second law or rate equations. See the Derivation section.",
+    "explanation": "Physical laws describe local rates of change. Converting to ODE form allows exact solution for the global behavior. The structure of the ODE (linear/nonlinear, order, sign of feedback) determines the qualitative behavior.",
+    "section": "derivation"
+  }
+]

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "What is the net force on a 5 kg object accelerating at $2\\,\\text{m/s}^2$?",
+    "options": [
+      {"id": "a", "text": "10 N", "correct": true},
+      {"id": "b", "text": "2.5 N", "correct": false},
+      {"id": "c", "text": "7 N", "correct": false},
+      {"id": "d", "text": "0 N", "correct": false}
+    ],
+    "hint": "Apply F = ma directly. See the Derivation section.",
+    "explanation": "F = ma = 5 kg × 2 m/s² = 10 N. The net force is 10 N in the direction of acceleration.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A 10 kg box is pushed with 30 N and experiences 10 N of friction. What is its acceleration?",
+    "options": [
+      {"id": "a", "text": "$3\\,\\text{m/s}^2$", "correct": false},
+      {"id": "b", "text": "$2\\,\\text{m/s}^2$", "correct": true},
+      {"id": "c", "text": "$1\\,\\text{m/s}^2$", "correct": false},
+      {"id": "d", "text": "$4\\,\\text{m/s}^2$", "correct": false}
+    ],
+    "hint": "Find the net force first (applied force minus friction), then use a = F_net/m. See the Examples section.",
+    "explanation": "F_net = 30 - 10 = 20 N. a = F_net/m = 20/10 = 2 m/s². Friction reduces the net force and therefore the acceleration.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "A 70 kg person stands in an elevator accelerating upward at $2\\,\\text{m/s}^2$. What does a scale under them read?",
+    "options": [
+      {"id": "a", "text": "686 N", "correct": false},
+      {"id": "b", "text": "826 N", "correct": true},
+      {"id": "c", "text": "546 N", "correct": false},
+      {"id": "d", "text": "756 N", "correct": false}
+    ],
+    "hint": "Draw a free-body diagram. The normal force N provides both support against gravity and the upward acceleration. See the Examples section.",
+    "explanation": "N - mg = ma, so N = m(g + a) = 70(9.8 + 2) = 70 × 11.8 = 826 N. The scale reads more than the person's weight because it must also accelerate them upward.",
+    "section": "examples"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Newton's second law in its most general form is $\\vec{F} = d\\vec{p}/dt$. For a constant-mass object, this simplifies to:",
+    "options": [
+      {"id": "a", "text": "$F = mv$", "correct": false},
+      {"id": "b", "text": "$F = ma$", "correct": true},
+      {"id": "c", "text": "$F = m/a$", "correct": false},
+      {"id": "d", "text": "$F = v/m$", "correct": false}
+    ],
+    "hint": "Expand d(mv)/dt for constant m. See the Derivation section.",
+    "explanation": "For constant mass: dp/dt = d(mv)/dt = m(dv/dt) = ma. The momentum form F = dp/dt is more general; F = ma is the constant-mass special case.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "Which statement correctly describes what a force does according to Newton's second law?",
+    "options": [
+      {"id": "a", "text": "Force gives an object velocity", "correct": false},
+      {"id": "b", "text": "Force gives an object acceleration (changes its velocity)", "correct": true},
+      {"id": "c", "text": "Force gives an object position", "correct": false},
+      {"id": "d", "text": "Force maintains an object's velocity", "correct": false}
+    ],
+    "hint": "F = ma: force produces acceleration, not velocity. See the Misconceptions section.",
+    "explanation": "Force causes acceleration — the rate of change of velocity. A stationary object that has a force applied to it starts accelerating (velocity begins to change). A moving object with no net force maintains its velocity without any force needed.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the formula for acceleration $a$ in terms of net force $F$ and mass $m$.",
+    "expected": "F/m",
+    "variables": ["F", "m"],
+    "hint": "Rearrange Newton's second law F = ma. See the Derivation section.",
+    "explanation": "From F = ma, dividing both sides by m gives a = F/m. Greater force means greater acceleration; greater mass means less acceleration for the same force.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A net force $F$ acts on an object of mass $m$ for time $t$ starting from rest. Write the final speed $v$.",
+    "expected": "F*t/m",
+    "variables": ["F", "m", "t"],
+    "hint": "Acceleration = F/m; then v = a*t for constant acceleration from rest. See the Examples section.",
+    "explanation": "a = F/m. Starting from rest, v = at = (F/m)t = F*t/m. This is also the impulse-momentum result: J = Ft = mv.",
+    "section": "examples"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each physical quantity with its SI unit:",
+    "pairs": [
+      ["Force", "Newton (N = kg·m/s²)"],
+      ["Mass", "Kilogram (kg)"],
+      ["Acceleration", "m/s²"],
+      ["Momentum", "kg·m/s"]
+    ],
+    "hint": "Derive units from F = ma. See the Derivation section.",
+    "explanation": "N = kg·m/s² from F = ma. Mass is kg (base unit). Acceleration is m/s². Momentum p = mv has units kg·m/s.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Two objects A (mass 2 kg) and B (mass 6 kg) experience the same net force. What is the ratio $a_A / a_B$?",
+    "options": [
+      {"id": "a", "text": "1/3", "correct": false},
+      {"id": "b", "text": "3", "correct": true},
+      {"id": "c", "text": "1/2", "correct": false},
+      {"id": "d", "text": "1", "correct": false}
+    ],
+    "hint": "Use a = F/m for each object. See the Intuition section.",
+    "explanation": "a_A = F/2, a_B = F/6. Ratio: a_A/a_B = (F/2)/(F/6) = 6/2 = 3. The lighter object accelerates three times faster under the same force.",
+    "section": "intuition"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each scenario to the correct analysis using F = ma:",
+    "pairs": [
+      ["Object at rest with equal and opposite forces", "a = 0 (zero net force)"],
+      ["Object accelerating forward", "Net force in direction of motion"],
+      ["Object decelerating", "Net force opposite to motion"],
+      ["Object in circular motion at constant speed", "Net force toward center"]
+    ],
+    "hint": "Newton's second law: acceleration is always in the direction of net force. See the Derivation section.",
+    "explanation": "The direction of acceleration always matches the direction of net force. Deceleration means the net force opposes motion. Circular motion requires an inward centripetal net force even at constant speed.",
+    "section": "derivation"
+  }
+]

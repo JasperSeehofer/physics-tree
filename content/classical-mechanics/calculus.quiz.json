@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "If position is $x(t) = 3t^2 + 2t + 1\\,\\text{m}$, what is the velocity at $t = 2\\,\\text{s}$?",
+    "options": [
+      {"id": "a", "text": "12 m/s", "correct": false},
+      {"id": "b", "text": "14 m/s", "correct": true},
+      {"id": "c", "text": "6 m/s", "correct": false},
+      {"id": "d", "text": "17 m/s", "correct": false}
+    ],
+    "hint": "Differentiate x(t) to get v(t), then substitute t = 2. See the Examples section.",
+    "explanation": "v = dx/dt = 6t + 2. At t = 2: v = 12 + 2 = 14 m/s.",
+    "section": "examples"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "What is the derivative of $x(t) = \\sin(\\omega t)$ with respect to time?",
+    "options": [
+      {"id": "a", "text": "$-\\omega\\sin(\\omega t)$", "correct": false},
+      {"id": "b", "text": "$\\omega\\cos(\\omega t)$", "correct": true},
+      {"id": "c", "text": "$\\cos(\\omega t)$", "correct": false},
+      {"id": "d", "text": "$-\\cos(\\omega t)$", "correct": false}
+    ],
+    "hint": "Use the chain rule: d/dt[sin(ωt)] = cos(ωt) × ω. See the Derivation section.",
+    "explanation": "d/dt[sin(ωt)] = ω cos(ωt). The chain rule: derivative of outer function (cos) times derivative of inner function (ω). This is why SHM position x = A cos(ωt) gives velocity v = -Aω sin(ωt).",
+    "section": "derivation"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "What does $\\int_0^T v(t)\\,dt$ represent in kinematics?",
+    "options": [
+      {"id": "a", "text": "The velocity at time T", "correct": false},
+      {"id": "b", "text": "The total displacement from t=0 to t=T", "correct": true},
+      {"id": "c", "text": "The total distance traveled", "correct": false},
+      {"id": "d", "text": "The average speed over [0, T]", "correct": false}
+    ],
+    "hint": "Integration reverses differentiation. v = dx/dt, so integrating v gives... See the Derivation section.",
+    "explanation": "Integrating velocity gives displacement: ∫v dt = Δx. It gives displacement (which can be negative), not distance (always positive). Displacement is the fundamental theorem of calculus applied to kinematics.",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "A particle starts at $x = 0$ with $v_0 = 0$ and constant acceleration $a = 4\\,\\text{m/s}^2$. Using integration, what is its position at $t = 3\\,\\text{s}$?",
+    "options": [
+      {"id": "a", "text": "12 m", "correct": false},
+      {"id": "b", "text": "18 m", "correct": true},
+      {"id": "c", "text": "36 m", "correct": false},
+      {"id": "d", "text": "6 m", "correct": false}
+    ],
+    "hint": "Integrate a to get v, integrate v to get x, apply initial conditions. See the Examples section.",
+    "explanation": "v = ∫a dt = 4t (v₀ = 0). x = ∫v dt = 2t² (x₀ = 0). At t = 3: x = 2×9 = 18 m.",
+    "section": "examples"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "What does the fundamental theorem of calculus say about differentiation and integration?",
+    "options": [
+      {"id": "a", "text": "They are the same operation", "correct": false},
+      {"id": "b", "text": "They are inverse operations", "correct": true},
+      {"id": "c", "text": "Integration is more accurate than differentiation", "correct": false},
+      {"id": "d", "text": "Differentiation applies to sums; integration to products", "correct": false}
+    ],
+    "hint": "The FTC connects the two halves of calculus. See the Derivation section.",
+    "explanation": "The fundamental theorem states that differentiation and integration are inverse operations: d/dx[∫ₐˣ f(t)dt] = f(x), and ∫ₐᵇ f'(x)dx = f(b) - f(a).",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the derivative of $x^n$ with respect to $x$ (the power rule).",
+    "expected": "n*x^(n-1)",
+    "variables": ["n", "x"],
+    "hint": "This is the most used differentiation rule. See the Derivation section.",
+    "explanation": "d/dx[xⁿ] = nxⁿ⁻¹. Examples: d/dx[x²] = 2x; d/dx[x³] = 3x²; d/dx[constant] = 0.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Work done by variable spring force compressing spring by $x$, with spring constant $k$: write the integral that gives the work.",
+    "expected": "0.5*k*x^2",
+    "variables": ["k", "x"],
+    "hint": "W = ∫₀ˣ F dx' = ∫₀ˣ kx' dx'. See the Examples section.",
+    "explanation": "W = ∫₀ˣ kx' dx' = k[x'²/2]₀ˣ = ½kx². This derives the spring potential energy formula directly from integration.",
+    "section": "examples"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each physical quantity to how it relates to another via calculus:",
+    "pairs": [
+      ["Velocity", "Derivative of position with respect to time: v = dx/dt"],
+      ["Acceleration", "Derivative of velocity with respect to time: a = dv/dt"],
+      ["Displacement", "Integral of velocity with respect to time: Δx = ∫v dt"],
+      ["Velocity change", "Integral of acceleration with respect to time: Δv = ∫a dt"]
+    ],
+    "hint": "The kinematic quantities form a calculus hierarchy. See the Derivation section.",
+    "explanation": "Position → (differentiate) → velocity → (differentiate) → acceleration. Reverse: acceleration → (integrate) → velocity → (integrate) → position.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Integrating $\\int_0^t a\\,dt'$ where $a$ is constant gives:",
+    "options": [
+      {"id": "a", "text": "$at^2$", "correct": false},
+      {"id": "b", "text": "$at$", "correct": true},
+      {"id": "c", "text": "$a/t$", "correct": false},
+      {"id": "d", "text": "$a^2t$", "correct": false}
+    ],
+    "hint": "Integral of a constant is the constant times the variable. See the Derivation section.",
+    "explanation": "∫₀ᵗ a dt' = a × [t']₀ᵗ = a × t = at. Adding initial velocity gives v₀ + at — the first kinematic equation.",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each calculus concept with its physical interpretation in mechanics:",
+    "pairs": [
+      ["Derivative of a function at a point", "Instantaneous rate of change (e.g., instantaneous velocity)"],
+      ["Integral of a function over an interval", "Accumulated change (e.g., displacement = ∫v dt)"],
+      ["Integration constant C", "Determined by initial conditions (e.g., starting position)"],
+      ["Differential equation", "Physical law relating a quantity to its rate of change (e.g., F = ma = m d²x/dt²)"]
+    ],
+    "hint": "Calculus is the language of physics. See the Motivation section.",
+    "explanation": "Calculus translates physical laws (which are local, instantaneous) into global predictions (trajectories, total energies) through integration.",
+    "section": "motivation"
+  }
+]

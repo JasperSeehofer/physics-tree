@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A ball is thrown horizontally at $15\\,\\text{m/s}$ from a height of $20\\,\\text{m}$. How long does it take to hit the ground? ($g = 10\\,\\text{m/s}^2$)",
+    "options": [
+      {"id": "a", "text": "1 s", "correct": false},
+      {"id": "b", "text": "2 s", "correct": true},
+      {"id": "c", "text": "4 s", "correct": false},
+      {"id": "d", "text": "3 s", "correct": false}
+    ],
+    "hint": "Horizontal and vertical motions are independent. Find time from vertical free-fall equation. See the Derivation section.",
+    "explanation": "Vertical: h = ½gt². 20 = ½(10)t². t² = 4. t = 2 s. The horizontal velocity doesn't affect the fall time.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A projectile is launched at $45°$ and at $\\theta$ degrees, both with the same initial speed. When is the range maximized?",
+    "options": [
+      {"id": "a", "text": "At 30°", "correct": false},
+      {"id": "b", "text": "At 45°", "correct": true},
+      {"id": "c", "text": "At 60°", "correct": false},
+      {"id": "d", "text": "At 90°", "correct": false}
+    ],
+    "hint": "The range formula is $R = v_0^2 \\sin 2\\theta / g$. When is $\\sin 2\\theta$ maximized? See the Derivation section.",
+    "explanation": "R = v₀²sin(2θ)/g. sin(2θ) is maximum when 2θ = 90°, i.e., θ = 45°. This gives maximum range on level ground with no air resistance.",
+    "section": "derivation"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "At the peak of a projectile's trajectory, which statement is correct?",
+    "options": [
+      {"id": "a", "text": "The velocity is zero", "correct": false},
+      {"id": "b", "text": "The vertical velocity is zero; the horizontal velocity is unchanged", "correct": true},
+      {"id": "c", "text": "Both velocity components are zero", "correct": false},
+      {"id": "d", "text": "The acceleration is zero at the peak", "correct": false}
+    ],
+    "hint": "What force acts on the projectile? How does it affect each velocity component? See the Misconceptions section.",
+    "explanation": "At the peak, v_y = 0 (the ball momentarily stops rising). But v_x = v₀cos θ remains constant throughout — no horizontal force acts. The acceleration is still 9.8 m/s² downward.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "A bullet is fired horizontally and simultaneously another bullet is dropped from rest from the same height. Which hits the ground first?",
+    "options": [
+      {"id": "a", "text": "The fired bullet, since it moves faster", "correct": false},
+      {"id": "b", "text": "The dropped bullet, since it goes straight down", "correct": false},
+      {"id": "c", "text": "They hit the ground at the same time", "correct": true},
+      {"id": "d", "text": "The result depends on the bullet's speed", "correct": false}
+    ],
+    "hint": "Horizontal and vertical motions are independent. See the Intuition section.",
+    "explanation": "Both bullets experience identical downward acceleration (gravity). The fired bullet's horizontal motion has no effect on its vertical fall. Both hit the ground after the same time t = √(2h/g).",
+    "section": "intuition"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "Two identical projectiles are launched with the same speed: one at $30°$ and one at $60°$. What is the ratio of their ranges?",
+    "options": [
+      {"id": "a", "text": "The 60° shot has a longer range", "correct": false},
+      {"id": "b", "text": "They have the same range", "correct": true},
+      {"id": "c", "text": "The 30° shot has a longer range", "correct": false},
+      {"id": "d", "text": "The ratio depends on the initial speed", "correct": false}
+    ],
+    "hint": "Note that sin(2×30°) = sin(60°) and sin(2×60°) = sin(120°) = sin(60°). See the Derivation section.",
+    "explanation": "R = v₀²sin(2θ)/g. sin(60°) = sin(120°). So 30° and 60° launch angles give equal range. Complementary angles always give equal range.",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the range $R$ of a projectile launched at angle $\\theta$ with initial speed $v_0$ on level ground (using $g$ for gravitational acceleration).",
+    "expected": "v_0^2*sin(2*theta)/g",
+    "variables": ["v_0", "theta", "g"],
+    "hint": "Derive by finding when y = 0 after launch. See the Derivation section.",
+    "explanation": "R = v₀²sin(2θ)/g. This comes from setting y = 0 in the trajectory equation and using the double-angle identity.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "A projectile is launched at angle $\\theta$ with speed $v_0$. Write the vertical velocity component $v_y$ at time $t$.",
+    "expected": "v_0*sin(theta) - g*t",
+    "variables": ["v_0", "theta", "g", "t"],
+    "hint": "Decompose initial velocity and apply constant vertical acceleration -g. See the Derivation section.",
+    "explanation": "The initial vertical component is v₀sin(θ). Gravity accelerates downward: v_y(t) = v₀sin(θ) - gt. This equals zero at the peak: t_peak = v₀sin(θ)/g.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each projectile quantity with its expression:",
+    "pairs": [
+      ["Maximum height", "H = (v₀ sin θ)² / (2g)"],
+      ["Time of flight (level ground)", "T = 2v₀ sin θ / g"],
+      ["Horizontal range", "R = v₀² sin(2θ) / g"],
+      ["Horizontal velocity at any time", "v_x = v₀ cos θ (constant)"]
+    ],
+    "hint": "These are derived in the Derivation section by analyzing horizontal and vertical motion separately.",
+    "explanation": "Each formula comes from applying constant-acceleration kinematics to vertical and horizontal components independently. Horizontal velocity is constant; vertical motion has acceleration g downward.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Which condition must be true for the standard projectile motion formulas to apply exactly?",
+    "options": [
+      {"id": "a", "text": "The projectile must be heavy", "correct": false},
+      {"id": "b", "text": "No air resistance, constant gravitational acceleration", "correct": true},
+      {"id": "c", "text": "The launch angle must be 45°", "correct": false},
+      {"id": "d", "text": "The projectile must land at the same height as launch", "correct": false}
+    ],
+    "hint": "The derivation assumes only gravity acts. See the Motivation section.",
+    "explanation": "The standard formulas assume no air resistance and constant g. Air resistance depends on speed and makes the trajectory asymmetric and shorter. The mass of the projectile doesn't matter (as long as air resistance is negligible).",
+    "section": "motivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each physical direction/component to its corresponding motion type in projectile motion:",
+    "pairs": [
+      ["Horizontal direction", "Constant velocity (zero acceleration)"],
+      ["Vertical direction", "Constant acceleration downward (−g)"],
+      ["Direction perpendicular to velocity at peak", "Same as vertical direction"],
+      ["Net acceleration throughout flight", "Constant: 9.8 m/s² downward"]
+    ],
+    "hint": "Projectile motion decomposes into two independent 1D motions. See the Derivation section.",
+    "explanation": "Horizontal: no force → constant velocity. Vertical: gravity → constant downward acceleration g. These are completely independent. The net acceleration equals g downward at every point in the trajectory.",
+    "section": "derivation"
+  }
+]

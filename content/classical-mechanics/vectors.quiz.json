@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A force of $3\\,\\text{N}$ east and a force of $4\\,\\text{N}$ north act on the same object. What is the magnitude of the net force?",
+    "options": [
+      {"id": "a", "text": "7 N", "correct": false},
+      {"id": "b", "text": "5 N", "correct": true},
+      {"id": "c", "text": "1 N", "correct": false},
+      {"id": "d", "text": "12 N", "correct": false}
+    ],
+    "hint": "Add vectors by components, then find the magnitude. See the Derivation section.",
+    "explanation": "Components: (3, 4) N. Magnitude = √(3² + 4²) = √25 = 5 N. Vectors must be added component-by-component, not by adding magnitudes.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "Force $\\vec{F} = 10\\hat{i} + 5\\hat{j}\\,\\text{N}$ acts over displacement $\\vec{d} = 3\\hat{i}\\,\\text{m}$. What is the work done?",
+    "options": [
+      {"id": "a", "text": "45 J", "correct": false},
+      {"id": "b", "text": "30 J", "correct": true},
+      {"id": "c", "text": "15 J", "correct": false},
+      {"id": "d", "text": "50 J", "correct": false}
+    ],
+    "hint": "Work = dot product of force and displacement. See the Examples section.",
+    "explanation": "W = F⃗·d⃗ = 10×3 + 5×0 = 30 J. Only the horizontal component of force does work; the vertical component does none because displacement is purely horizontal.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "What is the dot product of $\\vec{A} = 2\\hat{i} + 3\\hat{j}$ and $\\vec{B} = 1\\hat{i} - 2\\hat{j}$?",
+    "options": [
+      {"id": "a", "text": "8", "correct": false},
+      {"id": "b", "text": "-4", "correct": true},
+      {"id": "c", "text": "4", "correct": false},
+      {"id": "d", "text": "-8", "correct": false}
+    ],
+    "hint": "Dot product: multiply corresponding components and sum. See the Derivation section.",
+    "explanation": "A⃗·B⃗ = 2×1 + 3×(-2) = 2 - 6 = -4. The negative dot product means the vectors have components more than 90° apart.",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "A force of $50\\,\\text{N}$ is applied at $37°$ above horizontal. What is the horizontal component?",
+    "options": [
+      {"id": "a", "text": "30.1 N", "correct": false},
+      {"id": "b", "text": "39.9 N", "correct": true},
+      {"id": "c", "text": "50 N", "correct": false},
+      {"id": "d", "text": "25 N", "correct": false}
+    ],
+    "hint": "Use F_x = F cos θ. See the Examples section.",
+    "explanation": "F_x = 50 cos(37°) = 50 × 0.799 ≈ 39.9 N. The horizontal component is F cos θ; vertical is F sin θ.",
+    "section": "examples"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "When is the dot product of two non-zero vectors equal to zero?",
+    "options": [
+      {"id": "a", "text": "When they point in the same direction", "correct": false},
+      {"id": "b", "text": "When they are perpendicular", "correct": true},
+      {"id": "c", "text": "When they have the same magnitude", "correct": false},
+      {"id": "d", "text": "When one of them is a unit vector", "correct": false}
+    ],
+    "hint": "Dot product = AB cos θ. When is cos θ = 0? See the Derivation section.",
+    "explanation": "A⃗·B⃗ = AB cos θ = 0 when θ = 90°. Perpendicular vectors have zero dot product. This is why the normal force does no work on horizontal motion — they are perpendicular.",
+    "section": "derivation"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the magnitude $|\\vec{A}|$ of a 2D vector $\\vec{A} = A_x\\hat{i} + A_y\\hat{j}$.",
+    "expected": "sqrt(A_x^2 + A_y^2)",
+    "variables": ["A_x", "A_y"],
+    "hint": "Use the Pythagorean theorem on the components. See the Derivation section.",
+    "explanation": "|A⃗| = √(A_x² + A_y²). This is the 2D Pythagorean theorem. In 3D: |A⃗| = √(A_x² + A_y² + A_z²).",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Write the dot product $\\vec{A}\\cdot\\vec{B}$ for vectors $\\vec{A} = A_x\\hat{i} + A_y\\hat{j}$ and $\\vec{B} = B_x\\hat{i} + B_y\\hat{j}$.",
+    "expected": "A_x*B_x + A_y*B_y",
+    "variables": ["A_x", "A_y", "B_x", "B_y"],
+    "hint": "Multiply corresponding components and sum. See the Derivation section.",
+    "explanation": "A⃗·B⃗ = A_x B_x + A_y B_y. This equals |A||B|cos θ where θ is the angle between them.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each vector operation to its result type and physical application:",
+    "pairs": [
+      ["Dot product A⃗·B⃗", "Scalar; used for work: W = F⃗·d⃗"],
+      ["Cross product A⃗×B⃗", "Vector (perpendicular to both); used for torque: τ⃗ = r⃗×F⃗"],
+      ["Vector addition A⃗ + B⃗", "Vector; used for net force, net displacement"],
+      ["Scalar multiplication cA⃗", "Vector in same direction, different magnitude; scales a force or velocity"]
+    ],
+    "hint": "Review the Derivation section for each operation.",
+    "explanation": "Dot product gives a scalar (projection). Cross product gives a perpendicular vector. Addition and scalar multiplication preserve vector nature.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Walk 4 m east, then 3 m north. What is the magnitude of your total displacement?",
+    "options": [
+      {"id": "a", "text": "7 m", "correct": false},
+      {"id": "b", "text": "5 m", "correct": true},
+      {"id": "c", "text": "1 m", "correct": false},
+      {"id": "d", "text": "12 m", "correct": false}
+    ],
+    "hint": "Add displacement vectors by components. See the Examples section.",
+    "explanation": "Total displacement = 4î + 3ĵ m. Magnitude = √(4²+3²) = √25 = 5 m. Note: you walked 7 m total distance, but displacement (straight line from start to finish) is 5 m.",
+    "section": "examples"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each vector property to its correct statement:",
+    "pairs": [
+      ["A vector with magnitude 1", "Unit vector; written as â or â_hat"],
+      ["Two vectors with same components", "Equal vectors (can be at different positions in space)"],
+      ["A vector multiplied by -1", "Reversed direction, same magnitude (the negative vector)"],
+      ["Component of A⃗ along direction B̂", "A⃗ · B̂ = |A| cos θ"]
+    ],
+    "hint": "Review vector definitions in the Derivation section.",
+    "explanation": "Unit vectors have magnitude 1. Equal vectors have identical components regardless of position. The dot product with a unit vector gives the component along that direction.",
+    "section": "derivation"
+  }
+]

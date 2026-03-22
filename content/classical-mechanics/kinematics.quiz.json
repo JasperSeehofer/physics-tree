@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A car travels at $20\\,\\text{m/s}$ and brakes with deceleration $5\\,\\text{m/s}^2$. How far does it travel before stopping?",
+    "options": [
+      {"id": "a", "text": "20 m", "correct": false},
+      {"id": "b", "text": "40 m", "correct": true},
+      {"id": "c", "text": "80 m", "correct": false},
+      {"id": "d", "text": "4 m", "correct": false}
+    ],
+    "hint": "Use the time-independent kinematic equation $v^2 = v_0^2 + 2a\\Delta x$ with final velocity = 0. See the Examples section.",
+    "explanation": "Using v² = v₀² + 2a Δx with v = 0, v₀ = 20 m/s, a = -5 m/s²: 0 = 400 - 10Δx, Δx = 40 m.",
+    "section": "examples"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A ball is dropped from rest from height $h = 80\\,\\text{m}$. How long until it hits the ground? (Use $g = 10\\,\\text{m/s}^2$)",
+    "options": [
+      {"id": "a", "text": "2 s", "correct": false},
+      {"id": "b", "text": "4 s", "correct": true},
+      {"id": "c", "text": "8 s", "correct": false},
+      {"id": "d", "text": "16 s", "correct": false}
+    ],
+    "hint": "Use $h = \\frac{1}{2}gt^2$ (starting from rest). See the Examples section.",
+    "explanation": "h = ½gt². 80 = ½(10)t². t² = 16. t = 4 s.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "A ball thrown straight up reaches the top of its trajectory. At that instant, which statement is true?",
+    "options": [
+      {"id": "a", "text": "Both velocity and acceleration are zero", "correct": false},
+      {"id": "b", "text": "Velocity is zero; acceleration is $9.8\\,\\text{m/s}^2$ downward", "correct": true},
+      {"id": "c", "text": "Velocity is zero; acceleration is zero", "correct": false},
+      {"id": "d", "text": "Velocity is upward; acceleration is downward", "correct": false}
+    ],
+    "hint": "Gravity doesn't switch off at the peak. See the Misconceptions section.",
+    "explanation": "At the peak, vertical velocity is momentarily zero (the ball stops moving upward). But gravity still acts — acceleration is 9.8 m/s² downward continuously, including at the peak.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "What is the difference between speed and velocity?",
+    "options": [
+      {"id": "a", "text": "Speed has units of m/s; velocity has units of m/s²", "correct": false},
+      {"id": "b", "text": "Speed is the magnitude of velocity; velocity is a vector with both magnitude and direction", "correct": true},
+      {"id": "c", "text": "Velocity is always faster than speed", "correct": false},
+      {"id": "d", "text": "They are identical quantities", "correct": false}
+    ],
+    "hint": "One is a scalar, one is a vector. See the Misconceptions section.",
+    "explanation": "Speed is a scalar (always positive) giving magnitude only. Velocity is a vector with magnitude (speed) and direction. Circular motion at constant speed has changing velocity because direction changes.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "An object has negative acceleration. Which statement must be true?",
+    "options": [
+      {"id": "a", "text": "The object is slowing down", "correct": false},
+      {"id": "b", "text": "The object's acceleration points in the negative direction of the chosen coordinate", "correct": true},
+      {"id": "c", "text": "The object is moving backward", "correct": false},
+      {"id": "d", "text": "The object will stop soon", "correct": false}
+    ],
+    "hint": "Negative acceleration depends on coordinate choice. See the Misconceptions section.",
+    "explanation": "Negative acceleration means acceleration in the negative coordinate direction. If the object is also moving in the negative direction, it's speeding up, not slowing down. The sign of acceleration relative to velocity determines whether the object speeds up or slows down.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "An object starts with velocity $v_0$ and has constant acceleration $a$. Write its velocity $v$ after time $t$.",
+    "expected": "v_0 + a*t",
+    "variables": ["v_0", "a", "t"],
+    "hint": "This is the first kinematic equation derived by integrating constant acceleration. See the Derivation section.",
+    "explanation": "Integrating a = dv/dt with constant a: v = v₀ + at. Velocity changes linearly with time under constant acceleration.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Write the displacement $\\Delta x$ of an object with initial velocity $v_0$, constant acceleration $a$, over time $t$. (Starting position $x_0 = 0$)",
+    "expected": "v_0*t + 0.5*a*t^2",
+    "variables": ["v_0", "a", "t"],
+    "hint": "Integrate v = v₀ + at to find position. See the Derivation section.",
+    "explanation": "x = x₀ + v₀t + ½at². With x₀ = 0: Δx = v₀t + ½at².",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each kinematic scenario to the correct equation to use:",
+    "pairs": [
+      ["Find velocity after time t, given v₀ and a", "v = v₀ + at"],
+      ["Find distance traveled, no time given, use v₀, v, a", "v² = v₀² + 2aΔx"],
+      ["Find position at time t, given v₀, a", "x = x₀ + v₀t + ½at²"],
+      ["Find average velocity over displacement", "v̄ = Δx/Δt"]
+    ],
+    "hint": "Each equation connects different variables. Choose the one with knowns and the one unknown. See the Derivation section.",
+    "explanation": "The three constant-acceleration equations each eliminate one variable (time, final velocity, or distance). Choose based on what you know and what you want to find.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "Velocity is to position as acceleration is to:",
+    "options": [
+      {"id": "a", "text": "Displacement", "correct": false},
+      {"id": "b", "text": "Velocity", "correct": true},
+      {"id": "c", "text": "Force", "correct": false},
+      {"id": "d", "text": "Momentum", "correct": false}
+    ],
+    "hint": "Think about the derivative relationships between kinematic quantities. See the Derivation section.",
+    "explanation": "Velocity is the derivative (rate of change) of position. Acceleration is the derivative (rate of change) of velocity. The hierarchy: position → velocity (1st derivative) → acceleration (2nd derivative).",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each quantity to its definition:",
+    "pairs": [
+      ["Instantaneous velocity", "v = dx/dt (limit of Δx/Δt as Δt → 0)"],
+      ["Average acceleration", "ā = Δv/Δt over a finite time interval"],
+      ["Displacement", "Change in position: x_f - x_i (can be negative)"],
+      ["Speed", "Magnitude of velocity (always non-negative)"]
+    ],
+    "hint": "Distinguish instantaneous vs average quantities. See the Derivation section.",
+    "explanation": "Instantaneous quantities use derivatives (limits). Average quantities use finite differences. Displacement can be negative; speed cannot.",
+    "section": "derivation"
+  }
+]

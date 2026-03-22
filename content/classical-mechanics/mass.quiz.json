@@ -1,0 +1,134 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "A 70 kg astronaut travels to the Moon where $g_{Moon} = 1.62\\,\\text{m/s}^2$. What is their mass on the Moon?",
+    "options": [
+      {"id": "a", "text": "70 kg", "correct": true},
+      {"id": "b", "text": "11.7 kg", "correct": false},
+      {"id": "c", "text": "420 kg", "correct": false},
+      {"id": "d", "text": "113.4 kg", "correct": false}
+    ],
+    "hint": "Mass is an intrinsic property, independent of gravitational field. See the Motivation section.",
+    "explanation": "Mass is always 70 kg regardless of location. Only weight changes with gravity. Weight on Moon = 70 × 1.62 = 113.4 N, compared to 686 N on Earth.",
+    "section": "motivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "What is the weight of a 5 kg object on Earth ($g = 9.8\\,\\text{m/s}^2$)?",
+    "options": [
+      {"id": "a", "text": "5 N", "correct": false},
+      {"id": "b", "text": "49 N", "correct": true},
+      {"id": "c", "text": "9.8 N", "correct": false},
+      {"id": "d", "text": "0.51 N", "correct": false}
+    ],
+    "hint": "Weight = mg. See the Summary section.",
+    "explanation": "W = mg = 5 × 9.8 = 49 N. Weight is the gravitational force on the mass.",
+    "section": "examples"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "Which best describes the difference between inertial mass and gravitational mass?",
+    "options": [
+      {"id": "a", "text": "Inertial mass is larger on Earth; gravitational mass on the Moon", "correct": false},
+      {"id": "b", "text": "Inertial mass measures resistance to acceleration; gravitational mass determines gravitational force", "correct": true},
+      {"id": "c", "text": "They are completely different quantities with no known relationship", "correct": false},
+      {"id": "d", "text": "Inertial mass is in kg; gravitational mass is in Newtons", "correct": false}
+    ],
+    "hint": "The equivalence principle says they are numerically equal. See the Derivation section.",
+    "explanation": "Inertial mass (m in F=ma) resists acceleration. Gravitational mass (m in F=GMm/r²) determines gravitational interaction. They are experimentally equal to extraordinary precision — the equivalence principle.",
+    "section": "derivation"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Why do a feather and a hammer fall at the same rate in a vacuum?",
+    "options": [
+      {"id": "a", "text": "Gravity ignores mass in a vacuum", "correct": false},
+      {"id": "b", "text": "The equivalence of inertial and gravitational mass causes mass to cancel in free-fall acceleration", "correct": true},
+      {"id": "c", "text": "Vacuum removes the difference in air resistance", "correct": false},
+      {"id": "d", "text": "All objects have the same mass in vacuum", "correct": false}
+    ],
+    "hint": "Trace the algebra: F_g = mg, a = F/m. See the Derivation section.",
+    "explanation": "F_gravity = m_grav × g. a = F_gravity / m_inertial = (m_grav / m_inertial) × g. Since m_grav = m_inertial, a = g for every object. Mass cancels, making free-fall acceleration universal.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "Which scenario best illustrates inertia (not weight)?",
+    "options": [
+      {"id": "a", "text": "Lifting a heavy box from the floor", "correct": false},
+      {"id": "b", "text": "Pushing a heavy box to get it moving on a frictionless surface", "correct": true},
+      {"id": "c", "text": "Feeling heavy in an accelerating elevator", "correct": false},
+      {"id": "d", "text": "Weighing yourself on a scale", "correct": false}
+    ],
+    "hint": "Inertia is resistance to changes in velocity; weight is the gravitational force. See the Intuition section.",
+    "explanation": "Pushing the box to accelerate it on a frictionless surface only involves inertia (resistance to acceleration), not weight (which only matters if you're lifting against gravity). The same force gives less acceleration to a more massive box regardless of gravity.",
+    "section": "intuition"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the weight $W$ of an object with mass $m$ in a gravitational field with acceleration $g$.",
+    "expected": "m*g",
+    "variables": ["m", "g"],
+    "hint": "Weight is the gravitational force on a mass. See the Summary section.",
+    "explanation": "W = mg. Weight is a force (in Newtons), while mass is in kg. They are proportional on the surface of any body, but only equal numerically when g = 1 (which is not the case on Earth).",
+    "section": "examples"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "An unknown object is pushed by force $F$ and accelerates at $a$. Write its mass $m$.",
+    "expected": "F/a",
+    "variables": ["F", "a"],
+    "hint": "Newton's second law defines inertial mass operationally. See the Derivation section.",
+    "explanation": "From F = ma: m = F/a. This is the operational definition of inertial mass — apply a known force, measure the acceleration.",
+    "section": "derivation"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each concept to its correct description:",
+    "pairs": [
+      ["Mass", "Intrinsic scalar property; measures inertia; constant regardless of location"],
+      ["Weight", "Gravitational force on a mass: W = mg; depends on local g"],
+      ["Inertial mass", "Resistance to acceleration; appears in F = ma"],
+      ["Gravitational mass", "Determines gravitational attraction; appears in F = GMm/r²"]
+    ],
+    "hint": "Review the Derivation and Summary sections for precise definitions.",
+    "explanation": "These distinctions are fundamental. Mass is intrinsic; weight depends on gravity. Inertial and gravitational mass are the same value experimentally — the equivalence principle.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "An object floats in space (zero gravity). To assess its mass, you should:",
+    "options": [
+      {"id": "a", "text": "Weigh it on a scale", "correct": false},
+      {"id": "b", "text": "Apply a known force and measure its acceleration", "correct": true},
+      {"id": "c", "text": "It has no mass in zero gravity", "correct": false},
+      {"id": "d", "text": "Count its atoms", "correct": false}
+    ],
+    "hint": "Inertial mass can be measured without gravity. See the Intuition section.",
+    "explanation": "Without gravity, scales don't work. But F = ma still holds: apply a known force and measure the resulting acceleration. m = F/a gives the inertial mass. This is how mass is measured on the ISS.",
+    "section": "intuition"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each statement to whether it is about mass or weight:",
+    "pairs": [
+      ["Unchanged when you travel to Mars", "Mass"],
+      ["About one-third of Earth value on Mars", "Weight"],
+      ["Measured in kilograms", "Mass"],
+      ["Measured in Newtons", "Weight"]
+    ],
+    "hint": "Mass is intrinsic; weight depends on gravity. See the Misconceptions section.",
+    "explanation": "Mass is always in kg and never changes with location. Weight = mg in Newtons and scales with the local gravitational field. On Mars (g ≈ 3.7 m/s²), weight is about 38% of Earth weight.",
+    "section": "misconceptions"
+  }
+]
