@@ -51,6 +51,7 @@ Plan: 2 of 6
 | Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
 | Phase 02-graph-explorer P01 | 25 | 2 tasks | 11 files |
 | Phase 02-graph-explorer P03 | 6 | 1 tasks | 6 files |
+| Phase 03-content-and-simulations P01 | 60 | 3 tasks | 25 files |
 | Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
@@ -85,6 +86,10 @@ Recent decisions affecting current work:
 - [Phase 03-content-and-simulations]: rapier2d 0.32 has no wasm-bindgen feature; use f32 feature + getrandom js for WASM target
 - [Phase 03-content-and-simulations]: rapier2d 0.32 Vector is type alias Vec2 (not generic); vector![] macro needs .into() conversion; gravity in step() is by value not reference
 - [Phase 03-content-and-simulations]: Rebuild full Rapier2D pipeline on reset_sim() for clean state (no handle reuse issues)
+- [Phase 03-content-and-simulations P01]: Dynamic sqlx::query (non-macro) used for content_repo.rs — compiles without live DB at build time
+- [Phase 03-content-and-simulations P01]: pulldown-cmark and regex in cfg(not(target_arch = wasm32)) — SSR-only, excluded from WASM bundle
+- [Phase 03-content-and-simulations P01]: render_content_markdown behind cfg(feature = ssr) — called by server handler via app crate
+- [Phase 03-content-and-simulations P01]: KaTeX and TOC bridges bundled via esbuild with loader:.woff2=file; CSS is text-loaded
 
 ### Pending Todos
 
@@ -97,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-22T13:49:04.050Z
-Stopped at: Completed 03-content-and-simulations 03-02-PLAN.md
+Last session: 2026-03-22T14:56:00Z
+Stopped at: Completed 03-content-and-simulations 03-01-PLAN.md
 Resume file: None

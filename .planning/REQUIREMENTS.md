@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Educational Content
 
 - [ ] **CONT-01**: Each concept node has an educational module with motivation, derivation, intuition, and examples
-- [ ] **CONT-02**: User can interact with parameter-tweakable physics simulations embedded in concept modules
+- [x] **CONT-02**: User can interact with parameter-tweakable physics simulations embedded in concept modules
 - [ ] **CONT-03**: Classical mechanics branch is fully populated with content (Newton's laws, kinematics, energy, momentum, oscillations, gravity)
 - [ ] **CONT-04**: Concept modules include misconception-targeted content ("Did you think X? Here's why...")
 
@@ -85,7 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GRAPH-04 | Phase 2 | Complete |
 | GRAPH-05 | Phase 5 | Pending |
 | CONT-01 | Phase 3 | Pending |
-| CONT-02 | Phase 3 | Pending |
+| CONT-02 | Phase 3 | Complete |
 | CONT-03 | Phase 3 | Pending |
 | CONT-04 | Phase 3 | Pending |
 | ACCT-01 | Phase 4 | Pending |

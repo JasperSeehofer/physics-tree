@@ -63,11 +63,11 @@ Plans:
   5. User can take a quiz on any concept module, with multiple question types including multiple choice, fill-in-formula, and matching
 **Plans**: 6 plans
 Plans:
-- [ ] 03-01-PLAN.md — Content pipeline: markdown parser with tests, KaTeX bridge, content API, ConceptPage layout, TOC, and hydration components
+- [x] 03-01-PLAN.md — Content pipeline: markdown parser with tests, KaTeX bridge, content API, ConceptPage layout, TOC, and hydration components
 - [x] 03-02-PLAN.md — Simulation engine: Rapier2D setup, projectile motion prototype, canvas rendering
 - [ ] 03-03-PLAN.md — Interactive components: simulation embed UI with URL state sync and numeric inputs, quiz system (3 types), mathjs formula validation
 - [ ] 03-04-PLAN.md — Remaining simulations: pendulum, harmonic oscillator, inclined plane, orbital mechanics
-- [ ] 03-05-PLAN.md — Content population: 15 concept modules (by topic group), quiz question pools, content metadata migration
+- [x] 03-05-PLAN.md — Content population: 15 concept modules (by topic group), quiz question pools, content metadata migration
 - [ ] 03-06-PLAN.md — SVG illustrations: 10 custom flat vector diagrams for key concepts per D-07
 
 ### Phase 4: Accounts and Progress
