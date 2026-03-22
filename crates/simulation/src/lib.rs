@@ -9,6 +9,8 @@ pub mod wasm_exports {
     use crate::mechanics::projectile::ProjectileSimulation;
     use crate::mechanics::pendulum::PendulumSimulation;
     use crate::mechanics::harmonic::HarmonicSimulation;
+    use crate::mechanics::incline::InclineSimulation;
+    use crate::mechanics::orbital::OrbitalSimulation;
 
     // ── Projectile ────────────────────────────────────────────────────────────
 
@@ -125,5 +127,86 @@ pub mod wasm_exports {
         pub fn get_spring_k(&self) -> f32 { self.inner.get_spring_k() }
         pub fn get_mass(&self) -> f32 { self.inner.get_mass() }
         pub fn get_displacement(&self) -> f32 { self.inner.get_displacement() }
+    }
+
+    // ── Inclined Plane ────────────────────────────────────────────────────────
+
+    #[wasm_bindgen]
+    pub struct WasmIncline {
+        inner: InclineSimulation,
+    }
+
+    #[wasm_bindgen]
+    impl WasmIncline {
+        #[wasm_bindgen(constructor)]
+        pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
+            Self { inner: InclineSimulation::new(canvas_width, canvas_height) }
+        }
+        pub fn set_slope_angle(&mut self, deg: f32) { self.inner.set_slope_angle(deg); }
+        pub fn set_mass(&mut self, m: f32) { self.inner.set_mass(m); }
+        pub fn set_friction(&mut self, mu: f32) { self.inner.set_friction(mu); }
+        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
+        pub fn play(&mut self) { self.inner.play(); }
+        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn reset(&mut self) {
+            use crate::traits::Simulation;
+            self.inner.reset();
+        }
+        pub fn tick(&mut self, canvas: &HtmlCanvasElement) {
+            use crate::traits::Simulation;
+            self.inner.step();
+            {
+                let ctx = canvas.get_context("2d").unwrap().unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                self.inner.render(&ctx);
+            }
+        }
+        pub fn is_running(&self) -> bool {
+            use crate::traits::Simulation;
+            self.inner.is_running()
+        }
+        pub fn get_slope_angle(&self) -> f32 { self.inner.get_slope_angle() }
+        pub fn get_friction(&self) -> f32 { self.inner.get_friction() }
+    }
+
+    // ── Orbital Mechanics ─────────────────────────────────────────────────────
+
+    #[wasm_bindgen]
+    pub struct WasmOrbital {
+        inner: OrbitalSimulation,
+    }
+
+    #[wasm_bindgen]
+    impl WasmOrbital {
+        #[wasm_bindgen(constructor)]
+        pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
+            Self { inner: OrbitalSimulation::new(canvas_width, canvas_height) }
+        }
+        pub fn set_central_mass(&mut self, m: f32) { self.inner.set_central_mass(m); }
+        pub fn set_initial_distance(&mut self, d: f32) { self.inner.set_initial_distance(d); }
+        pub fn set_initial_speed(&mut self, v: f32) { self.inner.set_initial_speed(v); }
+        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
+        pub fn play(&mut self) { self.inner.play(); }
+        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn reset(&mut self) {
+            use crate::traits::Simulation;
+            self.inner.reset();
+        }
+        pub fn tick(&mut self, canvas: &HtmlCanvasElement) {
+            use crate::traits::Simulation;
+            self.inner.step();
+            {
+                let ctx = canvas.get_context("2d").unwrap().unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                self.inner.render(&ctx);
+            }
+        }
+        pub fn is_running(&self) -> bool {
+            use crate::traits::Simulation;
+            self.inner.is_running()
+        }
+        pub fn get_central_mass(&self) -> f32 { self.inner.get_central_mass() }
+        pub fn get_initial_distance(&self) -> f32 { self.inner.get_initial_distance() }
+        pub fn get_initial_speed(&self) -> f32 { self.inner.get_initial_speed() }
     }
 }
