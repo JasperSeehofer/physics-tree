@@ -23,6 +23,8 @@ uuid = { version = "1", features = ["v4", "serde", "js"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = { version = "0.4", features = ["serde"] }
+pulldown-cmark = "0.13"
+regex = "1"
 
 [[workspace.metadata.leptos]]
 name = "physics-tree"

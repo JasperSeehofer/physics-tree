@@ -1,3 +1,4 @@
+pub mod content_repo;
 pub mod graph_repo;
 
 use sqlx::postgres::PgPoolOptions;

@@ -13,5 +13,9 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/graph/prereqs/{node_id}",
             axum::routing::get(handlers::graph::get_prereqs),
         )
+        .route(
+            "/api/content/{slug}",
+            axum::routing::get(handlers::content::get_content),
+        )
         .with_state(pool)
 }
