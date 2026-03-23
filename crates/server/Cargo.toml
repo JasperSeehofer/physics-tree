@@ -20,6 +20,12 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 rand = "0.8"
 dotenvy = "0.15"
+argon2 = { version = "0.5", features = ["std"] }
+password-hash = { version = "0.5", features = ["std"] }
+tower-sessions = "0.15"
+tower-sessions-sqlx-store = { version = "0.15", features = ["postgres"] }
+axum-extra = { version = "0.12", features = ["cookie"] }
+time = "0.3"
 
 [features]
 default = []

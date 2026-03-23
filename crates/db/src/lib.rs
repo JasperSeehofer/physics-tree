@@ -1,14 +1,15 @@
 pub mod content_repo;
 pub mod graph_repo;
+pub mod user_repo;
 
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 
 /// Create a database connection pool.
-/// Not used in Phase 1 server (no DB queries yet), but available for tests and future phases.
+/// max_connections bumped to 10 — session operations add additional load.
 pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
-        .max_connections(5)
+        .max_connections(10)
         .connect(database_url)
         .await
 }
