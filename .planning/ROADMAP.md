@@ -101,7 +101,7 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — Database schema, XP/streak/mastery logic with TDD, award-xp API endpoint
 - [ ] 05-02-PLAN.md — Frontend gamification UI: XP toast, streak display, botanical MiniTree, mastery badge
-- [ ] 05-03-PLAN.md — Sigma.js botanical growth stages, progressive reveal, canvas node overlay
+- [x] 05-03-PLAN.md — Sigma.js botanical growth stages, progressive reveal, canvas node overlay
 
 ### Phase 6: Spaced Repetition
 **Goal**: Users never forget what they learned: the FSRS algorithm surfaces concepts due for review each day, and the review queue integrates with the streak system so daily engagement reinforces retention, not just new learning.
@@ -129,5 +129,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
 | 3. Content and Simulations | 6/7 | In Progress|  |
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
-| 5. Gamification and Personal Tree | 1/3 | In Progress|  |
+| 5. Gamification and Personal Tree | 2/3 | In Progress|  |
 | 6. Spaced Repetition | 0/TBD | Not started | - |
