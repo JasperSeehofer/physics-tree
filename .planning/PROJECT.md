@@ -65,4 +65,4 @@ Users can visually explore the interconnected landscape of physics and deeply le
 | Classical mechanics as v1 content | Well-understood domain, rich in visualization opportunities, proves the full stack | — Pending |
 
 ---
-*Last updated: 2026-03-23 after Phase 3 completion*
+*Last updated: 2026-03-23 after Phase 4 completion — auth, progress dashboard, and responsive layouts shipped*
