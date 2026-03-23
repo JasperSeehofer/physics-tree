@@ -26,9 +26,15 @@ pub fn StatsCards(summary: DashboardSummary) -> impl IntoView {
         }.into_any()
     };
 
-    // Streak is always em-dash in Phase 4 (current_streak is always 0 — Phase 5 defines logic)
-    let streak_value = view! {
-        <p class="text-3xl font-bold text-mist">"\u{2014}"</p>
+    // Streak: em-dash when 0 (not yet active), live count when > 0
+    let streak_value = if summary.current_streak == 0 {
+        view! {
+            <p class="text-3xl font-bold text-mist">"\u{2014}"</p>
+        }.into_any()
+    } else {
+        view! {
+            <p class="text-3xl font-bold text-petal-white">{summary.current_streak.to_string()}</p>
+        }.into_any()
     };
 
     let concepts_value = view! {
@@ -84,6 +90,15 @@ pub fn StatsCards(summary: DashboardSummary) -> impl IntoView {
                     <span class="text-sm font-normal text-mist">"Day Streak"</span>
                 </div>
                 {streak_value}
+                // Freeze token indicator below streak value
+                <p class="text-xs text-mist mt-1">
+                    {if summary.freeze_tokens > 0 {
+                        format!("{} freeze token{}", summary.freeze_tokens,
+                            if summary.freeze_tokens == 1 { "" } else { "s" })
+                    } else {
+                        "No freeze tokens".to_string()
+                    }}
+                </p>
             </div>
 
             // Concepts card

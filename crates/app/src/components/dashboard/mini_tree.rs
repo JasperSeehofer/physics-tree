@@ -1,3 +1,16 @@
+//! MiniTree — animated SVG botanical knowledge tree on the dashboard.
+//!
+//! Nodes render as tier-aware botanical shapes based on cumulative mastery XP:
+//! - Seed  (0..=49):    small dim dot — not yet learned
+//! - Sprout/bronze (50..=149):  bronze petal stubs with animate-fade-in
+//! - Leaf/silver (150..=299):   silver diamond shape with animate-fade-in
+//! - Bloom/gold (300+):         green flower with 6 petals + glow filter, animate-scale-in
+//!
+//! Entrance animations stagger by index * 50ms. Bloom nodes are rendered first
+//! (highest visual priority), then leaf, then sprout/seed.
+//!
+//! Animations disabled via `prefers-reduced-motion: reduce` CSS media query in main.css.
+
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -9,14 +22,16 @@ pub struct NodeProgress {
     pub title: String,
     pub branch: String,
     pub depth_tier: String,
+    /// Cumulative concept XP (mastery_level column in DB). Tiers derived at render time.
     pub mastery_level: i32,
 }
 
-/// SVG mini knowledge tree — nodes colored by mastery level, clickable to /graph/{slug}/learn.
+/// SVG mini knowledge tree — nodes rendered as botanical shapes by mastery tier.
+/// Clickable to /graph/{slug}/learn.
 #[component]
 pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
     // Empty state: no nodes or all nodes are unlearned
-    let has_any_progress = nodes.iter().any(|n| n.mastery_level > 0);
+    let has_any_progress = nodes.iter().any(|n| n.mastery_level >= 50);
     let is_empty = nodes.is_empty() || !has_any_progress;
 
     if is_empty {
@@ -39,7 +54,6 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
     let tier_count = tier_order.len() as i32;
 
     // Vertical positions for each tier (bottom to top)
-    // root at y=420, trunk at y=300, branch at y=180, leaf at y=60
     let tier_y = |tier: &str| -> i32 {
         match tier {
             "root" => 420,
@@ -82,8 +96,7 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
         })
         .collect();
 
-    // Build connection lines between tiers (trunk line + branch lines)
-    // Simple: draw vertical lines from each tier's centroid to the next tier's centroid
+    // Build connection lines between tiers
     let trunk_lines: Vec<(f64, f64, f64, f64)> = {
         let mut lines = vec![];
         for i in 0..(tier_order.len() - 1) {
@@ -100,7 +113,6 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             if nodes_a.is_empty() || nodes_b.is_empty() {
                 continue;
             }
-            // Connect centroid of tier_a to centroid of tier_b
             let cx_a = nodes_a.iter().map(|(x, _, _)| x).sum::<f64>() / nodes_a.len() as f64;
             let cy_a = nodes_a[0].1;
             let cx_b = nodes_b.iter().map(|(x, _, _)| x).sum::<f64>() / nodes_b.len() as f64;
@@ -110,38 +122,174 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
         lines
     };
 
-    // Render node circles with mastery-based fill colors
-    let node_elements: Vec<_> = node_positions
+    // Sort nodes by visual priority: bloom first, then leaf, then sprout, then seed
+    // This ensures higher-mastery nodes appear on top
+    let mut sorted_positions: Vec<(f64, f64, &NodeProgress, usize)> = node_positions
         .iter()
-        .map(|(x, y, node)| {
-            let (fill, opacity) = match node.mastery_level {
-                0 => ("var(--color-bark-light)", "1"),
-                1..=49 => ("var(--color-leaf-green)", "0.5"),
-                _ => ("var(--color-leaf-green)", "1"),
-            };
+        .enumerate()
+        .map(|(i, (x, y, n))| (*x, *y, *n, i))
+        .collect();
+    sorted_positions.sort_by_key(|(_, _, n, _)| {
+        // Reversed: higher mastery = lower sort key = rendered last (on top)
+        match n.mastery_level {
+            300.. => 3,
+            150..=299 => 2,
+            50..=149 => 1,
+            _ => 0,
+        }
+    });
+
+    // Build node SVG elements with botanical shapes per mastery tier
+    let node_elements: Vec<_> = sorted_positions
+        .iter()
+        .enumerate()
+        .map(|(stagger_idx, (x, y, node, _))| {
+            let xf = *x;
+            let yf = *y;
             let href = format!("/graph/{}/learn", node.slug);
+            let mastery = node.mastery_level;
+            let delay_ms = stagger_idx * 50;
+            let delay_style = format!("animation-delay: {}ms", delay_ms);
+
+            let tooltip = match mastery {
+                0..=49 => format!("{} - not yet learned", node.title),
+                50..=149 => format!("{} - Bronze - {} XP", node.title, mastery),
+                150..=299 => format!("{} - Silver - {} XP", node.title, mastery),
+                _ => format!("{} - Gold - Mastered", node.title),
+            };
+
             let aria_label = format!("{} \u{2014} open concept", node.title);
-            let title_text = format!("{} ({})", node.title, node.branch);
-            let cx = x.to_string();
-            let cy = y.to_string();
-            let fill = fill.to_string();
-            let opacity = opacity.to_string();
-            let _title = node.title.clone();
-            view! {
-                <a
-                    href=href
-                    aria-label=aria_label
-                    class="cursor-pointer"
-                >
-                    <title>{title_text}</title>
-                    <circle
-                        cx=cx
-                        cy=cy
-                        r="12"
-                        fill=fill
-                        opacity=opacity
-                    />
-                </a>
+
+            match mastery {
+                // ── Seed (0..=49): small dim dot, no animation ────────────────
+                0..=49 => {
+                    let cx = xf.to_string();
+                    let cy = yf.to_string();
+                    view! {
+                        <a href=href aria-label=aria_label class="cursor-pointer">
+                            <title>{tooltip}</title>
+                            <circle
+                                cx=cx
+                                cy=cy
+                                r="4"
+                                fill="var(--color-bark-light)"
+                            />
+                        </a>
+                    }.into_any()
+                }
+
+                // ── Sprout/bronze (50..=149): circle + petal stubs, fade-in ──
+                50..=149 => {
+                    let cx = xf.to_string();
+                    let cy = yf.to_string();
+                    // Petal stub paths (relative to node center)
+                    let left_petal = format!("M {} {} L {} {}",
+                        xf, yf - 6.0, xf - 2.0, yf - 10.0);
+                    let center_petal = format!("M {} {} L {} {}",
+                        xf, yf - 6.0, xf, yf - 11.0);
+                    let right_petal = format!("M {} {} L {} {}",
+                        xf, yf - 6.0, xf + 2.0, yf - 10.0);
+                    view! {
+                        <a href=href aria-label=aria_label class="cursor-pointer">
+                            <title>{tooltip}</title>
+                            <g class="animate-fade-in" style=delay_style>
+                                <circle
+                                    cx=cx
+                                    cy=cy
+                                    r="6"
+                                    fill="var(--color-sun-amber)"
+                                    opacity="0.8"
+                                />
+                                <path
+                                    d=left_petal
+                                    stroke="var(--color-sun-amber)"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    fill="none"
+                                />
+                                <path
+                                    d=center_petal
+                                    stroke="var(--color-sun-amber)"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    fill="none"
+                                />
+                                <path
+                                    d=right_petal
+                                    stroke="var(--color-sun-amber)"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    fill="none"
+                                />
+                            </g>
+                        </a>
+                    }.into_any()
+                }
+
+                // ── Leaf/silver (150..=299): diamond shape, fade-in ───────────
+                150..=299 => {
+                    // 4-point diamond: M x y-8 L x+7 y L x y+8 L x-7 y Z
+                    let diamond = format!(
+                        "M {} {} L {} {} L {} {} L {} {} Z",
+                        xf, yf - 8.0,
+                        xf + 7.0, yf,
+                        xf, yf + 8.0,
+                        xf - 7.0, yf
+                    );
+                    view! {
+                        <a href=href aria-label=aria_label class="cursor-pointer">
+                            <title>{tooltip}</title>
+                            <g class="animate-fade-in" style=delay_style>
+                                <path
+                                    d=diamond
+                                    fill="var(--color-mist)"
+                                />
+                            </g>
+                        </a>
+                    }.into_any()
+                }
+
+                // ── Bloom/gold (300+): flower with 6 petals + glow, scale-in ─
+                _ => {
+                    // 6 petal circles at 60-degree intervals, radius 3, offset 10px from center
+                    let petals: Vec<(f64, f64)> = (0..6)
+                        .map(|i| {
+                            let angle = std::f64::consts::PI * 2.0 / 6.0 * i as f64;
+                            let px = xf + 10.0 * angle.cos();
+                            let py = yf + 10.0 * angle.sin();
+                            (px, py)
+                        })
+                        .collect();
+
+                    let cx = xf.to_string();
+                    let cy = yf.to_string();
+
+                    view! {
+                        <a href=href aria-label=aria_label class="cursor-pointer">
+                            <title>{tooltip}</title>
+                            <g class="animate-scale-in" style=delay_style filter="url(#bloom-glow)">
+                                // Center circle
+                                <circle
+                                    cx=cx.clone()
+                                    cy=cy.clone()
+                                    r="8"
+                                    fill="var(--color-leaf-green)"
+                                />
+                                // 6 petal circles
+                                {petals.into_iter().map(|(px, py)| {
+                                    view! {
+                                        <circle
+                                            cx=px.to_string()
+                                            cy=py.to_string()
+                                            r="3"
+                                            fill="var(--color-leaf-green)"
+                                        />
+                                    }
+                                }).collect_view()}
+                            </g>
+                        </a>
+                    }.into_any()
+                }
             }
         })
         .collect();
@@ -171,7 +319,7 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             if count == 0 {
                 return None;
             }
-            let y = tier_y(tier) as f64 + 5.0; // center on circle
+            let y = tier_y(tier) as f64 + 5.0;
             let label = match *tier {
                 "root" => "Root",
                 "trunk" => "Trunk",
@@ -202,13 +350,21 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             role="img"
             aria-label="Knowledge tree showing your learning progress"
         >
-            // Connection lines (rendered first, behind circles)
+            // SVG defs: bloom glow filter
+            <defs>
+                <filter id="bloom-glow">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feComposite in_="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+            </defs>
+
+            // Connection lines (rendered first, behind nodes)
             {line_elements}
 
             // Tier labels
             {label_elements}
 
-            // Node circles
+            // Node botanical shapes (sorted by mastery tier — bloom on top)
             {node_elements}
         </svg>
     }.into_any()
