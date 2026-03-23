@@ -22,10 +22,17 @@ rand = "0.8"
 dotenvy = "0.15"
 argon2 = { version = "0.5", features = ["std"] }
 password-hash = { version = "0.5", features = ["std"] }
-tower-sessions = "0.15"
+tower-sessions = "0.14"
 tower-sessions-sqlx-store = { version = "0.15", features = ["postgres"] }
 axum-extra = { version = "0.12", features = ["cookie"] }
 time = "0.3"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http = "1"
+http-body-util = "0.1"
+serde_json = { workspace = true }
+dotenvy = "0.15"
 
 [features]
 default = []

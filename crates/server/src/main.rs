@@ -1,7 +1,3 @@
-pub mod auth;
-pub mod handlers;
-pub mod routes;
-
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
