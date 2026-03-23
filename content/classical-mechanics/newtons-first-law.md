@@ -50,6 +50,8 @@ A reference frame is inertial if and only if Newton's first law holds within it.
 
 ## Intuition {#intuition}
 
+<img src="/content/classical-mechanics/illustrations/newtons-laws-trio.svg" alt="Newton's three laws visual summary showing inertia, F=ma, and action-reaction pairs" class="w-full max-w-[600px] mx-auto my-8" />
+
 Think of a spacecraft in deep space, far from any gravity or atmosphere. You give it one tap with a thruster, and it glides at constant speed indefinitely — no further fuel needed. This is Newton's first law in action, unobscured by the friction and gravity we experience on Earth.
 
 Inertia is the "stubbornness" of matter. Heavier objects (more mass) resist changes to their motion more than lighter ones. This is why a bowling ball is harder to start rolling and harder to stop than a tennis ball at the same speed. Mass is the quantitative measure of inertia — the same property appears in Newton's second law as the ratio $F/a$.

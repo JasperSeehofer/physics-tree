@@ -63,6 +63,8 @@ Total momentum is conserved. The third law is the *cause* of momentum conservati
 
 ## Intuition {#intuition}
 
+<img src="/content/classical-mechanics/illustrations/newtons-laws-trio.svg" alt="Newton's three laws visual summary showing inertia, F=ma, and action-reaction pairs" class="w-full max-w-[600px] mx-auto my-8" />
+
 Imagine trying to push someone away while standing on ice. You push them — but your feet push back on the ice and the ice pushes back on you, sending you sliding in the opposite direction. You cannot exert a force on someone without that same contact exerting an equal force back on you. There is no such thing as a one-sided force in nature.
 
 This is why rockets work in vacuum: the engine expels gas downward at high speed; the third law requires the gas to push the rocket upward with equal force. No air is needed to "push against" — the interaction is entirely between rocket and gas.

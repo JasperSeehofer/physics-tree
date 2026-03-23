@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Kinematics: Position, Velocity, and Acceleration</text>
+
+  <!-- ===== GRAPH 1: Position vs Time (parabola) ===== -->
+  <!-- Axes -->
+  <line x1="80" y1="140" x2="340" y2="140" stroke="#8892a4" stroke-width="2"/>
+  <line x1="80" y1="60" x2="80" y2="145" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="345" y="144" fill="#8892a4" font-size="13" font-weight="600">t</text>
+  <text x="68" y="58" fill="#8892a4" font-size="13" font-weight="600">x</text>
+  <!-- Graph title -->
+  <text x="210" y="58" fill="#4caf7d" font-size="13" font-weight="700" text-anchor="middle">Position x(t)</text>
+  <!-- Parabola: x = x₀ + v₀t + ½at² -->
+  <path d="M 80 140 Q 180 60 340 140" fill="none" stroke="#4caf7d" stroke-width="3"/>
+  <!-- Tick marks -->
+  <line x1="80" y1="140" x2="80" y2="148" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="210" y1="140" x2="210" y2="148" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="340" y1="140" x2="340" y2="148" stroke="#8892a4" stroke-width="1.5"/>
+
+  <!-- Derivative arrow down to velocity -->
+  <line x1="210" y1="158" x2="210" y2="188" stroke="#f4b942" stroke-width="2"/>
+  <polygon points="210,188 204,176 216,176" fill="#f4b942"/>
+  <text x="220" y="176" fill="#f4b942" font-size="11" font-weight="600">d/dt</text>
+  <text x="220" y="188" fill="#f4b942" font-size="11" font-weight="600">slope</text>
+
+  <!-- ===== GRAPH 2: Velocity vs Time (linear) ===== -->
+  <!-- Axes -->
+  <line x1="80" y1="270" x2="340" y2="270" stroke="#8892a4" stroke-width="2"/>
+  <line x1="80" y1="200" x2="80" y2="275" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="345" y="274" fill="#8892a4" font-size="13" font-weight="600">t</text>
+  <text x="68" y="198" fill="#8892a4" font-size="13" font-weight="600">v</text>
+  <!-- Graph title -->
+  <text x="210" y="196" fill="#3fc8d4" font-size="13" font-weight="700" text-anchor="middle">Velocity v(t)</text>
+  <!-- Linear: v = v₀ + at -->
+  <line x1="80" y1="260" x2="340" y2="210" stroke="#3fc8d4" stroke-width="3"/>
+
+  <!-- Derivative arrow down to acceleration -->
+  <line x1="210" y1="284" x2="210" y2="314" stroke="#f4b942" stroke-width="2"/>
+  <polygon points="210,314 204,302 216,302" fill="#f4b942"/>
+  <text x="220" y="302" fill="#f4b942" font-size="11" font-weight="600">d/dt</text>
+  <text x="220" y="314" fill="#f4b942" font-size="11" font-weight="600">slope</text>
+
+  <!-- Slope triangle on velocity graph -->
+  <line x1="160" y1="247" x2="280" y2="247" stroke="#f4b942" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="280" y1="247" x2="280" y2="222" stroke="#f4b942" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="288" y="238" fill="#f4b942" font-size="11" font-weight="600">Δv</text>
+  <text x="210" y="260" fill="#f4b942" font-size="11" text-anchor="middle" font-weight="600">Δt</text>
+
+  <!-- ===== GRAPH 3: Acceleration vs Time (constant) ===== -->
+  <!-- Axes -->
+  <line x1="80" y1="375" x2="340" y2="375" stroke="#8892a4" stroke-width="2"/>
+  <line x1="80" y1="328" x2="80" y2="380" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="345" y="379" fill="#8892a4" font-size="13" font-weight="600">t</text>
+  <text x="68" y="326" fill="#8892a4" font-size="13" font-weight="600">a</text>
+  <!-- Graph title -->
+  <text x="210" y="326" fill="#e8547a" font-size="13" font-weight="700" text-anchor="middle">Acceleration a(t)</text>
+  <!-- Constant: a = const -->
+  <line x1="80" y1="353" x2="340" y2="353" stroke="#e8547a" stroke-width="3"/>
+  <!-- Label -->
+  <text x="350" y="357" fill="#e8547a" font-size="13" font-weight="600">a = const</text>
+
+  <!-- Shaded area under a(t) = change in v -->
+  <rect x="80" y="353" width="260" height="22" fill="#e8547a" opacity="0.15"/>
+  <text x="210" y="368" fill="#e8547a" font-size="11" text-anchor="middle">area = Δv</text>
+
+  <!-- RIGHT SIDE: kinematic equations -->
+  <rect x="390" y="60" width="375" height="320" rx="12" fill="#1a1d24" stroke="#252932" stroke-width="1.5"/>
+  <text x="577" y="88" fill="#f0f2f5" font-size="15" font-weight="700" text-anchor="middle">Kinematic Equations</text>
+  <text x="404" y="88" fill="#8892a4" font-size="13">(constant a)</text>
+
+  <!-- Equation 1 -->
+  <rect x="408" y="100" width="340" height="44" rx="6" fill="#252932"/>
+  <text x="578" y="118" fill="#4caf7d" font-size="15" font-weight="700" text-anchor="middle">v = v₀ + at</text>
+  <text x="578" y="136" fill="#8892a4" font-size="11" text-anchor="middle">velocity from time</text>
+
+  <!-- Equation 2 -->
+  <rect x="408" y="152" width="340" height="44" rx="6" fill="#252932"/>
+  <text x="578" y="170" fill="#3fc8d4" font-size="15" font-weight="700" text-anchor="middle">x = x₀ + v₀t + ½at²</text>
+  <text x="578" y="188" fill="#8892a4" font-size="11" text-anchor="middle">position from time</text>
+
+  <!-- Equation 3 -->
+  <rect x="408" y="204" width="340" height="44" rx="6" fill="#252932"/>
+  <text x="578" y="222" fill="#e8547a" font-size="15" font-weight="700" text-anchor="middle">v² = v₀² + 2a(x − x₀)</text>
+  <text x="578" y="240" fill="#8892a4" font-size="11" text-anchor="middle">velocity from distance</text>
+
+  <!-- Equation 4 -->
+  <rect x="408" y="256" width="340" height="44" rx="6" fill="#252932"/>
+  <text x="578" y="274" fill="#f4b942" font-size="15" font-weight="700" text-anchor="middle">x = x₀ + ½(v + v₀)t</text>
+  <text x="578" y="292" fill="#8892a4" font-size="11" text-anchor="middle">average velocity shortcut</text>
+
+  <!-- Calculus connection -->
+  <rect x="408" y="310" width="340" height="54" rx="6" fill="#252932"/>
+  <text x="578" y="332" fill="#f0f2f5" font-size="13" font-weight="700" text-anchor="middle">Calculus connection:</text>
+  <text x="578" y="350" fill="#f0f2f5" font-size="13" text-anchor="middle">v = dx/dt    a = dv/dt</text>
+  <text x="578" y="366" fill="#8892a4" font-size="11" text-anchor="middle">x = ∫v dt    v = ∫a dt</text>
+</svg>

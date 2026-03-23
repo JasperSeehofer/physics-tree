@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Ground line -->
+  <line x1="60" y1="330" x2="740" y2="330" stroke="#252932" stroke-width="3"/>
+  <!-- Ground fill -->
+  <rect x="60" y="330" width="680" height="20" fill="#1a1d24"/>
+
+  <!-- Parabolic trajectory arc (SVG path approximation) -->
+  <path d="M 100 330 Q 320 80 540 330" fill="none" stroke="#4caf7d" stroke-width="3" stroke-dasharray="8,4"/>
+
+  <!-- Dotted vertical at apex -->
+  <line x1="320" y1="80" x2="320" y2="330" stroke="#8892a4" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- Dotted horizontal component at apex -->
+  <line x1="100" y1="205" x2="320" y2="205" stroke="#8892a4" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- Launch angle arc -->
+  <path d="M 130 330 A 40 40 0 0 1 122 296" fill="none" stroke="#f4b942" stroke-width="2"/>
+  <!-- Angle label -->
+  <text x="145" y="318" fill="#f4b942" font-size="16" font-weight="700">θ</text>
+
+  <!-- Launch velocity vector -->
+  <line x1="100" y1="330" x2="148" y2="280" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="148,280 136,293 152,295" fill="#f4b942"/>
+
+  <!-- Apex velocity vector (horizontal) -->
+  <line x1="320" y1="80" x2="370" y2="80" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="370,80 357,74 357,86" fill="#f4b942"/>
+
+  <!-- Landing velocity vector (downward-forward) -->
+  <line x1="540" y1="330" x2="590" y2="280" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="590,280 577,293 592,295" fill="#f4b942"/>
+
+  <!-- Horizontal component line at launch -->
+  <line x1="100" y1="330" x2="148" y2="330" stroke="#3fc8d4" stroke-width="2" stroke-dasharray="4,3"/>
+  <!-- Vertical component line at launch -->
+  <line x1="148" y1="280" x2="148" y2="330" stroke="#3fc8d4" stroke-width="2" stroke-dasharray="4,3"/>
+
+  <!-- vx label -->
+  <text x="110" y="348" fill="#3fc8d4" font-size="14" font-weight="600">vₓ</text>
+  <!-- vy label -->
+  <text x="155" y="308" fill="#3fc8d4" font-size="14" font-weight="600">vy</text>
+
+  <!-- v₀ label -->
+  <text x="90" y="270" fill="#f4b942" font-size="15" font-weight="700">v₀</text>
+
+  <!-- Range arrow -->
+  <line x1="100" y1="360" x2="540" y2="360" stroke="#8892a4" stroke-width="1.5"/>
+  <polygon points="540,360 527,354 527,366" fill="#8892a4"/>
+  <polygon points="100,360 113,354 113,366" fill="#8892a4"/>
+  <text x="300" y="378" fill="#8892a4" font-size="14" text-anchor="middle" font-weight="600">Range R</text>
+
+  <!-- Height arrow -->
+  <line x1="50" y1="330" x2="50" y2="80" stroke="#8892a4" stroke-width="1.5"/>
+  <polygon points="50,80 44,93 56,93" fill="#8892a4"/>
+  <polygon points="50,330 44,317 56,317" fill="#8892a4"/>
+  <text x="30" y="210" fill="#8892a4" font-size="14" text-anchor="middle" font-weight="600" transform="rotate(-90, 30, 210)">Height H</text>
+
+  <!-- Launch point marker -->
+  <circle cx="100" cy="330" r="6" fill="#4caf7d"/>
+  <!-- Apex marker -->
+  <circle cx="320" cy="80" r="6" fill="#4caf7d"/>
+  <!-- Landing marker -->
+  <circle cx="540" cy="330" r="6" fill="#4caf7d"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Projectile Motion</text>
+  <!-- Apex label -->
+  <text x="340" y="72" fill="#f0f2f5" font-size="13" font-weight="600">Apex</text>
+  <!-- Parabola label -->
+  <text x="620" y="200" fill="#4caf7d" font-size="14" font-weight="600">Parabolic</text>
+  <text x="620" y="218" fill="#4caf7d" font-size="14" font-weight="600">Trajectory</text>
+</svg>

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Pendulum Energy Conversion</text>
+
+  <!-- Pivot bar -->
+  <rect x="60" y="55" width="680" height="10" rx="5" fill="#252932"/>
+  <rect x="380" y="55" width="40" height="10" rx="5" fill="#8892a4"/>
+
+  <!-- === LEFT PENDULUM (max PE, zero KE) === -->
+  <!-- String -->
+  <line x1="190" y1="65" x2="130" y2="185" stroke="#8892a4" stroke-width="2.5"/>
+  <!-- Bob -->
+  <circle cx="130" cy="195" r="18" fill="#f4b942"/>
+  <!-- Position label -->
+  <text x="100" y="225" fill="#f0f2f5" font-size="13" font-weight="600" text-anchor="middle">Max Height</text>
+  <!-- Energy bars (left) -->
+  <!-- KE bar (zero) -->
+  <rect x="95" y="280" width="30" height="4" rx="2" fill="#e8547a"/>
+  <!-- PE bar (full) -->
+  <rect x="135" y="240" width="30" height="44" rx="3" fill="#4caf7d"/>
+  <!-- Bar labels -->
+  <text x="110" y="300" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="700">KE</text>
+  <text x="150" y="300" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="700">PE</text>
+  <!-- Energy values -->
+  <text x="150" y="235" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="600">max</text>
+  <text x="110" y="277" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="600">0</text>
+
+  <!-- === CENTER PENDULUM (max KE, zero PE) === -->
+  <!-- String -->
+  <line x1="400" y1="65" x2="400" y2="185" stroke="#8892a4" stroke-width="2.5"/>
+  <!-- Bob -->
+  <circle cx="400" cy="200" r="18" fill="#4caf7d"/>
+  <!-- Velocity arrow (downward swing) -->
+  <line x1="400" y1="220" x2="400" y2="248" stroke="#3fc8d4" stroke-width="2.5"/>
+  <polygon points="400,248 394,237 406,237" fill="#3fc8d4"/>
+  <!-- Position label -->
+  <text x="400" y="272" fill="#f0f2f5" font-size="13" font-weight="600" text-anchor="middle">Equilibrium</text>
+  <!-- Energy bars (center) -->
+  <!-- KE bar (full) -->
+  <rect x="367" y="296" width="30" height="50" rx="3" fill="#e8547a"/>
+  <!-- PE bar (zero) -->
+  <rect x="407" y="342" width="30" height="4" rx="2" fill="#4caf7d"/>
+  <!-- Bar labels -->
+  <text x="382" y="362" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="700">KE</text>
+  <text x="422" y="362" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="700">PE</text>
+  <!-- Energy values -->
+  <text x="382" y="292" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="600">max</text>
+  <text x="422" y="338" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="600">0</text>
+
+  <!-- === RIGHT PENDULUM (max PE, zero KE) === -->
+  <!-- String -->
+  <line x1="610" y1="65" x2="670" y2="185" stroke="#8892a4" stroke-width="2.5"/>
+  <!-- Bob -->
+  <circle cx="670" cy="195" r="18" fill="#f4b942"/>
+  <!-- Position label -->
+  <text x="700" y="225" fill="#f0f2f5" font-size="13" font-weight="600" text-anchor="middle">Max Height</text>
+  <!-- Energy bars (right) -->
+  <!-- KE bar (zero) -->
+  <rect x="665" y="280" width="30" height="4" rx="2" fill="#e8547a"/>
+  <!-- PE bar (full) -->
+  <rect x="625" y="240" width="30" height="44" rx="3" fill="#4caf7d"/>
+  <!-- Bar labels -->
+  <text x="640" y="300" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="700">PE</text>
+  <text x="680" y="300" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="700">KE</text>
+  <!-- Energy values -->
+  <text x="640" y="235" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="600">max</text>
+  <text x="680" y="277" fill="#e8547a" font-size="12" text-anchor="middle" font-weight="600">0</text>
+
+  <!-- Conversion arrows between positions -->
+  <!-- Left to center: KE increases -->
+  <path d="M 230 195 Q 300 170 370 198" fill="none" stroke="#3fc8d4" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="370,198 356,193 360,206" fill="#3fc8d4"/>
+  <text x="295" y="165" fill="#3fc8d4" font-size="12" text-anchor="middle" font-weight="600">PE→KE</text>
+  <!-- Center to right: KE decreases -->
+  <path d="M 430 198 Q 500 170 570 195" fill="none" stroke="#f4b942" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="570,195 558,188 560,201" fill="#f4b942"/>
+  <text x="505" y="165" fill="#f4b942" font-size="12" text-anchor="middle" font-weight="600">KE→PE</text>
+
+  <!-- E_total label -->
+  <text x="400" y="390" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">Total E = KE + PE = constant</text>
+</svg>

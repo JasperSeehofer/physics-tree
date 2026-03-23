@@ -84,6 +84,8 @@ $$\Delta E_\text{thermal} = -W_\text{friction} = |\Delta E_\text{mechanical}|$$
 
 ## Intuition {#intuition}
 
+<img src="/content/classical-mechanics/illustrations/pendulum-energy.svg" alt="Pendulum at three positions showing KE and PE energy bars: maximum PE at extremes, maximum KE at center equilibrium position" class="w-full max-w-[600px] mx-auto my-8" />
+
 Energy conservation is like a financial ledger where the total is constant. Kinetic energy and potential energy are two different "accounts." As an object rises, kinetic energy moves into the potential energy account. As it falls, potential energy moves back to kinetic. Friction is a transfer to thermal energy — money you can never recover for mechanical use.
 
 The pendulum is the canonical illustration. At the lowest point, the pendulum moves fastest — maximum $K$, minimum $U$. At the highest point, it momentarily stops — maximum $U$, minimum $K$. At every intermediate point, the exact split between $K$ and $U$ adjusts so that $K + U$ remains constant. The simulation below makes this vivid.

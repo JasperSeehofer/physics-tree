@@ -16,6 +16,8 @@ Kinematics is also the entry point to calculus in physics. Velocity is the deriv
 
 ## Derivation {#derivation}
 
+<img src="/content/classical-mechanics/illustrations/kinematics-graphs.svg" alt="Three stacked graphs showing position vs time (parabola), velocity vs time (linear), and acceleration vs time (constant), connected by derivative arrows" class="w-full max-w-[600px] mx-auto my-8" />
+
 <div data-derivation-step="1">
 
 **Defining velocity**

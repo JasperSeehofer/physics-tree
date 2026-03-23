@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Work as Area Under Force-Displacement Graph</text>
+
+  <!-- Panel divider -->
+  <line x1="400" y1="55" x2="400" y2="385" stroke="#252932" stroke-width="2"/>
+
+  <!-- ===== LEFT PANEL: CONSTANT FORCE ===== -->
+  <text x="200" y="72" fill="#4caf7d" font-size="14" text-anchor="middle" font-weight="700">Constant Force</text>
+
+  <!-- Axes -->
+  <line x1="60" y1="320" x2="370" y2="320" stroke="#8892a4" stroke-width="2"/>
+  <line x1="60" y1="100" x2="60" y2="325" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="375" y="324" fill="#8892a4" font-size="14" font-weight="600">x</text>
+  <text x="48" y="98" fill="#8892a4" font-size="14" font-weight="600">F</text>
+  <!-- Tick labels on x-axis -->
+  <text x="60" y="336" fill="#8892a4" font-size="12" text-anchor="middle">0</text>
+  <text x="290" y="336" fill="#8892a4" font-size="12" text-anchor="middle">d</text>
+  <!-- Tick marks -->
+  <line x1="290" y1="318" x2="290" y2="326" stroke="#8892a4" stroke-width="1.5"/>
+  <!-- F label on y-axis -->
+  <text x="48" y="170" fill="#4caf7d" font-size="12" text-anchor="middle">F</text>
+  <line x1="52" y1="166" x2="62" y2="166" stroke="#8892a4" stroke-width="1.5"/>
+
+  <!-- Constant force line -->
+  <line x1="60" y1="166" x2="290" y2="166" stroke="#4caf7d" stroke-width="3"/>
+  <!-- Drop to zero at d -->
+  <line x1="290" y1="166" x2="290" y2="320" stroke="#4caf7d" stroke-width="2" stroke-dasharray="5,4"/>
+
+  <!-- Shaded rectangle (work = F * d) -->
+  <rect x="60" y="166" width="230" height="154" fill="#4caf7d" opacity="0.2"/>
+  <!-- Rectangle outline -->
+  <rect x="60" y="166" width="230" height="154" fill="none" stroke="#4caf7d" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- Work label inside rectangle -->
+  <text x="175" y="248" fill="#4caf7d" font-size="16" text-anchor="middle" font-weight="700">W = F · d</text>
+  <text x="175" y="268" fill="#4caf7d" font-size="13" text-anchor="middle">(area = rectangle)</text>
+
+  <!-- Dimension annotations -->
+  <line x1="60" y1="340" x2="290" y2="340" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="60" y1="334" x2="60" y2="346" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="290" y1="334" x2="290" y2="346" stroke="#8892a4" stroke-width="1.5"/>
+  <text x="175" y="360" fill="#8892a4" font-size="13" text-anchor="middle" font-weight="600">displacement d</text>
+
+  <!-- ===== RIGHT PANEL: VARYING FORCE ===== -->
+  <text x="600" y="72" fill="#f4b942" font-size="14" text-anchor="middle" font-weight="700">Varying Force</text>
+
+  <!-- Axes -->
+  <line x1="430" y1="320" x2="760" y2="320" stroke="#8892a4" stroke-width="2"/>
+  <line x1="430" y1="100" x2="430" y2="325" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="765" y="324" fill="#8892a4" font-size="14" font-weight="600">x</text>
+  <text x="418" y="98" fill="#8892a4" font-size="14" font-weight="600">F</text>
+  <!-- Tick labels -->
+  <text x="430" y="336" fill="#8892a4" font-size="12" text-anchor="middle">0</text>
+  <text x="680" y="336" fill="#8892a4" font-size="12" text-anchor="middle">d</text>
+  <line x1="680" y1="318" x2="680" y2="326" stroke="#8892a4" stroke-width="1.5"/>
+
+  <!-- F(x) curve — starts high then decreases (like spring: F = k*x from stretched) -->
+  <!-- Actually let's do a curve that increases then levels: representing a general varying force -->
+  <path d="M 430 260 C 470 200 530 140 600 130 C 640 128 660 132 680 140" fill="none" stroke="#f4b942" stroke-width="3"/>
+
+  <!-- Shaded area under curve -->
+  <path d="M 430 320 L 430 260 C 470 200 530 140 600 130 C 640 128 660 132 680 140 L 680 320 Z" fill="#f4b942" opacity="0.2"/>
+  <!-- Outline -->
+  <path d="M 430 320 L 430 260 C 470 200 530 140 600 130 C 640 128 660 132 680 140 L 680 320 Z" fill="none" stroke="#f4b942" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- Work label inside -->
+  <text x="555" y="255" fill="#f4b942" font-size="16" text-anchor="middle" font-weight="700">W = ∫F dx</text>
+  <text x="555" y="278" fill="#f4b942" font-size="13" text-anchor="middle">(area under curve)</text>
+
+  <!-- Small vertical bars to suggest integration -->
+  <rect x="468" y="220" width="10" height="100" fill="#f4b942" opacity="0.4"/>
+  <rect x="482" y="208" width="10" height="112" fill="#f4b942" opacity="0.4"/>
+  <rect x="496" y="196" width="10" height="124" fill="#f4b942" opacity="0.4"/>
+  <rect x="510" y="183" width="10" height="137" fill="#f4b942" opacity="0.4"/>
+  <rect x="524" y="172" width="10" height="148" fill="#f4b942" opacity="0.4"/>
+  <rect x="538" y="160" width="10" height="160" fill="#f4b942" opacity="0.4"/>
+  <rect x="552" y="150" width="10" height="170" fill="#f4b942" opacity="0.4"/>
+  <rect x="566" y="142" width="10" height="178" fill="#f4b942" opacity="0.4"/>
+  <rect x="580" y="136" width="10" height="184" fill="#f4b942" opacity="0.4"/>
+  <rect x="594" y="132" width="10" height="188" fill="#f4b942" opacity="0.4"/>
+  <rect x="608" y="131" width="10" height="189" fill="#f4b942" opacity="0.4"/>
+  <rect x="622" y="132" width="10" height="188" fill="#f4b942" opacity="0.4"/>
+  <rect x="636" y="134" width="10" height="186" fill="#f4b942" opacity="0.4"/>
+  <rect x="650" y="136" width="10" height="184" fill="#f4b942" opacity="0.4"/>
+  <rect x="664" y="138" width="10" height="182" fill="#f4b942" opacity="0.4"/>
+
+  <!-- Spring force example note -->
+  <text x="730" y="175" fill="#8892a4" font-size="11" text-anchor="middle">e.g. spring:</text>
+  <text x="730" y="190" fill="#8892a4" font-size="11" text-anchor="middle">F = kx</text>
+  <text x="730" y="205" fill="#3fc8d4" font-size="11" text-anchor="middle">W = ½kx²</text>
+
+  <!-- Bottom equation box -->
+  <rect x="430" y="354" width="340" height="32" rx="8" fill="#252932"/>
+  <text x="600" y="375" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">Work-Energy Theorem:  W_net = ΔKE</text>
+</svg>
