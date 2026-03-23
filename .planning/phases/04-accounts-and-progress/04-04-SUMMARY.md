@@ -25,11 +25,12 @@ decisions:
   - "ConceptToc gains toc_open: RwSignal<bool> prop — caller owns the signal so concept.rs toggle button and overlay both access same state"
   - "Bottom sheet uses single div with lg: responsive overrides (not two separate elements) to keep one code path for panel visibility logic"
   - "Content column uses w-full min-w-0 to prevent flex overflow on small screens"
+requirements-completed: [ACCT-04]
 metrics:
-  duration_minutes: 3
+  duration_minutes: 12
   completed_date: "2026-03-23"
-  tasks_completed: 1
-  files_modified: 4
+  tasks_completed: 2
+  files_modified: 8
 ---
 
 # Phase 04 Plan 04: Responsive Layout Adaptations Summary
@@ -41,6 +42,8 @@ Responsive bottom sheet for graph explorer detail panel and TOC overlay for conc
 | Task | Name | Commit | Files |
 |------|------|--------|-------|
 | 1 | Graph explorer bottom sheet and content TOC overlay responsive variants | c715a6a | panel.rs, graph_explorer.rs, toc.rs, concept.rs |
+| 2 | Visual verification of full auth flow and responsive layouts | — | Human-verified, approved |
+| fix | Auth reactivity fixes + routes import | 23b9cb1 | login_form.rs, register_form.rs, avatar_dropdown.rs, main.rs |
 
 ## What Was Built
 
@@ -74,19 +77,27 @@ Responsive bottom sheet for graph explorer detail panel and TOC overlay for conc
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Issues Found During Human Verification
 
-## Known Stubs
+**1. Missing routes module import in main.rs**
+- **Found during:** Task 2 (human verification — compilation error)
+- **Issue:** `routes::api_routes(pool)` failed — binary crate needs explicit `use server::routes`
+- **Fix:** Added `use server::routes;` import
+- **Committed in:** `23b9cb1`
 
-None — all responsive behavior is fully wired. The panel and TOC overlays open/close via reactive signals.
+**2. Auth context not updating after login/register/logout**
+- **Found during:** Task 2 (human verification — navbar stayed on "Log In" after login)
+- **Issue:** `LocalResource` fetched `/api/auth/me` once on load, never refetched after auth state change
+- **Fix:** Added `auth_user.refetch()` calls in login, register, and logout handlers; replaced page reload on logout with refetch + navigate
+- **Committed in:** `23b9cb1`
+
+**Total deviations:** 2 (both blocking bugs caught during human verification)
 
 ## Self-Check: PASSED
 
-- [x] crates/app/src/components/graph/panel.rs — modified, contains "bottom-0", "rounded-t-2xl", "max-h-[60vh]", "lg:"
-- [x] crates/app/src/components/content/toc.rs — modified, contains "lg:block", "lg:hidden", "fixed", "bg-void/80"
-- [x] crates/app/src/pages/concept.rs — modified, contains "lg:hidden" (toggle button), toc_open signal
-- [x] crates/app/src/pages/graph_explorer.rs — modified, content area w-full
-- [x] Commit c715a6a verified
-- [x] `cargo check -p app --target wasm32-unknown-unknown` — Finished with 1 pre-existing warning (unrelated)
-
-**Task 2 (checkpoint:human-verify) is pending human visual verification of the complete Phase 4 auth flow and responsive layouts.**
+- [x] crates/app/src/components/graph/panel.rs — bottom sheet on mobile, sidebar on desktop
+- [x] crates/app/src/components/content/toc.rs — overlay on mobile, sticky sidebar on desktop
+- [x] crates/app/src/pages/concept.rs — toc_open toggle, min-w-0 overflow fix
+- [x] crates/app/src/pages/graph_explorer.rs — full-width canvas
+- [x] Auth flow: register → login → dashboard → avatar → logout all working reactively
+- [x] Human verification: **APPROVED**
