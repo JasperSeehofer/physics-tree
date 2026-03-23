@@ -81,11 +81,12 @@ Plans:
   3. User can log out from any page
   4. User can view a progress dashboard showing concepts learned, mastery levels, XP totals, and current streak
   5. The app layout is usable on desktop and tablet screen sizes without horizontal scrolling or broken layouts
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
-- [ ] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
-- [ ] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
+- [ ] 04-01-PLAN.md — Auth backend: migration, Argon2id hashing, user repository, session layer, auth API endpoints
+- [ ] 04-02-PLAN.md — Frontend auth: login/register pages, auth context, avatar dropdown, navbar with hamburger menu
+- [ ] 04-03-PLAN.md — Dashboard: progress repository, dashboard API, stats cards, mini knowledge tree SVG
+- [ ] 04-04-PLAN.md — Responsive: graph explorer bottom sheet, content TOC overlay, 640px minimum width
 
 ### Phase 5: Gamification and Personal Tree
 **Goal**: Learning earns tangible rewards: XP gates on demonstrated understanding, daily streaks motivate return visits, mastery levels grow the personal botanical knowledge tree, and the graph visually reflects the user's learning progress.
@@ -127,6 +128,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
 | 3. Content and Simulations | 6/7 | In Progress|  |
-| 4. Accounts and Progress | 0/TBD | Not started | - |
+| 4. Accounts and Progress | 0/4 | Not started | - |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |
 | 6. Spaced Repetition | 0/TBD | Not started | - |
