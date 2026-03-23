@@ -7,6 +7,7 @@ async fn main() {
     use time::Duration;
     use tower_sessions::{Expiry, SessionManagerLayer};
     use tower_sessions_sqlx_store::PostgresStore;
+    use server::routes;
     use tracing_subscriber::EnvFilter;
 
     // Load .env file (ignore if missing — production uses real env vars)

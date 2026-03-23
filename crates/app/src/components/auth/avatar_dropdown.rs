@@ -18,6 +18,8 @@ fn get_initial(user: &User) -> String {
 /// Shows: Dashboard link, Settings link, Log Out button.
 #[component]
 pub fn AvatarDropdown(user: User) -> impl IntoView {
+    let auth_user = use_context::<LocalResource<Option<User>>>()
+        .expect("auth context required in AvatarDropdown");
     let open = RwSignal::new(false);
     let initial = get_initial(&user);
 
@@ -30,10 +32,9 @@ pub fn AvatarDropdown(user: User) -> impl IntoView {
                 leptos::task::spawn_local(async move {
                     use gloo_net::http::Request;
                     let _ = Request::post("/api/auth/logout").send().await;
-                    // Reload page to reset auth context
-                    if let Some(window) = web_sys::window() {
-                        let _ = window.location().reload();
-                    }
+                    auth_user.refetch();
+                    let navigate = leptos_router::hooks::use_navigate();
+                    navigate("/", Default::default());
                 });
             }
         }

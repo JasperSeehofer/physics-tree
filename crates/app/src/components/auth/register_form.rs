@@ -1,3 +1,4 @@
+use domain::user::User;
 use leptos::prelude::*;
 use leptos::web_sys;
 
@@ -5,6 +6,8 @@ use leptos::web_sys;
 /// POSTs to /api/auth/register on submit; navigates to /dashboard on success.
 #[component]
 pub fn RegisterForm() -> impl IntoView {
+    let auth_user = use_context::<LocalResource<Option<User>>>()
+        .expect("auth context required in RegisterForm");
     let email = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
     let confirm_password = RwSignal::new(String::new());
@@ -98,6 +101,7 @@ pub fn RegisterForm() -> impl IntoView {
 
                     match result {
                         Ok(resp) if resp.status() == 201 => {
+                            auth_user.refetch();
                             let navigate = leptos_router::hooks::use_navigate();
                             navigate("/dashboard", Default::default());
                         }
