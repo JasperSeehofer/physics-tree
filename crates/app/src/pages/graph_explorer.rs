@@ -1,7 +1,9 @@
 use leptos::prelude::*;
+use serde::Deserialize;
 
 use crate::components::graph::canvas::{
-    call_clear_selection, call_highlight_prereq_chain, call_navigate_to_node, GraphState,
+    call_clear_selection, call_highlight_prereq_chain, call_navigate_to_node,
+    call_update_user_progress, GraphState,
 };
 use crate::components::graph::panel::{NodePanelData, PrereqItem};
 use crate::components::graph::{GraphCanvas, NodeTooltip, RightPanel, SearchInput};
@@ -53,6 +55,43 @@ async fn fetch_prereqs(node_id: &str) -> Result<Vec<serde_json::Value>, String> 
 #[cfg(not(target_arch = "wasm32"))]
 async fn fetch_prereqs(_node_id: &str) -> Result<Vec<serde_json::Value>, String> {
     Ok(vec![])
+}
+
+/// Minimal node progress type for the graph explorer progress overlay.
+#[derive(Debug, Clone, Deserialize)]
+struct GraphNodeProgress {
+    node_id: String,
+    mastery_level: i32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct GraphProgressResponse {
+    nodes: Vec<GraphNodeProgress>,
+}
+
+/// Fetch user progress from /api/progress/dashboard and build a {nodeId: xp} JSON map.
+/// Returns None if unauthenticated (401) or on error.
+#[cfg(target_arch = "wasm32")]
+async fn fetch_progress_map() -> Option<String> {
+    let resp = gloo_net::http::Request::get("/api/progress/dashboard")
+        .send()
+        .await
+        .ok()?;
+    if resp.status() == 401 {
+        return None; // Not authenticated — unauthenticated users see full graph
+    }
+    if !resp.ok() {
+        return None;
+    }
+    let data: GraphProgressResponse = resp.json().await.ok()?;
+    // Build {nodeId: masteryLevel} map — only include nodes with XP > 0
+    let map: std::collections::HashMap<String, i32> = data
+        .nodes
+        .into_iter()
+        .filter(|n| n.mastery_level > 0)
+        .map(|n| (n.node_id, n.mastery_level))
+        .collect();
+    serde_json::to_string(&map).ok()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,6 +173,16 @@ pub fn GraphExplorerPage() -> impl IntoView {
                 load_error.set(Some(e));
                 loading.set(false);
             }
+        }
+    });
+
+    // ── Fetch user progress for botanical overlay (client-only, after graph loads) ──
+    // Graph renders with depth-tier styling until progress data arrives (no flash).
+    // Unauthenticated users (401) get None → full graph with depth-tier styling unchanged.
+    #[cfg(target_arch = "wasm32")]
+    leptos::task::spawn_local(async move {
+        if let Some(progress_json) = fetch_progress_map().await {
+            call_update_user_progress(&progress_json);
         }
     });
 

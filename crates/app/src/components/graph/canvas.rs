@@ -83,6 +83,13 @@ mod js {
         let func: js_sys::Function = func.into();
         let _ = func.call0(&JsValue::NULL);
     }
+
+    pub fn update_user_progress(progress_json: &str) {
+        let func = js_sys::Reflect::get(&bridge(), &JsValue::from_str("updateUserProgress"))
+            .expect("updateUserProgress not found");
+        let func: js_sys::Function = func.into();
+        let _ = func.call1(&JsValue::NULL, &JsValue::from_str(progress_json));
+    }
 }
 
 /// GraphCanvas component — hosts the Sigma.js WebGL renderer.
@@ -194,6 +201,12 @@ pub fn call_clear_selection() {
     js::clear_selection();
 }
 
+/// Pass user progress map to Sigma.js for botanical overlay and progressive reveal.
+#[cfg(target_arch = "wasm32")]
+pub fn call_update_user_progress(progress_json: &str) {
+    js::update_user_progress(progress_json);
+}
+
 // SSR stubs — no-ops so the server binary compiles without WASM deps.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn call_navigate_to_node(_node_id: &str) {}
@@ -203,3 +216,6 @@ pub fn call_highlight_prereq_chain(_node_id: &str, _prereq_ids_json: &str) {}
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn call_clear_selection() {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn call_update_user_progress(_progress_json: &str) {}
