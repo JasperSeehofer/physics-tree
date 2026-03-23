@@ -18,6 +18,7 @@ wasm-bindgen = "0.2"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 simulation = { path = "../simulation" }
 gloo-net = { version = "0.6", features = ["http"] }
+gloo-timers = { version = "0.3", features = ["futures"] }
 js-sys = "0.3"
 web-sys = { version = "0.3", features = [
     "HtmlDivElement",

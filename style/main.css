@@ -68,3 +68,30 @@
     font-family: var(--font-sans);
   }
 }
+
+/* MiniTree botanical entrance animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 300ms ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 400ms ease-out both;
+}
+
+/* Respect user's motion preference — disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none;
+  }
+}

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::components::dashboard::mini_tree::{MiniTree, NodeProgress};
 use crate::components::dashboard::stats_cards::{DashboardSummary, StatsCards};
+use crate::components::dashboard::streak_detail::StreakDetail;
 
 /// Combined API response from /api/progress/dashboard.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -117,9 +118,17 @@ pub fn DashboardPage() -> impl IntoView {
                             })
                             .collect();
 
+                        let streak = summary.current_streak;
+                        let freeze_tokens = summary.freeze_tokens;
+
                         view! {
                             // Stats cards section
                             <StatsCards summary=summary />
+
+                            // Streak detail row (desktop only — hidden on mobile per UI-SPEC)
+                            <div class="mt-4">
+                                <StreakDetail streak=streak freeze_tokens=freeze_tokens />
+                            </div>
 
                             // Mini tree section
                             <section class="mt-8">
