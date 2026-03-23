@@ -16,6 +16,8 @@ The second law is also the most general statement of classical mechanics: given 
 
 ## Derivation {#derivation}
 
+<img src="/content/classical-mechanics/illustrations/newtons-laws-trio.svg" alt="Newton's three laws visual summary showing inertia, F=ma, and action-reaction pairs" class="w-full max-w-[600px] mx-auto my-8" />
+
 <div data-derivation-step="1">
 
 **Force and acceleration are proportional**

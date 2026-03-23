@@ -16,6 +16,8 @@ Work is also the bridge between force-based and energy-based physics. Force desc
 
 ## Derivation {#derivation}
 
+<img src="/content/classical-mechanics/illustrations/work-energy-area.svg" alt="Force vs displacement graph with shaded area representing work done, showing both constant force (rectangle) and varying force (curve with shaded area)" class="w-full max-w-[600px] mx-auto my-8" />
+
 <div data-derivation-step="1">
 
 **Definition of work**
@@ -87,6 +89,8 @@ Why does the dot product ($F \cdot d \cos\theta$) appear? Because only the compo
 The theorem also explains why friction is always "negative work" — it opposes motion, removing kinetic energy and converting it to thermal energy. This converted energy does not disappear; the total energy (including heat) is conserved.
 
 ## Examples {#examples}
+
+<img src="/content/classical-mechanics/illustrations/incline-forces.svg" alt="Block on an inclined plane with labeled force vectors: gravity, normal force, friction, and weight components" class="w-full max-w-[500px] mx-auto my-8" />
 
 **Example 1: Box pushed along a floor**
 

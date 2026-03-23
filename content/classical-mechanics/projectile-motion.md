@@ -95,6 +95,8 @@ $$T = \frac{2 v_0 \sin\theta}{g}$$
 
 ## Intuition {#intuition}
 
+<img src="/content/classical-mechanics/illustrations/projectile-diagram.svg" alt="Projectile motion trajectory diagram showing parabolic path with velocity components at launch, apex, and landing" class="w-full max-w-[600px] mx-auto my-8" />
+
 Picture two balls released simultaneously: one dropped straight down from a ledge, the other launched horizontally from the same point. They hit the ground at the same time. The horizontal ball travels a horizontal distance while falling, but gravity acts exactly the same on both. Vertical and horizontal motions are completely decoupled — the horizontal velocity cannot affect how fast the ball falls.
 
 This is why the range formula has $\sin 2\theta$: maximum range at $45°$ comes from the trade-off between horizontal speed (maximized at $0°$) and time in the air (maximized at $90°$). Neither extreme is optimal. The sweet spot, $45°$, balances both. (In reality, air resistance shifts the optimal angle below $45°$ for fast projectiles.)

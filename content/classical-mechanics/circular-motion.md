@@ -16,6 +16,8 @@ Circular motion is also the bridge to the concept of angular quantities — angu
 
 ## Derivation {#derivation}
 
+<img src="/content/classical-mechanics/illustrations/circular-forces.svg" alt="Object on a circular path showing centripetal acceleration arrows pointing inward and velocity tangent arrows at four positions around the circle" class="w-full max-w-[600px] mx-auto my-8" />
+
 <div data-derivation-step="1">
 
 **Position on a circle**

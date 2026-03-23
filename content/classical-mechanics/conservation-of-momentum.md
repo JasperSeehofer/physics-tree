@@ -86,6 +86,8 @@ The vector nature matters crucially. A head-on collision between equal masses wh
 
 ## Examples {#examples}
 
+<img src="/content/classical-mechanics/illustrations/momentum-collision.svg" alt="Before and after collision diagrams showing elastic and inelastic outcomes with momentum bars demonstrating conservation" class="w-full max-w-[600px] mx-auto my-8" />
+
 **Example 1: Perfectly inelastic collision**
 
 A 3 kg ball moving at $v_1 = 4\,\text{m/s}$ east collides with a stationary 2 kg ball and they stick together. Find the combined velocity.

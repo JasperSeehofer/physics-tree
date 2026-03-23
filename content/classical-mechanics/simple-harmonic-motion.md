@@ -91,6 +91,8 @@ Total energy is proportional to $A^2$ and constant — energy sloshes between ki
 
 ## Intuition {#intuition}
 
+<img src="/content/classical-mechanics/illustrations/shm-spring.svg" alt="Spring-mass system in three states (compressed, equilibrium, extended) with sinusoidal displacement-vs-time graph below showing restoring force direction" class="w-full max-w-[600px] mx-auto my-8" />
+
 Imagine a ball attached to a spring. At maximum displacement, it is momentarily still — all energy is potential. It then accelerates toward equilibrium, converting potential to kinetic energy. At equilibrium it moves fastest — all energy is kinetic. It overshoots, decelerates, and comes to rest again at maximum displacement on the other side. The cycle repeats forever (in the ideal frictionless case).
 
 The isochronous property (period independent of amplitude) is counterintuitive but follows directly from the linearity of the equation: doubling the amplitude doubles both the displacement and the restoring force, so the ball has to travel twice as far but is also accelerated twice as hard — the effects cancel and the period stays the same.
