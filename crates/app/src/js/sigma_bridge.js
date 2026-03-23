@@ -9,6 +9,7 @@ let graphInstance = null;
 let fa2Worker = null;
 let selectedNodeId = null;
 let prereqChainSet = new Set();
+let userProgressMap = {};  // {nodeId: xpAmount} — populated by updateUserProgress()
 
 // Color tokens from style/main.css botanical design system
 const COLORS = {
@@ -141,8 +142,173 @@ function drawEdgeOverlay() {
   });
 }
 
+// ── User progress helpers ──────────────────────────────────────────────────
+
+function isFrontierNode(nodeId) {
+  if (!graphInstance || !graphInstance.hasNode(nodeId)) return false;
+  return graphInstance.neighbors(nodeId).some(n => (userProgressMap[n] ?? 0) > 0);
+}
+
+function applyGrowthStageStyle(res, xp) {
+  if (xp >= 300) {
+    // Gold / bloom
+    res.color = COLORS.leafGreen;
+    res.size = (res.size || 8) * 1.2;
+  } else if (xp >= 150) {
+    // Silver / leaf
+    res.color = COLORS.mist;
+    res.size = (res.size || 8) * 1.0;
+  } else if (xp >= 50) {
+    // Bronze / sprout
+    res.color = COLORS.sunAmber;
+    res.size = (res.size || 8) * 0.9;
+  } else {
+    // Seed / dormant (1-49 XP)
+    res.color = COLORS.barkLight;
+    res.size = (res.size || 8) * 0.75;
+  }
+}
+
+// ── Botanical canvas overlay shapes ───────────────────────────────────────
+
+function drawBloom(ctx, x, y, size) {
+  // 6-petal flower with glow
+  ctx.save();
+  ctx.shadowColor = COLORS.leafGreen;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = COLORS.leafGreen;
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 6 petals at 60-degree intervals
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 * i) / 6;
+    const px = x + Math.cos(angle) * size * 0.7;
+    const py = y + Math.sin(angle) * size * 0.7;
+    ctx.beginPath();
+    ctx.arc(px, py, size * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLeaf(ctx, x, y, size) {
+  // 4-point diamond (leaf shape)
+  ctx.fillStyle = COLORS.mist;
+  ctx.beginPath();
+  ctx.moveTo(x, y - size * 0.8);
+  ctx.lineTo(x + size * 0.6, y);
+  ctx.lineTo(x, y + size * 0.8);
+  ctx.lineTo(x - size * 0.6, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSprout(ctx, x, y, size) {
+  // Circle with 3 upward petal stubs
+  ctx.fillStyle = COLORS.sunAmber;
+  ctx.globalAlpha = 0.8;
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  // 3 petal stubs extending upward
+  ctx.strokeStyle = COLORS.sunAmber;
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  const stubLen = size * 0.6;
+  // Left stub
+  ctx.beginPath();
+  ctx.moveTo(x, y - size * 0.5);
+  ctx.lineTo(x - size * 0.3, y - size * 0.5 - stubLen);
+  ctx.stroke();
+  // Center stub
+  ctx.beginPath();
+  ctx.moveTo(x, y - size * 0.5);
+  ctx.lineTo(x, y - size * 0.5 - stubLen * 1.2);
+  ctx.stroke();
+  // Right stub
+  ctx.beginPath();
+  ctx.moveTo(x, y - size * 0.5);
+  ctx.lineTo(x + size * 0.3, y - size * 0.5 - stubLen);
+  ctx.stroke();
+}
+
+function drawBotanicalNodeOverlay() {
+  if (!sigmaInstance || !graphInstance || Object.keys(userProgressMap).length === 0) return;
+
+  const overlayCanvas = sigmaInstance.getCanvases().edgeLabels;
+  if (!overlayCanvas) return;
+  const octx = overlayCanvas.getContext("2d");
+  if (!octx) return;
+
+  // NOTE: drawEdgeOverlay already clears edgeLabels canvas and draws edges.
+  // drawBotanicalNodeOverlay draws AFTER edges, so botanical shapes layer above
+  // edge overlays (correct z-order). Do NOT clearRect here.
+
+  // Draw botanical growth shapes for nodes with progress
+  Object.entries(userProgressMap).forEach(([nodeId, xp]) => {
+    if (!graphInstance.hasNode(nodeId)) return;
+    if (xp <= 0) return;
+
+    const nodeAttrs = graphInstance.getNodeAttributes(nodeId);
+    if (nodeAttrs.hidden) return;
+
+    const pos = sigmaInstance.graphToViewport(nodeAttrs);
+    const size = sigmaInstance.getNodeDisplayData(nodeId)?.size || 8;
+    const scaledSize = size * (window.devicePixelRatio || 1);
+
+    if (xp >= 300) {
+      drawBloom(octx, pos.x, pos.y, scaledSize);
+    } else if (xp >= 150) {
+      drawLeaf(octx, pos.x, pos.y, scaledSize);
+    } else if (xp >= 50) {
+      drawSprout(octx, pos.x, pos.y, scaledSize);
+    }
+    // Seeds (< 50 XP) have no special overlay — just the dim circle from the reducer
+  });
+}
+
 function botanicalNodeReducer(node, data) {
   const res = { ...data };
+
+  // Progressive reveal: if user has progress loaded, hide nodes outside frontier
+  if (Object.keys(userProgressMap).length > 0) {
+    const nodeXp = userProgressMap[node];
+
+    if (nodeXp === undefined && !isFrontierNode(node)) {
+      res.hidden = true;
+      return res;
+    }
+
+    // Apply growth stage styling to learned and frontier nodes
+    if (nodeXp !== undefined && nodeXp > 0) {
+      applyGrowthStageStyle(res, nodeXp);
+    } else {
+      // Frontier node or seed: dim styling
+      res.color = COLORS.barkLight;
+      res.size = (res.size || 8) * 0.75;
+    }
+
+    // Update tooltip/label for nodes with progress
+    if (nodeXp !== undefined) {
+      if (nodeXp >= 300) {
+        res.label = `${data.label} \u2014 Gold \u00b7 Mastered`;
+      } else if (nodeXp >= 150) {
+        res.label = `${data.label} \u2014 Silver \u00b7 ${nodeXp} XP`;
+      } else if (nodeXp >= 50) {
+        res.label = `${data.label} \u2014 Bronze \u00b7 ${nodeXp} XP`;
+      } else if (nodeXp > 0) {
+        res.label = `${data.label} \u2014 ${nodeXp} XP`;
+      }
+    } else if (isFrontierNode(node)) {
+      res.label = `${data.label} \u2014 not yet learned`;
+    }
+  }
 
   if (selectedNodeId === null) return res;
 
@@ -217,8 +383,11 @@ export function initSigma(container, onNodeClick, onNodeEnter, onNodeLeave) {
     edgeReducer: (edge, data) => botanicalEdgeReducer(edge, data),
   });
 
-  // Register canvas overlay for dashed/dotted/double edge rendering
-  sigmaInstance.on("afterRender", () => drawEdgeOverlay());
+  // Register canvas overlay for dashed/dotted/double edge rendering and botanical node shapes
+  sigmaInstance.on("afterRender", () => {
+    drawEdgeOverlay();
+    drawBotanicalNodeOverlay();
+  });
 
   sigmaInstance.on("clickNode", ({ node }) => {
     onNodeClick(node);
@@ -236,6 +405,12 @@ export function initSigma(container, onNodeClick, onNodeEnter, onNodeLeave) {
   sigmaInstance.on("clickStage", () => {
     onNodeClick(""); // Empty string signals deselection to Rust
   });
+}
+
+// Update user progress map and refresh Sigma rendering (called from Rust via bridge)
+export function updateUserProgress(progressJson) {
+  userProgressMap = progressJson ? JSON.parse(progressJson) : {};
+  if (sigmaInstance) sigmaInstance.refresh();
 }
 
 // Load graph data from JSON strings (called from Rust after API fetch)
@@ -373,4 +548,5 @@ export function killSigma() {
   graphInstance = null;
   selectedNodeId = null;
   prereqChainSet = new Set();
+  userProgressMap = {};
 }
