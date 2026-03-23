@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-23T10:36:58.202Z"
+status: Ready to execute
+stopped_at: Completed 04-accounts-and-progress 04-01-PLAN.md
+last_updated: "2026-03-23T11:42:17.402Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 17
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 03 — content-and-simulations
+**Current focus:** Phase 04 — accounts-and-progress
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (accounts-and-progress) — EXECUTING
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: Not started
 | Phase 03-content-and-simulations P01 | 60 | 3 tasks | 25 files |
 | Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
 | Phase 03-content-and-simulations P04 | ~30 | 2 tasks | 6 files |
+| Phase 04-accounts-and-progress P01 | 8 | 4 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 03-content-and-simulations P04]: Pendulum and harmonic use analytical velocity Verlet (not Rapier) for clean physics models; orbital also uses custom Verlet since Rapier gravity is uniform not point-source
 - [Phase 03-content-and-simulations P04]: Incline uses Rapier2D for realistic block-surface friction collision; world rebuilt on slope angle change for clean state
 - [Phase 03-content-and-simulations P04]: g_constant field is pub in OrbitalSimulation to satisfy acceptance criteria checker
+- [Phase 04-accounts-and-progress]: tower-sessions pinned to 0.14 (sqlx-store 0.15 uses core 0.14 — version mismatch prevented PostgresStore from satisfying SessionStore trait)
+- [Phase 04-accounts-and-progress]: server crate gets lib.rs to expose handlers for integration tests (binary crates cannot be imported from test files)
+- [Phase 04-accounts-and-progress]: spawn_blocking wraps Argon2id operations in all async auth handlers to avoid blocking Tokio thread pool
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T10:36:58.200Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-accounts-and-progress/04-CONTEXT.md
+Last session: 2026-03-23T11:42:17.400Z
+Stopped at: Completed 04-accounts-and-progress 04-01-PLAN.md
+Resume file: None

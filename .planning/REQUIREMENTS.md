@@ -24,8 +24,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Accounts & Progress
 
-- [ ] **ACCT-01**: User can create an account with email/password
-- [ ] **ACCT-02**: User can log in and session persists across browser refresh
+- [x] **ACCT-01**: User can create an account with email/password
+- [x] **ACCT-02**: User can log in and session persists across browser refresh
 - [ ] **ACCT-03**: User can view a progress dashboard showing concepts learned, mastery levels, XP, and streaks
 - [ ] **ACCT-04**: Platform is responsive across desktop and tablet screen sizes
 
@@ -88,8 +88,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-02 | Phase 3 | Complete |
 | CONT-03 | Phase 3 | Pending |
 | CONT-04 | Phase 3 | Pending |
-| ACCT-01 | Phase 4 | Pending |
-| ACCT-02 | Phase 4 | Pending |
+| ACCT-01 | Phase 4 | Complete |
+| ACCT-02 | Phase 4 | Complete |
 | ACCT-03 | Phase 4 | Pending |
 | ACCT-04 | Phase 4 | Pending |
 | GAME-01 | Phase 5 | Pending |
