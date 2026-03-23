@@ -124,6 +124,7 @@ pub fn strip_yaml_frontmatter(src: &str) -> String {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 /// Escape HTML attribute special characters.
 fn html_attr_escape(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -132,6 +133,7 @@ fn html_attr_escape(s: &str) -> String {
         .replace('>', "&gt;")
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 /// Post-process HTML: for each `<h2>` element, inject an `id` attribute
 /// derived either from an explicit `{#anchor}` fragment or from slugified
 /// heading text. Return (processed_html, sections_vec).
@@ -189,6 +191,7 @@ fn process_headings(html: &str) -> (String, Vec<String>) {
     (result, sections)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 /// Extract an explicit `id` attribute from the tag, or compute one from heading text.
 fn extract_or_compute_id(opening_tag: &str, inner_html: &str) -> String {
     // Check for existing id="..." in the tag (pulldown-cmark emits these for {#id} syntax)
@@ -210,12 +213,14 @@ fn extract_or_compute_id(opening_tag: &str, inner_html: &str) -> String {
     slugify(&text)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 /// Strip HTML tags from a string, leaving only text content.
 fn strip_html_tags(s: &str) -> String {
     let re = regex::Regex::new(r"<[^>]+>").unwrap();
     re.replace_all(s, "").to_string()
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 /// Convert a heading string to a URL-friendly slug.
 pub fn slugify(s: &str) -> String {
     s.to_lowercase()

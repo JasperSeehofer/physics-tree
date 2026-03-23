@@ -127,12 +127,24 @@ pub fn SimulationEmbed(
     {
         use std::cell::RefCell;
         use std::rc::Rc;
+        use std::sync::{Arc, Mutex};
         use wasm_bindgen::closure::Closure;
         use wasm_bindgen::JsCast;
 
-        // Cancellation handle for on_cleanup
-        let raf_handle: Rc<RefCell<Option<i32>>> = Rc::new(RefCell::new(None));
-        let raf_handle_cleanup = raf_handle.clone();
+        // Cancellation handle for on_cleanup — Arc<Mutex> satisfies Send+Sync
+        let raf_handle: Arc<Mutex<Option<i32>>> = Arc::new(Mutex::new(None));
+        let raf_handle_for_cleanup = raf_handle.clone();
+
+        // Register cleanup outside the Effect so the closure is FnMut-compatible
+        on_cleanup(move || {
+            if let Ok(mut guard) = raf_handle_for_cleanup.lock() {
+                if let Some(id) = guard.take() {
+                    if let Some(win) = web_sys::window() {
+                        let _ = win.cancel_animation_frame(id);
+                    }
+                }
+            }
+        });
 
         Effect::new(move |_| {
             let Some(canvas_el) = canvas_ref.get() else {
@@ -206,7 +218,9 @@ pub fn SimulationEmbed(
                         let id = win
                             .request_animation_frame(cb.as_ref().unchecked_ref())
                             .unwrap_or(0);
-                        *handle_inner.borrow_mut() = Some(id);
+                        if let Ok(mut guard) = handle_inner.lock() {
+                            *guard = Some(id);
+                        }
                     }
                 }
             }) as Box<dyn FnMut()>));
@@ -216,22 +230,16 @@ pub fn SimulationEmbed(
                 let id = window
                     .request_animation_frame(cb.as_ref().unchecked_ref())
                     .unwrap_or(0);
-                *raf_handle.borrow_mut() = Some(id);
+                if let Ok(mut guard) = raf_handle.lock() {
+                    *guard = Some(id);
+                }
             }
 
             // Leak the closure so it lives as long as the rAF loop
             // on_cleanup cancels the pending frame before the next tick fires
             if let Some(cb) = raf_cb.borrow_mut().take() {
                 cb.forget();
-            }
-
-            on_cleanup(move || {
-                if let Some(id) = raf_handle_cleanup.borrow_mut().take() {
-                    if let Some(win) = web_sys::window() {
-                        let _ = win.cancel_animation_frame(id);
-                    }
-                }
-            });
+            };
         });
     }
 

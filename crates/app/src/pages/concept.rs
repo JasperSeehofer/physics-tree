@@ -110,7 +110,8 @@ pub fn ConceptPage() -> impl IntoView {
     // ── Reactive state ──────────────────────────────────────────────────────
     let content: RwSignal<Option<ConceptContent>> = RwSignal::new(None);
     let load_error: RwSignal<Option<String>> = RwSignal::new(None);
-    let loading = RwSignal::new(true);
+    // Start false so SSR and CSR produce the same initial DOM (avoids hydration mismatch panic)
+    let loading = RwSignal::new(false);
     let quiz_questions: RwSignal<Vec<domain::quiz::QuizQuestion>> = RwSignal::new(vec![]);
 
     // Track which quiz checkpoints have been passed (index → bool)
@@ -146,9 +147,7 @@ pub fn ConceptPage() -> impl IntoView {
         });
     }
 
-    // On SSR, immediately leave loading state (no data is rendered server-side)
-    #[cfg(not(target_arch = "wasm32"))]
-    loading.set(false);
+    // loading starts false on both SSR and CSR to keep initial DOM identical for hydration
 
     // ── Effect: hydrate content after it loads ───────────────────────────────
     #[cfg(target_arch = "wasm32")]
