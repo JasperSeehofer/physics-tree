@@ -251,7 +251,9 @@ pub fn GraphExplorerPage() -> impl IntoView {
             </div>
 
             // ── Content area ─────────────────────────────────────────────────
-            <div class="flex flex-1 overflow-hidden relative">
+            // On mobile/tablet: graph fills full width (panel is bottom sheet overlay)
+            // On desktop (lg+): same full-width canvas, panel slides in from right as overlay
+            <div class="flex flex-1 overflow-hidden relative w-full">
                 // Loading state
                 {move || loading.get().then(|| view! {
                     <div class="flex-1 flex items-center justify-center">

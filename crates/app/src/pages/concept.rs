@@ -120,6 +120,9 @@ pub fn ConceptPage() -> impl IntoView {
     // Active TOC section (updated by IntersectionObserver via JS bridge)
     let (active_section, set_active_section) = signal(String::new());
 
+    // TOC overlay toggle (mobile/tablet only)
+    let toc_open: RwSignal<bool> = RwSignal::new(false);
+
     // ── Fetch content and quiz on mount (client-only) ────────────────────────
     #[cfg(target_arch = "wasm32")]
     {
@@ -225,8 +228,8 @@ pub fn ConceptPage() -> impl IntoView {
     // ── View ─────────────────────────────────────────────────────────────────
     view! {
         <div class="min-h-screen bg-void">
-            // Back to graph link
-            <div class="px-6 pt-6">
+            // Back to graph link + TOC toggle (mobile/tablet only)
+            <div class="px-6 pt-6 flex items-center justify-between">
                 <a
                     href="/graph"
                     class="text-sm text-mist hover:text-petal-white inline-flex items-center gap-1"
@@ -236,10 +239,23 @@ pub fn ConceptPage() -> impl IntoView {
                     </svg>
                     "Back to graph"
                 </a>
+                // TOC toggle button — shown on mobile/tablet only (lg: hidden)
+                <button
+                    class="lg:hidden w-8 h-8 min-h-[44px] flex items-center justify-center text-mist hover:text-petal-white transition-colors"
+                    aria-label="Table of contents"
+                    on:click=move |_| toc_open.update(|v| *v = !*v)
+                >
+                    // Hamburger/list icon (inline SVG)
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
 
             // Main two-column layout
-            <div class="flex min-h-screen bg-void">
+            // Desktop (lg+): flex row with sticky TOC sidebar + content column
+            // Mobile/tablet: single column, TOC as overlay
+            <div class="flex min-h-screen bg-void w-full overflow-x-hidden">
                 // Loading state
                 {move || loading.get().then(|| view! {
                     <div class="flex-1 flex items-center justify-center">
@@ -289,11 +305,11 @@ pub fn ConceptPage() -> impl IntoView {
                         let simulations = c.simulations.clone();
 
                         view! {
-                            // TOC sidebar (lg+ only)
-                            <ConceptToc sections=sections active_section=active_section />
+                            // TOC sidebar (lg+ sticky) + mobile overlay (managed inside ConceptToc)
+                            <ConceptToc sections=sections active_section=active_section toc_open=toc_open />
 
-                            // Content column
-                            <div class="flex-1 max-w-[700px] mx-auto px-6 py-16">
+                            // Content column — full width on mobile, constrained on desktop
+                            <div class="flex-1 w-full min-w-0 max-w-[700px] mx-auto px-4 lg:px-6 py-16">
                                 // Concept title
                                 <h1 class="text-[28px] font-bold text-petal-white leading-[1.2] mb-8">
                                     {title}

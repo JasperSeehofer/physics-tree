@@ -21,8 +21,9 @@ pub struct PrereqItem {
     pub title: String,
 }
 
-/// Right sidebar panel showing concept details and prerequisite navigation.
-/// Slides in from the right when a node is selected.
+/// Node detail panel — renders as a right sidebar on desktop (lg+) and as a
+/// bottom sheet overlay on mobile/tablet (below lg breakpoint).
+/// Slides in from the right on desktop, slides up from the bottom on mobile.
 #[component]
 pub fn RightPanel(
     /// The currently selected node's data (None when no node is selected)
@@ -72,21 +73,29 @@ pub fn RightPanel(
         panel_open.set(true);
     };
 
-    let translate_class = move || {
+    // Responsive container class:
+    // - Mobile/tablet (below lg): fixed bottom sheet overlay
+    // - Desktop (lg+): fixed right sidebar (existing behavior)
+    // When panel is closed: hidden on both breakpoints
+    let panel_class = move || {
         if panel_open.get() {
-            "translate-x-0"
+            // Mobile/tablet: bottom sheet — fixed bottom-0 left-0 right-0, rounded top corners
+            // Desktop (lg+): right sidebar — fixed right-0 top-0 h-full w-80
+            "fixed bottom-0 left-0 right-0 rounded-t-2xl border-t border-bark-light max-h-[60vh] overflow-y-auto \
+             bg-bark-dark flex flex-col z-50 transition-transform duration-200 ease-out \
+             lg:bottom-auto lg:left-auto lg:top-0 lg:right-0 lg:h-full lg:w-80 lg:xl:w-[400px] \
+             lg:rounded-none lg:border-t-0 lg:border-l lg:max-h-full"
+                .to_string()
         } else {
-            "translate-x-full"
+            "hidden".to_string()
         }
     };
 
     view! {
-        <div
-            class=move || format!(
-                "fixed right-0 top-0 h-full w-80 xl:w-[400px] bg-bark-dark flex flex-col z-40 transition-transform duration-200 ease-out overflow-y-auto {}",
-                translate_class()
-            )
-        >
+        <div class=panel_class>
+            // Drag handle — shown on mobile/tablet only (hidden lg+)
+            <div class="w-12 h-1 bg-bark-light rounded mx-auto mt-3 mb-2 lg:hidden"></div>
+
             {move || node.get().map(|n| {
                 let prereq_list = prereqs.get();
                 let nav_prereq = navigate_to_prereq.clone();
