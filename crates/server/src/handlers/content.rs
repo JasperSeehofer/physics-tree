@@ -28,6 +28,8 @@ pub struct ConceptContent {
     pub description: String,
     pub node_type: String,
     pub slug: String,
+    /// UUID of the graph node — used by the frontend to POST to /api/progress/award-xp.
+    pub node_id: String,
     /// Prerequisite concepts (direct dependencies).
     pub prerequisites: Vec<PrereqInfo>,
     /// Next concepts this module unlocks.
@@ -114,6 +116,7 @@ pub async fn get_content(
         description: row.description,
         node_type: row.node_type,
         slug: row.slug,
+        node_id: row.node_id.to_string(),
         prerequisites,
         next_concepts,
         sections: rendered.sections,

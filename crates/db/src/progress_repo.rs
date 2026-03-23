@@ -13,6 +13,8 @@ pub struct DashboardSummary {
     pub overall_mastery_pct: f64,
     /// Placeholder — Phase 5 implements streak logic (D-12, D-14).
     pub current_streak: i32,
+    /// Number of streak freeze tokens available (Phase 5 gamification).
+    pub freeze_tokens: i32,
 }
 
 /// Per-node progress data for the mini knowledge tree.
@@ -54,6 +56,7 @@ pub async fn get_dashboard_summary(
         total_concepts: row.try_get::<i64, _>("total_concepts")?,
         overall_mastery_pct: row.try_get::<f64, _>("overall_mastery_pct")?,
         current_streak: 0, // Phase 5 implements streak logic per D-12
+        freeze_tokens: 0,  // Phase 5 implements freeze token logic
     })
 }
 

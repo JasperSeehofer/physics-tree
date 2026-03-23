@@ -15,13 +15,16 @@ use super::multiple_choice::QuizMultipleChoice;
 
 /// A quiz checkpoint that soft-blocks the content below it until answered.
 ///
-/// The `on_answered` callback is called with `true` when the user answers
-/// correctly or clicks "Skip for now". The caller (ConceptPage) uses this
-/// to remove the blur from the content section below.
+/// The `on_answered` callback is called when the checkpoint is cleared:
+/// - `true` = answered correctly
+/// - `false` = skipped ("Skip for now")
+///
+/// The distinction is used by ConceptPage to compute a score_pct for XP awards
+/// (only correct answers count toward score).
 #[component]
 pub fn QuizCheckpoint(
     question: QuizQuestion,
-    /// Called when the checkpoint is cleared (correct answer or skip).
+    /// Called when the checkpoint is cleared. `true` = correct, `false` = skipped.
     on_answered: Callback<bool>,
 ) -> impl IntoView {
     let answered = RwSignal::new(false);
@@ -41,7 +44,7 @@ pub fn QuizCheckpoint(
                         question=q_for_mc
                         on_correct=Callback::new(move |_| {
                             answered.set(true);
-                            on_answered.run(true);
+                            on_answered.run(true); // correct
                         })
                     />
                 }.into_any(),
@@ -50,7 +53,7 @@ pub fn QuizCheckpoint(
                         question=q_for_formula
                         on_correct=Callback::new(move |_| {
                             answered.set(true);
-                            on_answered.run(true);
+                            on_answered.run(true); // correct
                         })
                     />
                 }.into_any(),
@@ -59,7 +62,7 @@ pub fn QuizCheckpoint(
                         question=q_for_matching
                         on_correct=Callback::new(move |_| {
                             answered.set(true);
-                            on_answered.run(true);
+                            on_answered.run(true); // correct
                         })
                     />
                 }.into_any(),
@@ -74,7 +77,7 @@ pub fn QuizCheckpoint(
                     class="text-sm text-mist underline hover:text-petal-white mt-4 block"
                     on:click=move |_| {
                         skipped.set(true);
-                        on_answered.run(true);
+                        on_answered.run(false); // skipped — does not count as correct
                     }
                 >
                     "Skip for now"

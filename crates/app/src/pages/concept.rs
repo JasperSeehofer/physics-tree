@@ -4,18 +4,23 @@
 //! Fetches content from /api/content/{slug}, renders two-column layout with
 //! sticky TOC sidebar, prerequisites banner, content HTML, simulations, quizzes,
 //! and next-concept nav.
+//!
+//! Phase 05 addition: quiz checkpoint passes trigger POST to /api/progress/award-xp
+//! and show an XP toast. MasteryBadge renders current mastery tier in the header.
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use serde::{Deserialize, Serialize};
 
 use crate::components::content::{
+    mastery_badge::MasteryBadge,
     next_concept::NextConceptNav,
     prereqs_banner::{PrereqInfo, PrerequisitesBanner},
     toc::ConceptToc,
 };
-use crate::components::simulation::embed::SimulationEmbed;
 use crate::components::quiz::checkpoint::QuizCheckpoint;
+use crate::components::quiz::xp_toast::{XpAwardData, XpToast};
+use crate::components::simulation::embed::SimulationEmbed;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API response types (mirroring server's ConceptContent)
@@ -28,10 +33,32 @@ pub struct ConceptContent {
     pub description: String,
     pub node_type: String,
     pub slug: String,
+    /// UUID of the graph node — used to POST to /api/progress/award-xp.
+    pub node_id: String,
     pub prerequisites: Vec<PrereqInfo>,
     pub next_concepts: Vec<PrereqInfo>,
     pub sections: Vec<String>,
     pub simulations: Vec<String>,
+}
+
+// XP award request/response — mirrors server types from Plan 01
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct AwardXpRequest {
+    node_id: String,
+    score_pct: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct AwardXpResponse {
+    xp_awarded: i32,
+    new_total_xp: i32,
+    mastery_tier: String,
+    streak: i32,
+    freeze_tokens: i32,
+    streak_milestone: Option<i32>,
+    perfect_bonus: bool,
+    freeze_used: bool,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,6 +94,7 @@ async fn fetch_concept_content(_slug: &str) -> Result<ConceptContent, String> {
         description: String::new(),
         node_type: String::new(),
         slug: String::new(),
+        node_id: String::new(),
         prerequisites: vec![],
         next_concepts: vec![],
         sections: vec![],
@@ -94,6 +122,25 @@ async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
     vec![]
 }
 
+/// POST /api/progress/award-xp — awards XP for completing quiz checkpoints.
+/// Returns None if the request fails or user is not authenticated.
+#[cfg(target_arch = "wasm32")]
+async fn post_award_xp(node_id: String, score_pct: u32) -> Option<AwardXpResponse> {
+    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct }).ok()?;
+    let resp = gloo_net::http::Request::post("/api/progress/award-xp")
+        .header("Content-Type", "application/json")
+        .body(body)
+        .ok()?
+        .send()
+        .await
+        .ok()?;
+
+    if !resp.ok() {
+        return None;
+    }
+    resp.json::<AwardXpResponse>().await.ok()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ConceptPage component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,8 +161,15 @@ pub fn ConceptPage() -> impl IntoView {
     let loading = RwSignal::new(false);
     let quiz_questions: RwSignal<Vec<domain::quiz::QuizQuestion>> = RwSignal::new(vec![]);
 
-    // Track which quiz checkpoints have been passed (index → bool)
-    let checkpoint_passed: RwSignal<Vec<bool>> = RwSignal::new(vec![]);
+    // Track which quiz checkpoints have been answered and whether correctly.
+    // Some(true) = correct, Some(false) = skipped, None = unanswered
+    let checkpoint_passed: RwSignal<Vec<Option<bool>>> = RwSignal::new(vec![]);
+
+    // XP toast data — set when award-xp returns a response
+    let xp_toast_data: RwSignal<Option<XpAwardData>> = RwSignal::new(None);
+
+    // Current mastery XP for this concept (fetched on load)
+    let mastery_xp: RwSignal<i32> = RwSignal::new(0);
 
     // Active TOC section (updated by IntersectionObserver via JS bridge)
     let (active_section, set_active_section) = signal(String::new());
@@ -145,12 +199,58 @@ pub fn ConceptPage() -> impl IntoView {
         leptos::task::spawn_local(async move {
             let questions = fetch_quiz_questions(&slug_for_quiz).await;
             let n = questions.len();
-            checkpoint_passed.set(vec![false; n]);
+            checkpoint_passed.set(vec![None; n]);
             quiz_questions.set(questions);
         });
     }
 
-    // loading starts false on both SSR and CSR to keep initial DOM identical for hydration
+    // ── Effect: when all checkpoints answered → award XP ─────────────────────
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let passed = checkpoint_passed.get();
+        let questions = quiz_questions.get();
+        let total = questions.len();
+
+        // Wait until there are questions and all are answered
+        if total == 0 || passed.len() != total {
+            return;
+        }
+        let all_answered = passed.iter().all(|p| p.is_some());
+        if !all_answered {
+            return;
+        }
+
+        // Compute score: correct / total * 100
+        let correct_count = passed.iter().filter(|&&p| p == Some(true)).count();
+        let score_pct = ((correct_count as f64 / total as f64) * 100.0).round() as u32;
+
+        // Only award XP if score >= 70% (D-02)
+        if score_pct < 70 {
+            return;
+        }
+
+        let node_id = content.get().map(|c| c.node_id.clone()).unwrap_or_default();
+        if node_id.is_empty() {
+            return;
+        }
+
+        let concept_name = content.get().map(|c| c.title.clone()).unwrap_or_default();
+
+        leptos::task::spawn_local(async move {
+            if let Some(response) = post_award_xp(node_id, score_pct).await {
+                // Update mastery XP after award
+                mastery_xp.set(response.new_total_xp);
+
+                xp_toast_data.set(Some(XpAwardData {
+                    xp_awarded: response.xp_awarded,
+                    concept_name,
+                    perfect_bonus: response.perfect_bonus,
+                    streak_milestone: response.streak_milestone,
+                    freeze_used: response.freeze_used,
+                }));
+            }
+        });
+    });
 
     // ── Effect: hydrate content after it loads ───────────────────────────────
     #[cfg(target_arch = "wasm32")]
@@ -291,6 +391,7 @@ pub fn ConceptPage() -> impl IntoView {
                             description: String::new(),
                             node_type: String::new(),
                             slug: String::new(),
+                            node_id: String::new(),
                             prerequisites: vec![],
                             next_concepts: vec![],
                             sections: vec![],
@@ -310,10 +411,14 @@ pub fn ConceptPage() -> impl IntoView {
 
                             // Content column — full width on mobile, constrained on desktop
                             <div class="flex-1 w-full min-w-0 max-w-[700px] mx-auto px-4 lg:px-6 py-16">
-                                // Concept title
-                                <h1 class="text-[28px] font-bold text-petal-white leading-[1.2] mb-8">
-                                    {title}
-                                </h1>
+                                // Concept title + mastery badge
+                                <div class="mb-8">
+                                    <h1 class="text-[28px] font-bold text-petal-white leading-[1.2] mb-2">
+                                        {title}
+                                    </h1>
+                                    // Mastery badge — reactive to mastery_xp signal, shown when xp >= 50
+                                    {move || view! { <MasteryBadge mastery_xp=mastery_xp.get() /> }}
+                                </div>
 
                                 // Prerequisites banner
                                 <PrerequisitesBanner prereqs=prereqs />
@@ -351,7 +456,7 @@ pub fn ConceptPage() -> impl IntoView {
                                         <div class="mt-8">
                                             {questions.into_iter().enumerate().map(|(idx, question)| {
                                                 // Is this checkpoint (and all before it) cleared?
-                                                let this_passed = passed.get(idx).copied().unwrap_or(false);
+                                                let this_passed = passed.get(idx).copied().flatten().is_some();
 
                                                 // Content below is blurred until THIS checkpoint is passed
                                                 let blur_class = if this_passed {
@@ -359,7 +464,7 @@ pub fn ConceptPage() -> impl IntoView {
                                                 } else {
                                                     // Only blur if there's a previous checkpoint that's also passed
                                                     // or this is the first unanswered one
-                                                    if idx == 0 || passed.get(idx - 1).copied().unwrap_or(false) {
+                                                    if idx == 0 || passed.get(idx - 1).copied().flatten().is_some() {
                                                         "" // checkpoint itself is not blurred
                                                     } else {
                                                         "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
@@ -370,10 +475,10 @@ pub fn ConceptPage() -> impl IntoView {
                                                     <div class=blur_class>
                                                         <QuizCheckpoint
                                                             question=question
-                                                            on_answered=Callback::new(move |_answered: bool| {
+                                                            on_answered=Callback::new(move |correct: bool| {
                                                                 checkpoint_passed.update(|passed| {
                                                                     if let Some(slot) = passed.get_mut(idx) {
-                                                                        *slot = true;
+                                                                        *slot = Some(correct);
                                                                     }
                                                                 });
                                                             })
@@ -392,6 +497,9 @@ pub fn ConceptPage() -> impl IntoView {
                     })
                 }}
             </div>
+
+            // XP toast — renders fixed bottom-right, shown after quiz completion
+            <XpToast data=xp_toast_data />
         </div>
     }
 }
