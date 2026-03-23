@@ -33,7 +33,7 @@ fn WordmarkSvg() -> impl IntoView {
 #[component]
 pub fn LandingPage() -> impl IntoView {
     view! {
-        <div class="min-h-screen bg-void flex flex-col items-center justify-center px-4">
+        <div class="min-h-[calc(100vh-56px)] bg-void flex flex-col items-center justify-center px-4">
             <div class="max-w-xl w-full flex flex-col items-center">
                 // Hero section
                 <header class="text-center mb-12">

@@ -1,13 +1,19 @@
 pub mod components;
 pub mod pages;
 
+use domain::user::User;
 use leptos::prelude::*;
 use leptos_meta::HashedStylesheet;
 use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
 use pages::concept::ConceptPage;
+use pages::dashboard::DashboardPage;
 use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
+use pages::login::LoginPage;
+use pages::register::RegisterPage;
+
+use crate::components::auth::avatar_dropdown::AvatarDropdown;
 
 /// WASM entry point — called by the hydration script to activate client-side interactivity.
 #[cfg(feature = "hydrate")]
@@ -42,16 +48,168 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
     }
 }
 
+/// Shared navigation bar — shown on every page above the route content.
+/// Shows auth state: AvatarDropdown when logged in, "Log In" link when guest.
+/// Collapses to hamburger menu below 768px (md breakpoint).
+#[component]
+fn Navbar() -> impl IntoView {
+    let auth_user = use_context::<LocalResource<Option<User>>>()
+        .expect("auth context required in Navbar");
+
+    let menu_open = RwSignal::new(false);
+
+    let toggle_menu = move |_: leptos::ev::MouseEvent| menu_open.update(|v| *v = !*v);
+    let close_menu = move |_: leptos::ev::MouseEvent| menu_open.set(false);
+
+    // Close mobile menu on Escape
+    #[cfg(target_arch = "wasm32")]
+    {
+        window_event_listener(leptos::ev::keydown, move |ev: web_sys::KeyboardEvent| {
+            if ev.key() == "Escape" {
+                menu_open.set(false);
+            }
+        });
+    }
+
+    view! {
+        <nav class="h-14 bg-bark-dark flex items-center justify-between px-4 border-b border-bark-light relative">
+            // Logo (left)
+            <a href="/" class="flex items-center gap-2 text-sm font-bold text-petal-white hover:text-leaf-green transition-colors">
+                "PhysicsTree"
+            </a>
+
+            // Desktop nav links (hidden below md)
+            <div class="hidden md:flex gap-6">
+                <a href="/graph" class="text-sm font-bold text-petal-white hover:text-leaf-green transition-colors">
+                    "Graph"
+                </a>
+            </div>
+
+            // Right section: auth + hamburger
+            <div class="flex items-center gap-3">
+                // Auth section (desktop)
+                <div class="hidden md:block">
+                    <Suspense fallback=|| ()>
+                        {move || {
+                            auth_user.get().map(|user_opt| {
+                                match user_opt {
+                                    Some(user) => view! {
+                                        <AvatarDropdown user=user />
+                                    }.into_any(),
+                                    None => view! {
+                                        <a
+                                            href="/login"
+                                            class="text-sm font-bold text-petal-white hover:text-leaf-green transition-colors"
+                                        >
+                                            "Log In"
+                                        </a>
+                                    }.into_any(),
+                                }
+                            })
+                        }}
+                    </Suspense>
+                </div>
+
+                // Hamburger button (visible below md)
+                <button
+                    class="md:hidden w-8 h-8 flex items-center justify-center text-mist hover:text-petal-white"
+                    aria-label="Open navigation menu"
+                    aria-expanded=move || menu_open.get().to_string()
+                    on:click=toggle_menu
+                >
+                    // 3-bar SVG icon
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <rect x="2" y="4" width="16" height="2" rx="1" />
+                        <rect x="2" y="9" width="16" height="2" rx="1" />
+                        <rect x="2" y="14" width="16" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        // Mobile menu (below md, shown when menu_open)
+        {move || menu_open.get().then(|| view! {
+            <div class="md:hidden bg-bark-dark border-t border-bark-light">
+                <a
+                    href="/graph"
+                    class="py-3 px-6 text-base font-bold text-petal-white block hover:bg-bark-mid"
+                    on:click=close_menu
+                >
+                    "Graph"
+                </a>
+                <Suspense fallback=|| ()>
+                    {move || {
+                        auth_user.get().map(|user_opt| {
+                            match user_opt {
+                                Some(_) => view! {
+                                    <a
+                                        href="/dashboard"
+                                        class="py-3 px-6 text-base font-bold text-petal-white block hover:bg-bark-mid"
+                                        on:click=close_menu
+                                    >
+                                        "Dashboard"
+                                    </a>
+                                }.into_any(),
+                                None => view! {
+                                    <a
+                                        href="/login"
+                                        class="py-3 px-6 text-base font-bold text-petal-white block hover:bg-bark-mid"
+                                        on:click=close_menu
+                                    >
+                                        "Log In"
+                                    </a>
+                                }.into_any(),
+                            }
+                        })
+                    }}
+                </Suspense>
+            </div>
+        })}
+    }
+}
+
 /// Root application component with client-side routing.
+/// Provides auth context globally and renders the shared navbar above all routes.
 #[component]
 pub fn App() -> impl IntoView {
+    // Auth resource — fetches current user from /api/auth/me on load.
+    // LocalResource for non-Send futures (gloo-net on WASM is not Send).
+    let auth_user: LocalResource<Option<User>> = LocalResource::new(|| async move {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let result = gloo_net::http::Request::get("/api/auth/me")
+                .send()
+                .await;
+            match result {
+                Ok(resp) if resp.status() == 200 => {
+                    resp.json::<Option<User>>().await.unwrap_or(None)
+                }
+                _ => None,
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // During SSR, no session is available — client re-checks on hydration.
+            None
+        }
+    });
+
+    // Provide auth resource globally so Navbar and any page can access it.
+    provide_context(auth_user);
+
     view! {
         <Router>
-            <Routes fallback=|| "Page not found.">
-                <Route path=path!("/") view=LandingPage />
-                <Route path=path!("/graph") view=GraphExplorerPage />
-                <Route path=path!("/graph/:slug/learn") view=ConceptPage />
-            </Routes>
+            <Navbar />
+            <main>
+                <Routes fallback=|| "Page not found.">
+                    <Route path=path!("/") view=LandingPage />
+                    <Route path=path!("/graph") view=GraphExplorerPage />
+                    <Route path=path!("/graph/:slug/learn") view=ConceptPage />
+                    <Route path=path!("/login") view=LoginPage />
+                    <Route path=path!("/register") view=RegisterPage />
+                    <Route path=path!("/dashboard") view=DashboardPage />
+                </Routes>
+            </main>
         </Router>
     }
 }
