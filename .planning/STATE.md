@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 04-accounts-and-progress 04-03-PLAN.md
-last_updated: "2026-03-23T11:56:31.861Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 04-accounts-and-progress 04-04-PLAN.md (pending human verify checkpoint)
+last_updated: "2026-03-23T12:00:57.248Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Plan: 4 of 4
 | Phase 04-accounts-and-progress P01 | 8 | 4 tasks | 13 files |
 | Phase 04-accounts-and-progress P02 | 5 | 2 tasks | 11 files |
 | Phase 04-accounts-and-progress P03 | 253 | 2 tasks | 10 files |
+| Phase 04-accounts-and-progress P04 | 3 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 04-accounts-and-progress]: current_streak hardcoded 0 in DashboardSummary — Phase 5 implements streak logic per D-12/D-14
 - [Phase 04-accounts-and-progress]: into_any() required for divergent Leptos 0.8 view branches in if/else — arms must unify to same type
 - [Phase 04-accounts-and-progress]: MiniTree shows empty state when all nodes have mastery_level==0 — API returns all nodes with 0 for unlearned
+- [Phase 04-accounts-and-progress]: ConceptToc gains toc_open RwSignal prop — caller owns state so toggle button and overlay share same signal
+- [Phase 04-accounts-and-progress]: Bottom sheet uses single div with lg: responsive overrides (not two elements) to keep one code path for panel visibility logic
 
 ### Pending Todos
 
@@ -117,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T11:56:31.860Z
-Stopped at: Completed 04-accounts-and-progress 04-03-PLAN.md
+Last session: 2026-03-23T12:00:57.247Z
+Stopped at: Completed 04-accounts-and-progress 04-04-PLAN.md (pending human verify checkpoint)
 Resume file: None
