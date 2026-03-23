@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-23T13:30:15.270Z"
+status: Ready to execute
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-23T20:17:28.361Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 20
+  completed_plans: 18
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 04 — accounts-and-progress
+**Current focus:** Phase 05 — gamification-and-personal-tree
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (gamification-and-personal-tree) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Plan: Not started
 | Phase 04-accounts-and-progress P02 | 5 | 2 tasks | 11 files |
 | Phase 04-accounts-and-progress P03 | 253 | 2 tasks | 10 files |
 | Phase 04-accounts-and-progress P04 | 3 | 1 tasks | 4 files |
+| Phase 05-gamification-and-personal-tree P01 | 5 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 04-accounts-and-progress]: MiniTree shows empty state when all nodes have mastery_level==0 — API returns all nodes with 0 for unlearned
 - [Phase 04-accounts-and-progress]: ConceptToc gains toc_open RwSignal prop — caller owns state so toggle button and overlay share same signal
 - [Phase 04-accounts-and-progress]: Bottom sheet uses single div with lg: responsive overrides (not two elements) to keep one code path for panel visibility logic
+- [Phase 05-gamification-and-personal-tree]: compute_xp applies 1.5x perfect bonus to base XP, not scaled score — trunk 100%=30, leaf 100%=60 per spec
+- [Phase 05-gamification-and-personal-tree]: mastery_level stores cumulative concept XP; tiers derived at query time via xp_to_mastery_tier thresholds (50=bronze, 150=silver, 300=gold)
+- [Phase 05-gamification-and-personal-tree]: streak freeze covers exactly one missed day (gap==2); larger gaps reset streak even with tokens — freeze only covers single missed day
 
 ### Pending Todos
 
@@ -120,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T13:30:15.268Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-gamification-and-personal-tree/05-CONTEXT.md
+Last session: 2026-03-23T20:17:28.353Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
