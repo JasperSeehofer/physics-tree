@@ -18,12 +18,12 @@ Users can visually explore the interconnected landscape of physics and deeply le
 - [x] Interactive physics simulations (parameter-tweakable, 5 simulations) — Validated in Phase 3: content-and-simulations
 - [x] Classical mechanics as v1 proof-of-concept branch (16 fully fleshed out content modules) — Validated in Phase 3: content-and-simulations
 - [x] Kurzgesagt/In a Nutshell visual style: bold saturated colors, dark backgrounds, flat vector art, playful tone — Validated in Phase 3: content-and-simulations
+- [x] User accounts with authentication — Validated in Phase 4: auth-and-progress
+- [x] Gamification: XP, streaks, daily engagement loops — Validated in Phase 5: gamification-and-personal-tree
+- [x] Gamification: skill mastery levels per concept (bronze → silver → gold), tied to plant growth visual — Validated in Phase 5: gamification-and-personal-tree
 
 ### Active
 - [ ] Guided learning paths through the graph (curated syllabi)
-- [ ] User accounts with authentication
-- [ ] Gamification: XP, streaks, daily engagement loops
-- [ ] Gamification: skill mastery levels per concept (bronze → silver → gold), tied to plant growth visual
 - [ ] Gamification: leaderboards (friends, global)
 - [ ] Gamification: spaced repetition for concept review
 - [ ] Animated step-by-step visual explanations (3Blue1Brown-style)
@@ -65,4 +65,4 @@ Users can visually explore the interconnected landscape of physics and deeply le
 | Classical mechanics as v1 content | Well-understood domain, rich in visualization opportunities, proves the full stack | — Pending |
 
 ---
-*Last updated: 2026-03-23 after Phase 4 completion — auth, progress dashboard, and responsive layouts shipped*
+*Last updated: 2026-03-23 after Phase 5 completion — XP awards, streaks with freeze tokens, mastery tiers, botanical MiniTree, and personal knowledge graph with progressive reveal shipped*
