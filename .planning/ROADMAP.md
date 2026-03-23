@@ -85,7 +85,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — Auth backend: migration, Argon2id hashing, user repository, session layer, auth API endpoints
 - [x] 04-02-PLAN.md — Frontend auth: login/register pages, auth context, avatar dropdown, navbar with hamburger menu
-- [ ] 04-03-PLAN.md — Dashboard: progress repository, dashboard API, stats cards, mini knowledge tree SVG
+- [x] 04-03-PLAN.md — Dashboard: progress repository, dashboard API, stats cards, mini knowledge tree SVG
 - [ ] 04-04-PLAN.md — Responsive: graph explorer bottom sheet, content TOC overlay, 640px minimum width
 
 ### Phase 5: Gamification and Personal Tree
@@ -128,6 +128,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
 | 3. Content and Simulations | 6/7 | In Progress|  |
-| 4. Accounts and Progress | 2/4 | In Progress|  |
+| 4. Accounts and Progress | 3/4 | In Progress|  |
 | 5. Gamification and Personal Tree | 0/TBD | Not started | - |
 | 6. Spaced Repetition | 0/TBD | Not started | - |
