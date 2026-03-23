@@ -21,5 +21,21 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/quiz/{slug}",
             axum::routing::get(handlers::content::get_quiz),
         )
+        .route(
+            "/api/auth/register",
+            axum::routing::post(handlers::auth::register),
+        )
+        .route(
+            "/api/auth/login",
+            axum::routing::post(handlers::auth::login),
+        )
+        .route(
+            "/api/auth/logout",
+            axum::routing::post(handlers::auth::logout),
+        )
+        .route(
+            "/api/auth/me",
+            axum::routing::get(handlers::auth::me),
+        )
         .with_state(pool)
 }
