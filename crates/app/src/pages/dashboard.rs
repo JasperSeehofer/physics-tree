@@ -49,6 +49,7 @@ async fn fetch_dashboard() -> Result<DashboardResponse, String> {
             total_concepts: 0,
             overall_mastery_pct: 0.0,
             current_streak: 0,
+            freeze_tokens: 0,
         },
         nodes: vec![],
     })
@@ -149,6 +150,7 @@ fn fetch_dashboard_ssr() -> Result<DashboardResponse, String> {
             total_concepts: 0,
             overall_mastery_pct: 0.0,
             current_streak: 0,
+            freeze_tokens: 0,
         },
         nodes: vec![],
     })

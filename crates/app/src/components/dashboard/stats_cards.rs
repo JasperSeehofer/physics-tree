@@ -9,6 +9,7 @@ pub struct DashboardSummary {
     pub total_concepts: i64,
     pub overall_mastery_pct: f64,
     pub current_streak: i32,
+    pub freeze_tokens: i32,
 }
 
 /// Stats cards grid — 4 metric cards in a responsive 2x2 (mobile) / 4x1 (tablet+) layout.
