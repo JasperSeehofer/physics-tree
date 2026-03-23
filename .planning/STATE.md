@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 05-03-PLAN.md (Tasks 1-2; Task 3 pending human visual verification checkpoint)
-last_updated: "2026-03-23T20:23:26.248Z"
+status: Ready to plan
+stopped_at: Completed 05-gamification-and-personal-tree 05-02-PLAN.md
+last_updated: "2026-03-23T20:46:42.892Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 ## Current Position
 
-Phase: 05 (gamification-and-personal-tree) — EXECUTING
-Plan: 3 of 3
+Phase: 6
+Plan: Not started
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Plan: 3 of 3
 | Phase 04-accounts-and-progress P04 | 3 | 1 tasks | 4 files |
 | Phase 05-gamification-and-personal-tree P01 | 5 | 2 tasks | 8 files |
 | Phase 05-gamification-and-personal-tree P03 | 12 | 2 tasks | 3 files |
+| Phase 05-gamification-and-personal-tree P02 | 12 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 05-03]: userProgressMap stored as JS module-level state in sigma_bridge.js — avoids per-frame WASM boundary crossing
 - [Phase 05-03]: Progressive reveal: frontier = direct neighbors of learned nodes (XP > 0); non-frontier non-learned nodes hidden
 - [Phase 05-03]: Botanical canvas shapes drawn on edgeLabels overlay canvas after drawEdgeOverlay (correct z-order, no new canvas needed)
+- [Phase 05-gamification-and-personal-tree]: checkpoint_passed Vec<Option<bool>>: Some(true)=correct, Some(false)=skipped, None=unanswered — enables score_pct computation for XP award threshold (D-02: 70% minimum)
+- [Phase 05-gamification-and-personal-tree]: MasteryBadge shows mastery from award-xp response (not fetched on load) — no per-node mastery GET endpoint exists; badge is hidden until first quiz completion
+- [Phase 05-gamification-and-personal-tree]: node_id added to ConceptContent (server+client) — was missing from Phase 3 design; required for award-xp POST body
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T20:23:26.241Z
-Stopped at: Completed 05-03-PLAN.md (Tasks 1-2; Task 3 pending human visual verification checkpoint)
+Last session: 2026-03-23T20:34:26.813Z
+Stopped at: Completed 05-gamification-and-personal-tree 05-02-PLAN.md
 Resume file: None
