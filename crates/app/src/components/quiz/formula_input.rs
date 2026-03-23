@@ -100,7 +100,7 @@ pub fn QuizFormulaInput(
     let variables = question.variables.clone().unwrap_or_default();
     let expected_display = expected.clone();
 
-    let handle_check = move |_| {
+    let handle_check = StoredValue::new(move |_: web_sys::MouseEvent| {
         let val = input_value.get();
         if val.trim().is_empty() {
             return;
@@ -120,7 +120,7 @@ pub fn QuizFormulaInput(
         } else {
             state.set(FormulaState::ShowHint(hint.clone()));
         }
-    };
+    });
 
     let is_locked = move || matches!(state.get(), FormulaState::Correct | FormulaState::Revealed(_));
 
@@ -185,7 +185,7 @@ pub fn QuizFormulaInput(
             }>
                 <button
                     class="bg-leaf-green text-void font-bold rounded px-4 py-2 text-sm hover:opacity-90 transition-opacity"
-                    on:click=handle_check
+                    on:click=move |ev| handle_check.get_value()(ev)
                 >
                     "Check formula"
                 </button>

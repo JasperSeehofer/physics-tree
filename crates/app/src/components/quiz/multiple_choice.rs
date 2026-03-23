@@ -7,6 +7,7 @@
 //! Per UI-SPEC Multiple Choice Option interaction spec.
 
 use leptos::prelude::*;
+use leptos::web_sys;
 
 use domain::quiz::QuizQuestion;
 
@@ -44,7 +45,7 @@ pub fn QuizMultipleChoice(
     let correct_id_for_check = correct_id.clone();
     let correct_id_for_style = correct_id.clone();
 
-    let handle_check = move |_| {
+    let handle_check = StoredValue::new(move |_: web_sys::MouseEvent| {
         let Some(sel) = selected.get() else { return };
 
         let attempt = attempts.get() + 1;
@@ -58,32 +59,7 @@ pub fn QuizMultipleChoice(
         } else {
             state.set(QuizState::ShowHint(hint.clone()));
         }
-    };
-
-    let option_class = move |opt_id: &str| -> String {
-        let base = "w-full text-left rounded-lg p-3 text-base text-petal-white cursor-pointer border transition-colors mb-2";
-        let s = state.get();
-        let is_selected = selected.get().as_deref() == Some(opt_id);
-        let is_correct = opt_id == correct_id_for_style;
-
-        match &s {
-            QuizState::Correct if is_correct => {
-                format!("{base} bg-bark-mid border-leaf-green")
-            }
-            QuizState::Revealed(_) if is_correct => {
-                format!("{base} bg-bark-mid border-leaf-green")
-            }
-            QuizState::Revealed(_) if is_selected && !is_correct => {
-                format!("{base} bg-bark-mid border-bloom-pink")
-            }
-            QuizState::ShowHint(_) | QuizState::Unanswered if is_selected => {
-                format!("{base} bg-bark-light border-nebula-purple")
-            }
-            _ => {
-                format!("{base} bg-bark-mid border-bark-light hover:bg-bark-light")
-            }
-        }
-    };
+    });
 
     view! {
         <div class="space-y-4">
@@ -98,13 +74,26 @@ pub fn QuizMultipleChoice(
                     let opt_id = opt.id.clone();
                     let opt_id_for_class = opt.id.clone();
                     let opt_text = opt.text.clone();
+                    let correct_id_clone = correct_id_for_style.clone();
                     let is_locked = move || {
                         matches!(state.get(), QuizState::Correct | QuizState::Revealed(_))
                     };
 
                     view! {
                         <button
-                            class=move || option_class(&opt_id_for_class)
+                            class=move || {
+                                let base = "w-full text-left rounded-lg p-3 text-base text-petal-white cursor-pointer border transition-colors mb-2";
+                                let s = state.get();
+                                let is_selected = selected.get().as_deref() == Some(&opt_id_for_class);
+                                let is_correct = opt_id_for_class == correct_id_clone;
+                                match &s {
+                                    QuizState::Correct if is_correct => format!("{base} bg-bark-mid border-leaf-green"),
+                                    QuizState::Revealed(_) if is_correct => format!("{base} bg-bark-mid border-leaf-green"),
+                                    QuizState::Revealed(_) if is_selected && !is_correct => format!("{base} bg-bark-mid border-bloom-pink"),
+                                    QuizState::ShowHint(_) | QuizState::Unanswered if is_selected => format!("{base} bg-bark-light border-nebula-purple"),
+                                    _ => format!("{base} bg-bark-mid border-bark-light hover:bg-bark-light"),
+                                }
+                            }
                             disabled=is_locked
                             on:click=move |_| {
                                 if !is_locked() {
@@ -144,7 +133,7 @@ pub fn QuizMultipleChoice(
             }>
                 <button
                     class="bg-leaf-green text-void font-bold rounded px-4 py-2 text-sm hover:opacity-90 transition-opacity"
-                    on:click=handle_check
+                    on:click=move |ev| handle_check.get_value()(ev)
                 >
                     "Check answer"
                 </button>
