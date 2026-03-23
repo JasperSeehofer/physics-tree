@@ -1,5 +1,6 @@
 pub mod content_repo;
 pub mod graph_repo;
+pub mod progress_repo;
 pub mod user_repo;
 
 use sqlx::postgres::PgPoolOptions;

@@ -37,5 +37,13 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/auth/me",
             axum::routing::get(handlers::auth::me),
         )
+        .route(
+            "/api/progress/dashboard",
+            axum::routing::get(handlers::progress::get_dashboard),
+        )
+        .route(
+            "/api/progress/event",
+            axum::routing::post(handlers::progress::record_event),
+        )
         .with_state(pool)
 }
