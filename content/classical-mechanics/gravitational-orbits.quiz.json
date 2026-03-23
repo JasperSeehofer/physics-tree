@@ -1,0 +1,133 @@
+[
+  {
+    "id": "q1",
+    "question_type": "multiple_choice",
+    "question": "Newton's law of gravitation states that the force between two masses $M$ and $m$ separated by distance $r$ is proportional to:",
+    "options": [
+      {"id": "a", "text": "$1/r$", "correct": false},
+      {"id": "b", "text": "$1/r^2$", "correct": true},
+      {"id": "c", "text": "$1/r^3$", "correct": false},
+      {"id": "d", "text": "$r^2$", "correct": false}
+    ],
+    "hint": "This is the defining feature of the gravitational force. See the Derivation section.",
+    "explanation": "The gravitational force F = GMm/r² falls off as the inverse square of the distance. This inverse-square law is what produces elliptical (conic section) orbits, as proven by Newton.",
+    "section": "derivation"
+  },
+  {
+    "id": "q2",
+    "question_type": "multiple_choice",
+    "question": "A satellite orbits Earth at radius $r$ from Earth's center. What is the circular orbital speed?",
+    "options": [
+      {"id": "a", "text": "$v = \\sqrt{2GM/r}$", "correct": false},
+      {"id": "b", "text": "$v = GM/r$", "correct": false},
+      {"id": "c", "text": "$v = \\sqrt{GM/r}$", "correct": true},
+      {"id": "d", "text": "$v = \\sqrt{GMr}$", "correct": false}
+    ],
+    "hint": "Set gravitational force equal to centripetal force needed for circular motion. See the Derivation section.",
+    "explanation": "For circular orbit: mv²/r = GMm/r². Solving: v² = GM/r, so v = √(GM/r). Note that v decreases as r increases — higher orbits are slower.",
+    "section": "derivation"
+  },
+  {
+    "id": "q3",
+    "question_type": "multiple_choice",
+    "question": "What is the escape velocity from a planet of mass $M$ and radius $R$?",
+    "options": [
+      {"id": "a", "text": "$v_e = \\sqrt{GM/R}$", "correct": false},
+      {"id": "b", "text": "$v_e = \\sqrt{2GM/R}$", "correct": true},
+      {"id": "c", "text": "$v_e = 2\\sqrt{GM/R}$", "correct": false},
+      {"id": "d", "text": "$v_e = GM/R^2$", "correct": false}
+    ],
+    "hint": "Set total mechanical energy equal to zero (just barely escaping to infinity). See the Examples section.",
+    "explanation": "Set KE + PE = 0: ½mv² - GMm/R = 0. Solving: v_e = √(2GM/R). Note that v_e = √2 × v_circ — escape velocity is always √2 times the circular orbit speed at the same radius.",
+    "section": "examples"
+  },
+  {
+    "id": "q4",
+    "question_type": "multiple_choice",
+    "question": "Kepler's third law states that for a planet orbiting the Sun with orbital period $T$ and semi-major axis $a$:",
+    "options": [
+      {"id": "a", "text": "$T \\propto a$", "correct": false},
+      {"id": "b", "text": "$T^2 \\propto a^2$", "correct": false},
+      {"id": "c", "text": "$T^2 \\propto a^3$", "correct": true},
+      {"id": "d", "text": "$T^3 \\propto a^2$", "correct": false}
+    ],
+    "hint": "This was discovered empirically by Kepler and derived by Newton. See the Derivation section.",
+    "explanation": "T² = (4π²/GM) × a³. Period squared is proportional to the cube of the semi-major axis. This allows astronomers to calculate orbital distances from measured periods, and to determine the mass of the central body.",
+    "section": "derivation"
+  },
+  {
+    "id": "q5",
+    "question_type": "multiple_choice",
+    "question": "Astronauts aboard the ISS experience weightlessness because:",
+    "options": [
+      {"id": "a", "text": "Gravity is zero at that altitude", "correct": false},
+      {"id": "b", "text": "The ISS thrusters cancel gravity", "correct": false},
+      {"id": "c", "text": "They are in continuous freefall along with the station", "correct": true},
+      {"id": "d", "text": "The atmosphere blocks gravity at high altitude", "correct": false}
+    ],
+    "hint": "Gravity at 400 km altitude is about 90% of surface gravity. See the Misconceptions section.",
+    "explanation": "Gravity at ISS altitude is ~8.7 m/s² (vs 9.8 m/s² at surface). The astronauts appear weightless because the entire station is in freefall. Everything falls at the same rate, so there is no contact force between the astronaut and the floor. Weightlessness = freefall.",
+    "section": "misconceptions"
+  },
+  {
+    "id": "q6",
+    "question_type": "formula",
+    "question": "Write the circular orbital speed $v$ of a satellite at radius $r$ around a central body of mass $M$. Use $G$ for the gravitational constant.",
+    "expected": "sqrt(G*M/r)",
+    "variables": ["G", "M", "r"],
+    "hint": "Balance gravitational force with centripetal force. See the Derivation section.",
+    "explanation": "From GMm/r² = mv²/r: v = √(GM/r). Higher radius means lower orbital speed.",
+    "section": "derivation"
+  },
+  {
+    "id": "q7",
+    "question_type": "formula",
+    "question": "Write the escape velocity $v_e$ from the surface of a body with mass $M$ and radius $R$. Use $G$ for the gravitational constant.",
+    "expected": "sqrt(2*G*M/R)",
+    "variables": ["G", "M", "R"],
+    "hint": "Set total mechanical energy equal to zero. See the Examples section.",
+    "explanation": "Setting ½mv_e² = GMm/R gives v_e = √(2GM/R). This is √2 times the circular speed at the same radius.",
+    "section": "examples"
+  },
+  {
+    "id": "q8",
+    "question_type": "matching",
+    "question": "Match each orbit type to its eccentricity range:",
+    "pairs": [
+      ["Circle", "e = 0"],
+      ["Ellipse", "0 < e < 1"],
+      ["Parabola", "e = 1"],
+      ["Hyperbola", "e > 1"]
+    ],
+    "hint": "The orbit equation r(θ) = p/(1 + e cosθ) describes all conic sections. See the Derivation section.",
+    "explanation": "Eccentricity determines orbit shape. Circles (e=0) and ellipses (0<e<1) are bound orbits with negative total energy. Parabolas (e=1) correspond to exactly zero total energy. Hyperbolas (e>1) are unbound with positive energy, describing flyby trajectories.",
+    "section": "derivation"
+  },
+  {
+    "id": "q9",
+    "question_type": "multiple_choice",
+    "question": "If a satellite's orbital speed exceeds the escape velocity $v_e = \\sqrt{2GM/r}$ at its current position, what happens?",
+    "options": [
+      {"id": "a", "text": "It enters a larger circular orbit", "correct": false},
+      {"id": "b", "text": "It follows a parabolic escape trajectory", "correct": false},
+      {"id": "c", "text": "It follows a hyperbolic trajectory and escapes", "correct": true},
+      {"id": "d", "text": "It enters a highly elliptical orbit", "correct": false}
+    ],
+    "hint": "Consider the total mechanical energy when $v > v_e$. See the Derivation section.",
+    "explanation": "When v > v_e, total energy E = ½mv² - GMm/r > 0. Positive energy corresponds to eccentricity e > 1, which is a hyperbolic trajectory. The body escapes the central body's gravity. A parabolic escape requires exactly v = v_e (E = 0, e = 1).",
+    "section": "derivation"
+  },
+  {
+    "id": "q10",
+    "question_type": "matching",
+    "question": "Match each of Kepler's three laws to its statement:",
+    "pairs": [
+      ["Kepler's First Law", "Planets orbit the Sun in ellipses, with the Sun at one focus"],
+      ["Kepler's Second Law", "A planet sweeps out equal areas in equal times (angular momentum conservation)"],
+      ["Kepler's Third Law", "The square of the orbital period is proportional to the cube of the semi-major axis"]
+    ],
+    "hint": "Newton derived all three laws from the inverse-square force law. See the Derivation section.",
+    "explanation": "First Law (orbit shape): ellipses from inverse-square force. Second Law (equal areas): consequence of angular momentum conservation. Third Law (T² ∝ a³): follows from energy and angular momentum analysis; Newton derived the proportionality constant 4π²/GM.",
+    "section": "motivation"
+  }
+]
