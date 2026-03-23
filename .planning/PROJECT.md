@@ -14,21 +14,21 @@ Users can visually explore the interconnected landscape of physics and deeply le
 
 - [x] Interactive physics knowledge graph with zoomable/pannable exploration — Validated in Phase 2: graph-explorer
 - [x] Botanical metaphor: roots (prerequisites), trunk (foundations), branches (fields), leaves (frontier research) — Validated in Phase 2: graph-explorer
+- [x] Per-concept educational modules: motivation, derivation, intuition, examples, quizzes, misconceptions — Validated in Phase 3: content-and-simulations
+- [x] Interactive physics simulations (parameter-tweakable, 5 simulations) — Validated in Phase 3: content-and-simulations
+- [x] Classical mechanics as v1 proof-of-concept branch (16 fully fleshed out content modules) — Validated in Phase 3: content-and-simulations
+- [x] Kurzgesagt/In a Nutshell visual style: bold saturated colors, dark backgrounds, flat vector art, playful tone — Validated in Phase 3: content-and-simulations
 
 ### Active
 - [ ] Guided learning paths through the graph (curated syllabi)
-- [ ] Per-concept educational modules: visualization, derivation, motivation, examples, quizzes, intuition, references, code
-- [ ] Interactive physics simulations (parameter-tweakable)
-- [ ] Animated step-by-step visual explanations (3Blue1Brown-style)
-- [ ] Runnable code snippets (Python/JS) for simulations and visualizations
 - [ ] User accounts with authentication
 - [ ] Gamification: XP, streaks, daily engagement loops
 - [ ] Gamification: skill mastery levels per concept (bronze → silver → gold), tied to plant growth visual
 - [ ] Gamification: leaderboards (friends, global)
 - [ ] Gamification: spaced repetition for concept review
-- [ ] Classical mechanics as v1 proof-of-concept branch (fully fleshed out content)
+- [ ] Animated step-by-step visual explanations (3Blue1Brown-style)
+- [ ] Runnable code snippets (Python/JS) for simulations and visualizations
 - [ ] AI-assisted content generation pipeline (drafts reviewed/refined by humans)
-- [ ] Kurzgesagt/In a Nutshell visual style: bold saturated colors, dark backgrounds, flat vector art, playful tone
 
 ### Out of Scope
 
@@ -65,4 +65,4 @@ Users can visually explore the interconnected landscape of physics and deeply le
 | Classical mechanics as v1 content | Well-understood domain, rich in visualization opportunities, proves the full stack | — Pending |
 
 ---
-*Last updated: 2026-03-20 after Phase 2 completion*
+*Last updated: 2026-03-23 after Phase 3 completion*
