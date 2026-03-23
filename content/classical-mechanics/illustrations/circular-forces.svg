@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Circular Motion — Forces and Velocity</text>
+
+  <!-- Circular path -->
+  <circle cx="360" cy="210" r="145" fill="none" stroke="#252932" stroke-width="2" stroke-dasharray="10,6"/>
+  <!-- Center point -->
+  <circle cx="360" cy="210" r="6" fill="#f4b942"/>
+  <text x="342" y="226" fill="#f4b942" font-size="13" font-weight="700">Center</text>
+
+  <!-- Radius label -->
+  <line x1="360" y1="210" x2="505" y2="210" stroke="#8892a4" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="430" y="204" fill="#8892a4" font-size="13" font-weight="600">r</text>
+
+  <!-- === OBJECT at TOP (12 o'clock position) === -->
+  <circle cx="360" cy="65" r="14" fill="#4caf7d"/>
+  <!-- Centripetal force (downward, toward center) -->
+  <line x1="360" y1="65" x2="360" y2="100" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="360,100 354,88 366,88" fill="#e8547a"/>
+  <!-- Velocity tangent (rightward) -->
+  <line x1="360" y1="65" x2="400" y2="65" stroke="#3fc8d4" stroke-width="3"/>
+  <polygon points="400,65 388,59 388,71" fill="#3fc8d4"/>
+  <text x="405" y="62" fill="#3fc8d4" font-size="12" font-weight="600">v</text>
+
+  <!-- === OBJECT at RIGHT (3 o'clock position) === -->
+  <circle cx="505" cy="210" r="14" fill="#4caf7d"/>
+  <!-- Centripetal force (leftward, toward center) -->
+  <line x1="505" y1="210" x2="470" y2="210" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="470,210 482,204 482,216" fill="#e8547a"/>
+  <!-- Velocity tangent (downward) -->
+  <line x1="505" y1="210" x2="505" y2="250" stroke="#3fc8d4" stroke-width="3"/>
+  <polygon points="505,250 499,238 511,238" fill="#3fc8d4"/>
+
+  <!-- === OBJECT at BOTTOM (6 o'clock position) === -->
+  <circle cx="360" cy="355" r="14" fill="#4caf7d"/>
+  <!-- Centripetal force (upward, toward center) -->
+  <line x1="360" y1="355" x2="360" y2="320" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="360,320 354,332 366,332" fill="#e8547a"/>
+  <!-- Velocity tangent (leftward) -->
+  <line x1="360" y1="355" x2="320" y2="355" stroke="#3fc8d4" stroke-width="3"/>
+  <polygon points="320,355 332,349 332,361" fill="#3fc8d4"/>
+
+  <!-- === OBJECT at LEFT (9 o'clock position) === -->
+  <circle cx="215" cy="210" r="14" fill="#4caf7d"/>
+  <!-- Centripetal force (rightward, toward center) -->
+  <line x1="215" y1="210" x2="250" y2="210" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="250,210 238,204 238,216" fill="#e8547a"/>
+  <!-- Velocity tangent (upward) -->
+  <line x1="215" y1="210" x2="215" y2="170" stroke="#3fc8d4" stroke-width="3"/>
+  <polygon points="215,170 209,182 221,182" fill="#3fc8d4"/>
+
+  <!-- Labels for arrows -->
+  <text x="374" y="108" fill="#e8547a" font-size="12" font-weight="700">aₒ</text>
+  <text x="456" y="108" fill="#e8547a" font-size="13" font-weight="700">(centripetal)</text>
+  <!-- Centripetal acceleration annotation -->
+  <line x1="440" y1="112" x2="374" y2="98" stroke="#e8547a" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- Formulas box on right -->
+  <rect x="582" y="110" width="198" height="180" rx="10" fill="#1a1d24" stroke="#252932" stroke-width="1.5"/>
+  <text x="681" y="132" fill="#f0f2f5" font-size="13" font-weight="700" text-anchor="middle">Key Equations</text>
+
+  <text x="598" y="156" fill="#e8547a" font-size="13" font-weight="700">Centripetal a:</text>
+  <text x="598" y="176" fill="#e8547a" font-size="15" font-weight="700">aₒ = v²/r = ω²r</text>
+
+  <text x="598" y="206" fill="#4caf7d" font-size="13" font-weight="700">Centripetal F:</text>
+  <text x="598" y="226" fill="#4caf7d" font-size="15" font-weight="700">F = mv²/r</text>
+
+  <text x="598" y="256" fill="#3fc8d4" font-size="13" font-weight="700">Period:</text>
+  <text x="598" y="276" fill="#3fc8d4" font-size="15" font-weight="700">T = 2πr/v</text>
+
+  <!-- Legend -->
+  <rect x="582" y="310" width="198" height="72" rx="8" fill="#1a1d24" stroke="#252932" stroke-width="1.5"/>
+  <line x1="598" y1="328" x2="625" y2="328" stroke="#3fc8d4" stroke-width="3"/>
+  <polygon points="625,328 615,322 615,334" fill="#3fc8d4"/>
+  <text x="632" y="332" fill="#3fc8d4" font-size="12" font-weight="600">Velocity (tangent)</text>
+  <line x1="598" y1="354" x2="625" y2="354" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="625,354 615,348 615,360" fill="#e8547a"/>
+  <text x="632" y="358" fill="#e8547a" font-size="12" font-weight="600">Centripetal force</text>
+  <circle cx="611" cy="376" r="8" fill="#4caf7d"/>
+  <text x="632" y="380" fill="#4caf7d" font-size="12" font-weight="600">Object</text>
+</svg>

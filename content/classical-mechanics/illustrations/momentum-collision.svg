@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Conservation of Momentum — Collision</text>
+
+  <!-- Divider: before vs after -->
+  <line x1="400" y1="55" x2="400" y2="375" stroke="#252932" stroke-width="2" stroke-dasharray="8,5"/>
+  <text x="200" y="72" fill="#8892a4" font-size="14" text-anchor="middle" font-weight="600">BEFORE</text>
+  <text x="600" y="72" fill="#8892a4" font-size="14" text-anchor="middle" font-weight="600">AFTER</text>
+
+  <!-- ===== ELASTIC COLLISION (top row) ===== -->
+  <text x="400" y="90" fill="#3fc8d4" font-size="13" text-anchor="middle" font-weight="700">— Elastic Collision —</text>
+
+  <!-- BEFORE: Object 1 (heavy, moving right) -->
+  <rect x="60" y="108" width="80" height="60" rx="10" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="100" y="140" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₁=3</text>
+  <text x="100" y="156" fill="#8892a4" font-size="11" text-anchor="middle">heavy</text>
+  <!-- Velocity arrow -->
+  <line x1="142" y1="138" x2="175" y2="138" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="175,138 163,132 163,144" fill="#f4b942"/>
+  <text x="157" y="130" fill="#f4b942" font-size="12" font-weight="600">v₁=4</text>
+
+  <!-- BEFORE: Object 2 (lighter, at rest) -->
+  <rect x="240" y="108" width="60" height="60" rx="10" fill="#252932" stroke="#e8547a" stroke-width="2.5"/>
+  <text x="270" y="140" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₂=1</text>
+  <text x="270" y="156" fill="#8892a4" font-size="11" text-anchor="middle">at rest</text>
+  <text x="316" y="140" fill="#8892a4" font-size="13" font-weight="600">v₂=0</text>
+
+  <!-- Collision flash -->
+  <text x="400" y="138" fill="#f4b942" font-size="22" text-anchor="middle">💥</text>
+  <text x="400" y="160" fill="#f0f2f5" font-size="11" text-anchor="middle">collision</text>
+
+  <!-- AFTER elastic: Object 1 slowed, Object 2 fast -->
+  <rect x="424" y="108" width="80" height="60" rx="10" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="464" y="140" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₁=3</text>
+  <!-- Arrow shorter (v1' = 2) -->
+  <line x1="506" y1="138" x2="524" y2="138" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="524,138 512,132 512,144" fill="#f4b942"/>
+  <text x="510" y="130" fill="#f4b942" font-size="12" font-weight="600">v₁'=2</text>
+
+  <rect x="600" y="108" width="60" height="60" rx="10" fill="#252932" stroke="#e8547a" stroke-width="2.5"/>
+  <text x="630" y="140" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₂=1</text>
+  <!-- Arrow longer (v2' = 6) -->
+  <line x1="662" y1="138" x2="712" y2="138" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="712,138 700,132 700,144" fill="#e8547a"/>
+  <text x="687" y="130" fill="#e8547a" font-size="12" font-weight="600">v₂'=6</text>
+
+  <!-- Momentum bars: BEFORE -->
+  <text x="200" y="194" fill="#8892a4" font-size="11" text-anchor="middle">Total p = 3×4 + 1×0 = 12</text>
+  <rect x="60" y="200" width="120" height="18" rx="4" fill="#4caf7d"/>
+  <text x="120" y="213" fill="#f0f2f5" font-size="11" text-anchor="middle" font-weight="700">p₁ = 12</text>
+  <rect x="190" y="200" width="10" height="18" rx="2" fill="#e8547a"/>
+  <text x="250" y="213" fill="#8892a4" font-size="11" text-anchor="middle">p₂ = 0</text>
+
+  <!-- Momentum bars: AFTER -->
+  <text x="600" y="194" fill="#8892a4" font-size="11" text-anchor="middle">Total p = 3×2 + 1×6 = 12</text>
+  <rect x="424" y="200" width="60" height="18" rx="4" fill="#4caf7d"/>
+  <text x="454" y="213" fill="#f0f2f5" font-size="11" text-anchor="middle" font-weight="700">p₁' = 6</text>
+  <rect x="495" y="200" width="60" height="18" rx="4" fill="#e8547a"/>
+  <text x="525" y="213" fill="#f0f2f5" font-size="11" text-anchor="middle" font-weight="700">p₂' = 6</text>
+
+  <!-- ===== INELASTIC COLLISION (bottom row) ===== -->
+  <text x="400" y="248" fill="#f4b942" font-size="13" text-anchor="middle" font-weight="700">— Perfectly Inelastic Collision —</text>
+
+  <!-- BEFORE inelastic -->
+  <rect x="60" y="265" width="80" height="60" rx="10" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="100" y="297" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₁=4</text>
+  <line x1="142" y1="295" x2="175" y2="295" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="175,295 163,289 163,301" fill="#f4b942"/>
+  <text x="157" y="287" fill="#f4b942" font-size="12" font-weight="600">v₁=5</text>
+
+  <rect x="240" y="265" width="60" height="60" rx="10" fill="#252932" stroke="#e8547a" stroke-width="2.5"/>
+  <text x="270" y="297" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₂=2</text>
+  <line x1="230" y1="295" x2="210" y2="295" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="210,295 222,289 222,301" fill="#e8547a"/>
+  <text x="200" y="287" fill="#e8547a" font-size="12" font-weight="600">v₂=−2</text>
+
+  <!-- Collision -->
+  <text x="400" y="295" fill="#f4b942" font-size="22" text-anchor="middle">💥</text>
+
+  <!-- AFTER: merged object -->
+  <rect x="440" y="260" width="150" height="70" rx="10" fill="#1a1d24" stroke="#f4b942" stroke-width="2.5"/>
+  <text x="515" y="292" fill="#f0f2f5" font-size="14" font-weight="700" text-anchor="middle">m₁+m₂ = 6</text>
+  <text x="515" y="308" fill="#8892a4" font-size="11" text-anchor="middle">stuck together</text>
+  <line x1="592" y1="295" x2="618" y2="295" stroke="#f4b942" stroke-width="3"/>
+  <polygon points="618,295 606,289 606,301" fill="#f4b942"/>
+  <text x="620" y="287" fill="#f4b942" font-size="12" font-weight="600">v'</text>
+
+  <!-- v' calculation -->
+  <text x="600" y="358" fill="#8892a4" font-size="12" text-anchor="middle">v' = (4×5 + 2×(−2))/(4+2)</text>
+  <text x="600" y="374" fill="#f4b942" font-size="12" text-anchor="middle" font-weight="600">v' = 16/6 ≈ 2.67 m/s</text>
+
+  <!-- Conservation label -->
+  <rect x="80" y="354" width="240" height="32" rx="8" fill="#252932"/>
+  <text x="200" y="375" fill="#4caf7d" font-size="14" font-weight="700" text-anchor="middle">p_total conserved always</text>
+</svg>

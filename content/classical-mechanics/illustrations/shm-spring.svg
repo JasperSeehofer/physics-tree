@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="Nunito, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#0d0f14"/>
+
+  <!-- Title -->
+  <text x="400" y="36" fill="#f0f2f5" font-size="18" font-weight="700" text-anchor="middle">Simple Harmonic Motion — Spring-Mass System</text>
+
+  <!-- Wall (left) -->
+  <rect x="30" y="60" width="20" height="180" rx="0" fill="#252932"/>
+  <!-- Wall hatching -->
+  <line x1="30" y1="70" x2="20" y2="80" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="95" x2="20" y2="105" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="120" x2="20" y2="130" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="145" x2="20" y2="155" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="170" x2="20" y2="180" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="195" x2="20" y2="205" stroke="#8892a4" stroke-width="1.5"/>
+  <line x1="30" y1="220" x2="20" y2="230" stroke="#8892a4" stroke-width="1.5"/>
+
+  <!-- ===== State 1: COMPRESSED ===== -->
+  <!-- Spring (compressed, shorter zig-zag) from wall to mass -->
+  <polyline points="50,150 65,138 80,162 95,138 110,162 125,138 130,150" fill="none" stroke="#3fc8d4" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Mass -->
+  <rect x="130" y="128" width="54" height="44" rx="8" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="157" y="156" fill="#f0f2f5" font-size="15" font-weight="700" text-anchor="middle">m</text>
+  <!-- Restoring force arrow: rightward (pushing mass away) -->
+  <line x1="186" y1="150" x2="216" y2="150" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="216,150 204,144 204,156" fill="#e8547a"/>
+  <text x="220" y="147" fill="#e8547a" font-size="12" font-weight="600">F</text>
+  <!-- State label -->
+  <text x="157" y="200" fill="#3fc8d4" font-size="13" text-anchor="middle" font-weight="600">Compressed</text>
+  <text x="157" y="216" fill="#8892a4" font-size="11" text-anchor="middle">x &lt; 0</text>
+
+  <!-- ===== State 2: EQUILIBRIUM ===== -->
+  <!-- Spring (natural length) -->
+  <polyline points="50,290 68,275 86,305 104,275 122,305 140,275 158,305 176,290" fill="none" stroke="#3fc8d4" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Mass -->
+  <rect x="176" y="268" width="54" height="44" rx="8" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="203" y="296" fill="#f0f2f5" font-size="15" font-weight="700" text-anchor="middle">m</text>
+  <!-- No restoring force (equilibrium) -->
+  <text x="240" y="290" fill="#8892a4" font-size="12" font-weight="600">F = 0</text>
+  <!-- State label -->
+  <text x="203" y="340" fill="#4caf7d" font-size="13" text-anchor="middle" font-weight="600">Equilibrium</text>
+  <text x="203" y="356" fill="#8892a4" font-size="11" text-anchor="middle">x = 0</text>
+
+  <!-- Equilibrium reference vertical line -->
+  <line x1="203" y1="60" x2="203" y2="260" stroke="#8892a4" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+
+  <!-- ===== State 3: EXTENDED ===== -->
+  <!-- Spring (extended, longer zig-zag) -->
+  <polyline points="50,80 72,66 94,94 116,66 138,94 160,66 182,94 204,80 226,80" fill="none" stroke="#3fc8d4" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Mass -->
+  <rect x="226" y="58" width="54" height="44" rx="8" fill="#252932" stroke="#4caf7d" stroke-width="2.5"/>
+  <text x="253" y="86" fill="#f0f2f5" font-size="15" font-weight="700" text-anchor="middle">m</text>
+  <!-- Restoring force arrow: leftward (pulling mass back) -->
+  <line x1="226" y1="80" x2="196" y2="80" stroke="#e8547a" stroke-width="3"/>
+  <polygon points="196,80 208,74 208,86" fill="#e8547a"/>
+  <text x="180" y="76" fill="#e8547a" font-size="12" font-weight="600">F</text>
+  <!-- State label -->
+  <text x="253" y="120" fill="#f4b942" font-size="13" text-anchor="middle" font-weight="600">Extended</text>
+  <text x="253" y="136" fill="#8892a4" font-size="11" text-anchor="middle">x &gt; 0</text>
+
+  <!-- F = -kx label -->
+  <rect x="50" y="365" width="280" height="28" rx="8" fill="#252932"/>
+  <text x="190" y="384" fill="#3fc8d4" font-size="16" font-weight="700" text-anchor="middle">Restoring Force: F = −kx</text>
+
+  <!-- Sinusoidal wave (displacement vs time) on right side -->
+  <!-- Axes -->
+  <line x1="370" y1="200" x2="780" y2="200" stroke="#8892a4" stroke-width="2"/>
+  <line x1="370" y1="80" x2="370" y2="340" stroke="#8892a4" stroke-width="2"/>
+  <!-- Axis labels -->
+  <text x="784" y="204" fill="#8892a4" font-size="13" font-weight="600">t</text>
+  <text x="360" y="76" fill="#8892a4" font-size="13" font-weight="600">x</text>
+  <text x="372" y="168" fill="#8892a4" font-size="12">+A</text>
+  <text x="372" y="236" fill="#8892a4" font-size="12">−A</text>
+
+  <!-- Sine wave: x(t) = A sin(ωt) -->
+  <path d="M 370 200
+           Q 396 120 422 200
+           Q 448 280 474 200
+           Q 500 120 526 200
+           Q 552 280 578 200
+           Q 604 120 630 200
+           Q 656 280 682 200
+           Q 708 120 734 200
+           Q 756 280 778 200"
+        fill="none" stroke="#4caf7d" stroke-width="2.5"/>
+
+  <!-- Period bracket -->
+  <line x1="370" y1="358" x2="474" y2="358" stroke="#f4b942" stroke-width="1.5"/>
+  <line x1="370" y1="352" x2="370" y2="364" stroke="#f4b942" stroke-width="1.5"/>
+  <line x1="474" y1="352" x2="474" y2="364" stroke="#f4b942" stroke-width="1.5"/>
+  <text x="422" y="375" fill="#f4b942" font-size="13" text-anchor="middle" font-weight="600">T = 2π/ω</text>
+
+  <!-- Graph title -->
+  <text x="575" y="68" fill="#f0f2f5" font-size="14" text-anchor="middle" font-weight="600">Displacement x(t)</text>
+  <!-- Formula -->
+  <text x="575" y="380" fill="#4caf7d" font-size="13" text-anchor="middle" font-weight="600">x(t) = A cos(ωt + φ)</text>
+</svg>
