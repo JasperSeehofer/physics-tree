@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 04-accounts-and-progress 04-01-PLAN.md
-last_updated: "2026-03-23T11:42:17.402Z"
+stopped_at: Completed 04-accounts-and-progress 04-02-PLAN.md
+last_updated: "2026-03-23T11:49:44.941Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Phase: 04 (accounts-and-progress) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Plan: 2 of 4
 | Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
 | Phase 03-content-and-simulations P04 | ~30 | 2 tasks | 6 files |
 | Phase 04-accounts-and-progress P01 | 8 | 4 tasks | 13 files |
+| Phase 04-accounts-and-progress P02 | 5 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 04-accounts-and-progress]: tower-sessions pinned to 0.14 (sqlx-store 0.15 uses core 0.14 — version mismatch prevented PostgresStore from satisfying SessionStore trait)
 - [Phase 04-accounts-and-progress]: server crate gets lib.rs to expose handlers for integration tests (binary crates cannot be imported from test files)
 - [Phase 04-accounts-and-progress]: spawn_blocking wraps Argon2id operations in all async auth handlers to avoid blocking Tokio thread pool
+- [Phase 04-accounts-and-progress]: LocalResource (not Resource) used for auth fetch — gloo-net futures are not Send on WASM
+- [Phase 04-accounts-and-progress]: prop:value=move || signal.get() closure pattern required by Leptos 0.8 IntoProperty trait (not prop:value=signal directly)
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T11:42:17.400Z
-Stopped at: Completed 04-accounts-and-progress 04-01-PLAN.md
+Last session: 2026-03-23T11:49:44.939Z
+Stopped at: Completed 04-accounts-and-progress 04-02-PLAN.md
 Resume file: None
