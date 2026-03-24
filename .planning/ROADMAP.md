@@ -131,3 +131,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
 | 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
+
+## Backlog
+
+### Phase 999.1: Quiz UX Improvements (BACKLOG)
+
+**Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+**Items:**
+1. **Correct answer positive feedback** — Multiple-choice quizzes should show green highlighting (or similar visual confirmation) when the selected answer is correct. Currently only wrong answers get feedback.
+2. **Formula input LaTeX preview** — The preview box below the formula input field should render LaTeX live. E.g., typing `a/b` should display a rendered fraction, `\sqrt{x}` should show the root symbol, etc.
+3. **Math rendering broken** — Dollar sign `$...$` environments are showing raw text instead of rendering as math. KaTeX/MathJax rendering is not being invoked on quiz question text and hint feedback.
+4. **Reduce XP for hint-assisted answers** — When a user gets a wrong answer and receives a hint, then answers correctly on retry, they should not receive full XP. Apply a penalty (e.g., 50% XP) for hint-assisted correct answers.
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
