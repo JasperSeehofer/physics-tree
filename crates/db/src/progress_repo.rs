@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::fsrs_logic;
 use crate::xp_logic;
 
 /// Aggregated statistics for the dashboard summary cards.
@@ -29,6 +30,8 @@ pub struct NodeProgress {
     pub branch: String,
     pub depth_tier: String,
     pub mastery_level: i32,
+    /// Days overdue for review (None if not scheduled or not yet due). Used for MiniTree wilting per D-10.
+    pub overdue_days: Option<f64>,
 }
 
 /// Fetch aggregated dashboard statistics for a user.
@@ -80,7 +83,10 @@ pub async fn get_user_node_progress(
     let rows = sqlx::query(
         r#"
         SELECT n.id AS node_id, n.slug, n.title, n.branch, n.depth_tier,
-               COALESCE(p.mastery_level, 0) AS mastery_level
+               COALESCE(p.mastery_level, 0) AS mastery_level,
+               CASE WHEN p.next_review IS NOT NULL AND p.next_review <= NOW()
+                    THEN EXTRACT(EPOCH FROM (NOW() - p.next_review)) / 86400.0
+                    ELSE NULL END AS overdue_days
         FROM nodes n
         LEFT JOIN progress p ON p.node_id = n.id AND p.user_id = $1
         ORDER BY n.depth_tier, n.title
@@ -100,6 +106,7 @@ pub async fn get_user_node_progress(
             branch: row.try_get::<String, _>("branch")?,
             depth_tier: row.try_get::<String, _>("depth_tier")?,
             mastery_level: row.try_get::<i32, _>("mastery_level")?,
+            overdue_days: row.try_get::<Option<f64>, _>("overdue_days")?,
         });
     }
     Ok(result)
@@ -121,11 +128,15 @@ pub async fn award_xp_to_user(
 ) -> Result<i32, sqlx::Error> {
     use sqlx::Row;
 
-    // Check for existing award today for this user+node (prevent double-award per day)
+    // Check for existing initial-quiz award today for this user+node (prevent double-award per day).
+    // Filter is_review = FALSE so a review event on the same day does not block the initial quiz
+    // (and vice versa) — per Pitfall 5.
     let existing: i64 = sqlx::query(
         r#"
         SELECT COUNT(*) FROM xp_events
-        WHERE user_id = $1 AND node_id = $2 AND occurred_at::date = CURRENT_DATE
+        WHERE user_id = $1 AND node_id = $2
+          AND occurred_at::date = CURRENT_DATE
+          AND is_review = FALSE
         "#,
     )
     .bind(user_id)
@@ -170,11 +181,11 @@ pub async fn award_xp_to_user(
     .await?
     .try_get::<i32, _>("mastery_level")?;
 
-    // Audit log
+    // Audit log (is_review = FALSE — initial quiz events)
     sqlx::query(
         r#"
-        INSERT INTO xp_events (user_id, node_id, xp_awarded, score_pct, perfect_bonus)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO xp_events (user_id, node_id, xp_awarded, score_pct, perfect_bonus, is_review)
+        VALUES ($1, $2, $3, $4, $5, FALSE)
         "#,
     )
     .bind(user_id)
@@ -184,6 +195,55 @@ pub async fn award_xp_to_user(
     .bind(perfect_bonus)
     .execute(pool)
     .await?;
+
+    // FSRS initialization on first pass (D-12): if no prior reps and score >= 70,
+    // schedule the first review using FSRS.
+    if score_pct >= 70 {
+        let reps_row = sqlx::query(
+            "SELECT COALESCE(fsrs_reps, 0) AS fsrs_reps FROM progress WHERE user_id = $1 AND node_id = $2",
+        )
+        .bind(user_id)
+        .bind(node_id)
+        .fetch_optional(pool)
+        .await?;
+
+        if let Some(row) = reps_row {
+            let fsrs_reps: i32 = row.try_get::<i32, _>("fsrs_reps")?;
+            if fsrs_reps == 0 {
+                // First passing quiz — initialize FSRS scheduling
+                let new_card = fsrs_logic::new_fsrs_card();
+                let now = Utc::now();
+                let scheduled = fsrs_logic::schedule_review(new_card, score_pct, now);
+
+                sqlx::query(
+                    r#"
+                    UPDATE progress SET
+                        fsrs_stability      = $3,
+                        fsrs_difficulty     = $4,
+                        fsrs_elapsed_days   = $5,
+                        fsrs_scheduled_days = $6,
+                        fsrs_reps           = $7,
+                        fsrs_lapses         = $8,
+                        fsrs_state          = $9,
+                        next_review         = $10
+                    WHERE user_id = $1 AND node_id = $2
+                    "#,
+                )
+                .bind(user_id)
+                .bind(node_id)
+                .bind(scheduled.stability)
+                .bind(scheduled.difficulty)
+                .bind(scheduled.elapsed_days as i32)
+                .bind(scheduled.scheduled_days as i32)
+                .bind(scheduled.reps)
+                .bind(scheduled.lapses)
+                .bind(&scheduled.state)
+                .bind(scheduled.due)
+                .execute(pool)
+                .await?;
+            }
+        }
+    }
 
     Ok(new_mastery)
 }
