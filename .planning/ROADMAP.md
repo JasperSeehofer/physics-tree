@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Content and Simulations** - Per-concept learning modules, quizzes, and interactive simulations
 - [x] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard (completed 2026-03-23)
 - [ ] **Phase 5: Gamification and Personal Tree** - XP, streaks, mastery levels, and the growing personal knowledge tree
-- [ ] **Phase 6: Spaced Repetition** - FSRS review queue for long-term retention
+- [x] **Phase 6: Spaced Repetition** - FSRS review queue for long-term retention (completed 2026-03-24)
 
 ## Phase Details
 
@@ -115,7 +115,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 06-01-PLAN.md — FSRS logic module (TDD), migration, review repository, progress_repo FSRS init
-- [ ] 06-02-PLAN.md — Review API endpoints, /review page, dashboard widget, navbar badge
+- [x] 06-02-PLAN.md — Review API endpoints, /review page, dashboard widget, navbar badge
 - [x] 06-03-PLAN.md — Botanical wilting visuals on graph and MiniTree, human verification
 
 ## Progress
@@ -130,4 +130,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Content and Simulations | 6/7 | In Progress|  |
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
-| 6. Spaced Repetition | 2/3 | In Progress|  |
+| 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
