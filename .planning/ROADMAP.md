@@ -114,9 +114,9 @@ Plans:
   4. Concepts overdue for review are visually distinguished from concepts that are current
 **Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
-- [ ] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
-- [ ] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
+- [ ] 06-01-PLAN.md — FSRS logic module (TDD), migration, review repository, progress_repo FSRS init
+- [ ] 06-02-PLAN.md — Review API endpoints, /review page, dashboard widget, navbar badge
+- [ ] 06-03-PLAN.md — Botanical wilting visuals on graph and MiniTree, human verification
 
 ## Progress
 
@@ -130,4 +130,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Content and Simulations | 6/7 | In Progress|  |
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
-| 6. Spaced Repetition | 0/TBD | Not started | - |
+| 6. Spaced Repetition | 0/3 | Not started | - |
