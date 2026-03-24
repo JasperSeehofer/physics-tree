@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use crate::components::graph::canvas::{
     call_clear_selection, call_highlight_prereq_chain, call_navigate_to_node,
-    call_update_user_progress, GraphState,
+    call_update_overdue_map, call_update_user_progress, GraphState,
 };
 use crate::components::graph::panel::{NodePanelData, PrereqItem};
 use crate::components::graph::{GraphCanvas, NodeTooltip, RightPanel, SearchInput};
@@ -90,6 +90,39 @@ async fn fetch_progress_map() -> Option<String> {
         .into_iter()
         .filter(|n| n.mastery_level > 0)
         .map(|n| (n.node_id, n.mastery_level))
+        .collect();
+    serde_json::to_string(&map).ok()
+}
+
+/// Fetch review queue from /api/review/queue and build a {nodeId: daysOverdue} JSON map.
+/// Returns None if unauthenticated (401) or on error (no wilting for guests or on error).
+#[cfg(target_arch = "wasm32")]
+async fn fetch_overdue_map() -> Option<String> {
+    let resp = gloo_net::http::Request::get("/api/review/queue")
+        .send()
+        .await
+        .ok()?;
+    if resp.status() == 401 {
+        return None; // Not authenticated — no wilting for guests
+    }
+    if !resp.ok() {
+        return None;
+    }
+    // Response is ReviewQueueResponse { total_due, items: Vec<ReviewQueueItem> }
+    let response: serde_json::Value = resp.json().await.ok()?;
+    let items = response["items"].as_array().cloned().unwrap_or_default();
+    // ReviewQueueItem has node_id (UUID string in JSON) and days_overdue (f64)
+    let map: std::collections::HashMap<String, f64> = items
+        .into_iter()
+        .filter_map(|item| {
+            let node_id = item["node_id"].as_str()?.to_string();
+            let days_overdue = item["days_overdue"].as_f64()?;
+            if days_overdue >= 1.0 {
+                Some((node_id, days_overdue))
+            } else {
+                None
+            }
+        })
         .collect();
     serde_json::to_string(&map).ok()
 }
@@ -183,6 +216,17 @@ pub fn GraphExplorerPage() -> impl IntoView {
     leptos::task::spawn_local(async move {
         if let Some(progress_json) = fetch_progress_map().await {
             call_update_user_progress(&progress_json);
+        }
+    });
+
+    // ── Fetch overdue map for botanical wilting overlay (client-only) ──────────
+    // Runs alongside the progress fetch, independent of graph load.
+    // Unauthenticated users (401) get None → updateOverdueMap("") clears wilting.
+    #[cfg(target_arch = "wasm32")]
+    leptos::task::spawn_local(async move {
+        match fetch_overdue_map().await {
+            Some(overdue_json) => call_update_overdue_map(&overdue_json),
+            None => call_update_overdue_map(""), // Clear wilting for guests/errors
         }
     });
 

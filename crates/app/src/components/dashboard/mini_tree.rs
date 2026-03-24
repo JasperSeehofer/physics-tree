@@ -24,6 +24,10 @@ pub struct NodeProgress {
     pub depth_tier: String,
     /// Cumulative concept XP (mastery_level column in DB). Tiers derived at render time.
     pub mastery_level: i32,
+    /// Days since this concept was due for review. None = not in review queue or up-to-date.
+    /// Used for wilting visual treatment per D-10.
+    #[serde(default)]
+    pub overdue_days: Option<f64>,
 }
 
 /// SVG mini knowledge tree — nodes rendered as botanical shapes by mastery tier.
@@ -151,6 +155,19 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             let delay_ms = stagger_idx * 50;
             let delay_style = format!("animation-delay: {}ms", delay_ms);
 
+            // Wilting treatment per D-10: opacity + desaturation scale with days overdue
+            // Mastery tier shape and fill color remain unchanged — only opacity/saturation degrade
+            let wilt_opacity = match node.overdue_days {
+                Some(d) if d >= 7.0 => "0.4",
+                Some(d) if d >= 4.0 => "0.6",
+                Some(d) if d >= 1.0 => "0.75",
+                _ => "1.0",
+            };
+            let wilt_filter = match node.overdue_days {
+                Some(d) if d >= 4.0 => "url(#wilt-desaturate)",
+                _ => "",
+            };
+
             let tooltip = match mastery {
                 0..=49 => format!("{} - not yet learned", node.title),
                 50..=149 => format!("{} - Bronze - {} XP", node.title, mastery),
@@ -160,21 +177,28 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
 
             let aria_label = format!("{} \u{2014} open concept", node.title);
 
+            // Wilting wrapper: apply opacity and desaturation filter per D-10.
+            // Mastery tier shape and fill color remain unchanged.
+            let wilt_opacity_owned = wilt_opacity.to_string();
+            let wilt_filter_owned = wilt_filter.to_string();
+
             match mastery {
                 // ── Seed (0..=49): small dim dot, no animation ────────────────
                 0..=49 => {
                     let cx = xf.to_string();
                     let cy = yf.to_string();
                     view! {
-                        <a href=href aria-label=aria_label class="cursor-pointer">
-                            <title>{tooltip}</title>
-                            <circle
-                                cx=cx
-                                cy=cy
-                                r="4"
-                                fill="var(--color-bark-light)"
-                            />
-                        </a>
+                        <g opacity=wilt_opacity_owned filter=wilt_filter_owned>
+                            <a href=href aria-label=aria_label class="cursor-pointer">
+                                <title>{tooltip}</title>
+                                <circle
+                                    cx=cx
+                                    cy=cy
+                                    r="4"
+                                    fill="var(--color-bark-light)"
+                                />
+                            </a>
+                        </g>
                     }.into_any()
                 }
 
@@ -190,39 +214,41 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
                     let right_petal = format!("M {} {} L {} {}",
                         xf, yf - 6.0, xf + 2.0, yf - 10.0);
                     view! {
-                        <a href=href aria-label=aria_label class="cursor-pointer">
-                            <title>{tooltip}</title>
-                            <g class="animate-fade-in" style=delay_style>
-                                <circle
-                                    cx=cx
-                                    cy=cy
-                                    r="6"
-                                    fill="var(--color-sun-amber)"
-                                    opacity="0.8"
-                                />
-                                <path
-                                    d=left_petal
-                                    stroke="var(--color-sun-amber)"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    fill="none"
-                                />
-                                <path
-                                    d=center_petal
-                                    stroke="var(--color-sun-amber)"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    fill="none"
-                                />
-                                <path
-                                    d=right_petal
-                                    stroke="var(--color-sun-amber)"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    fill="none"
-                                />
-                            </g>
-                        </a>
+                        <g opacity=wilt_opacity_owned filter=wilt_filter_owned>
+                            <a href=href aria-label=aria_label class="cursor-pointer">
+                                <title>{tooltip}</title>
+                                <g class="animate-fade-in" style=delay_style>
+                                    <circle
+                                        cx=cx
+                                        cy=cy
+                                        r="6"
+                                        fill="var(--color-sun-amber)"
+                                        opacity="0.8"
+                                    />
+                                    <path
+                                        d=left_petal
+                                        stroke="var(--color-sun-amber)"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        fill="none"
+                                    />
+                                    <path
+                                        d=center_petal
+                                        stroke="var(--color-sun-amber)"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        fill="none"
+                                    />
+                                    <path
+                                        d=right_petal
+                                        stroke="var(--color-sun-amber)"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        fill="none"
+                                    />
+                                </g>
+                            </a>
+                        </g>
                     }.into_any()
                 }
 
@@ -237,15 +263,17 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
                         xf - 7.0, yf
                     );
                     view! {
-                        <a href=href aria-label=aria_label class="cursor-pointer">
-                            <title>{tooltip}</title>
-                            <g class="animate-fade-in" style=delay_style>
-                                <path
-                                    d=diamond
-                                    fill="var(--color-mist)"
-                                />
-                            </g>
-                        </a>
+                        <g opacity=wilt_opacity_owned filter=wilt_filter_owned>
+                            <a href=href aria-label=aria_label class="cursor-pointer">
+                                <title>{tooltip}</title>
+                                <g class="animate-fade-in" style=delay_style>
+                                    <path
+                                        d=diamond
+                                        fill="var(--color-mist)"
+                                    />
+                                </g>
+                            </a>
+                        </g>
                     }.into_any()
                 }
 
@@ -265,29 +293,31 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
                     let cy = yf.to_string();
 
                     view! {
-                        <a href=href aria-label=aria_label class="cursor-pointer">
-                            <title>{tooltip}</title>
-                            <g class="animate-scale-in" style=delay_style filter="url(#bloom-glow)">
-                                // Center circle
-                                <circle
-                                    cx=cx.clone()
-                                    cy=cy.clone()
-                                    r="8"
-                                    fill="var(--color-leaf-green)"
-                                />
-                                // 6 petal circles
-                                {petals.into_iter().map(|(px, py)| {
-                                    view! {
-                                        <circle
-                                            cx=px.to_string()
-                                            cy=py.to_string()
-                                            r="3"
-                                            fill="var(--color-leaf-green)"
-                                        />
-                                    }
-                                }).collect_view()}
-                            </g>
-                        </a>
+                        <g opacity=wilt_opacity_owned filter=wilt_filter_owned>
+                            <a href=href aria-label=aria_label class="cursor-pointer">
+                                <title>{tooltip}</title>
+                                <g class="animate-scale-in" style=delay_style filter="url(#bloom-glow)">
+                                    // Center circle
+                                    <circle
+                                        cx=cx.clone()
+                                        cy=cy.clone()
+                                        r="8"
+                                        fill="var(--color-leaf-green)"
+                                    />
+                                    // 6 petal circles
+                                    {petals.into_iter().map(|(px, py)| {
+                                        view! {
+                                            <circle
+                                                cx=px.to_string()
+                                                cy=py.to_string()
+                                                r="3"
+                                                fill="var(--color-leaf-green)"
+                                            />
+                                        }
+                                    }).collect_view()}
+                                </g>
+                            </a>
+                        </g>
                     }.into_any()
                 }
             }
@@ -350,11 +380,14 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             role="img"
             aria-label="Knowledge tree showing your learning progress"
         >
-            // SVG defs: bloom glow filter
+            // SVG defs: bloom glow filter + wilting desaturation filter
             <defs>
                 <filter id="bloom-glow">
                     <feGaussianBlur stdDeviation="3" result="blur"/>
                     <feComposite in_="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="wilt-desaturate">
+                    <feColorMatrix type="saturate" values="0.2"/>
                 </filter>
             </defs>
 

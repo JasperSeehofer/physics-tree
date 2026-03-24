@@ -90,6 +90,13 @@ mod js {
         let func: js_sys::Function = func.into();
         let _ = func.call1(&JsValue::NULL, &JsValue::from_str(progress_json));
     }
+
+    pub fn update_overdue_map(overdue_json: &str) {
+        let func = js_sys::Reflect::get(&bridge(), &JsValue::from_str("updateOverdueMap"))
+            .expect("updateOverdueMap not found");
+        let func: js_sys::Function = func.into();
+        let _ = func.call1(&JsValue::NULL, &JsValue::from_str(overdue_json));
+    }
 }
 
 /// GraphCanvas component — hosts the Sigma.js WebGL renderer.
@@ -207,6 +214,12 @@ pub fn call_update_user_progress(progress_json: &str) {
     js::update_user_progress(progress_json);
 }
 
+/// Pass overdue map to Sigma.js for wilting overlay (called after review queue fetch).
+#[cfg(target_arch = "wasm32")]
+pub fn call_update_overdue_map(overdue_json: &str) {
+    js::update_overdue_map(overdue_json);
+}
+
 // SSR stubs — no-ops so the server binary compiles without WASM deps.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn call_navigate_to_node(_node_id: &str) {}
@@ -219,3 +232,6 @@ pub fn call_clear_selection() {}
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn call_update_user_progress(_progress_json: &str) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn call_update_overdue_map(_overdue_json: &str) {}

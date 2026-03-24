@@ -12,6 +12,7 @@ use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
 use pages::login::LoginPage;
 use pages::register::RegisterPage;
+use pages::review::ReviewPage;
 
 use crate::components::auth::avatar_dropdown::AvatarDropdown;
 
@@ -58,6 +59,24 @@ fn Navbar() -> impl IntoView {
 
     let menu_open = RwSignal::new(false);
 
+    // Due count for Review badge — fetched only on WASM (client-side only)
+    let due_count: RwSignal<i64> = RwSignal::new(0);
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        leptos::task::spawn_local(async move {
+            #[derive(serde::Deserialize)]
+            struct DueCountResp { due_count: i64 }
+            if let Ok(resp) = gloo_net::http::Request::get("/api/review/due-count").send().await {
+                if resp.ok() {
+                    if let Ok(data) = resp.json::<DueCountResp>().await {
+                        due_count.set(data.due_count);
+                    }
+                }
+            }
+        });
+    }
+
     let toggle_menu = move |_: leptos::ev::MouseEvent| menu_open.update(|v| *v = !*v);
     let close_menu = move |_: leptos::ev::MouseEvent| menu_open.set(false);
 
@@ -79,9 +98,24 @@ fn Navbar() -> impl IntoView {
             </a>
 
             // Desktop nav links (hidden below md)
-            <div class="hidden md:flex gap-6">
+            <div class="hidden md:flex gap-6 items-center">
                 <a href="/graph" class="text-sm font-bold text-petal-white hover:text-leaf-green transition-colors">
                     "Graph"
+                </a>
+                <a href="/review" class="flex items-center gap-1 text-sm font-bold text-petal-white hover:text-leaf-green transition-colors">
+                    "Review"
+                    {move || {
+                        let count = due_count.get();
+                        if count > 0 {
+                            view! {
+                                <span class="text-xs font-bold text-void bg-bloom-pink rounded-full px-1.5 py-0.5">
+                                    {count.to_string()}
+                                </span>
+                            }.into_any()
+                        } else {
+                            view! { <span></span> }.into_any()
+                        }
+                    }}
                 </a>
             </div>
 
@@ -136,6 +170,13 @@ fn Navbar() -> impl IntoView {
                     on:click=close_menu
                 >
                     "Graph"
+                </a>
+                <a
+                    href="/review"
+                    class="py-3 px-6 text-base font-bold text-petal-white block hover:bg-bark-mid"
+                    on:click=close_menu
+                >
+                    "Review"
                 </a>
                 <Suspense fallback=|| ()>
                     {move || {
@@ -208,6 +249,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/login") view=LoginPage />
                     <Route path=path!("/register") view=RegisterPage />
                     <Route path=path!("/dashboard") view=DashboardPage />
+                    <Route path=path!("/review") view=ReviewPage />
                 </Routes>
             </main>
         </Router>

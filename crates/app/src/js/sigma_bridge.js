@@ -10,6 +10,7 @@ let fa2Worker = null;
 let selectedNodeId = null;
 let prereqChainSet = new Set();
 let userProgressMap = {};  // {nodeId: xpAmount} — populated by updateUserProgress()
+let overdueMap = {};       // {nodeId: daysOverdue} — populated by updateOverdueMap()
 
 // Color tokens from style/main.css botanical design system
 const COLORS = {
@@ -142,6 +143,26 @@ function drawEdgeOverlay() {
   });
 }
 
+// ── Wilting helper ────────────────────────────────────────────────────────
+// Called in botanicalNodeReducer AFTER growth-stage styling.
+// Degrades color/size per overdue severity (D-09) without changing mastery tier shape.
+// Pre-computed overdueMap lookup: O(1) per node, zero per-frame computation.
+function applyWiltingStyle(res, daysOverdue) {
+  if (daysOverdue >= 7) {
+    // Severe: gray/wilted — strongest visual signal per D-09
+    res.color = COLORS.mist;
+    res.size = (res.size || 8) * 0.8;
+  } else if (daysOverdue >= 4) {
+    // Moderate: desaturated with slight shrink per D-09
+    res.color = hexWithAlpha(COLORS.mist, 0.7);
+    res.size = (res.size || 8) * 0.9;
+  } else if (daysOverdue >= 1) {
+    // Mild: slightly faded per D-09
+    res.color = hexWithAlpha(res.color, 0.6);
+  }
+  // < 1 day (current): no change
+}
+
 // ── User progress helpers ──────────────────────────────────────────────────
 
 function isFrontierNode(nodeId) {
@@ -262,6 +283,22 @@ function drawBotanicalNodeOverlay() {
     const size = sigmaInstance.getNodeDisplayData(nodeId)?.size || 8;
     const scaledSize = size * (window.devicePixelRatio || 1);
 
+    // Apply wilting alpha to botanical canvas shapes — mirrors node color treatment
+    const nodeDaysOverdue = overdueMap[nodeId];
+    let wiltAlpha = 1.0;
+    if (nodeDaysOverdue !== undefined) {
+      if (nodeDaysOverdue >= 7) {
+        wiltAlpha = 0.4;
+      } else if (nodeDaysOverdue >= 4) {
+        wiltAlpha = 0.6;
+      } else if (nodeDaysOverdue >= 1) {
+        wiltAlpha = 0.75;
+      }
+    }
+
+    octx.save();
+    octx.globalAlpha = wiltAlpha;
+
     if (xp >= 300) {
       drawBloom(octx, pos.x, pos.y, scaledSize);
     } else if (xp >= 150) {
@@ -270,6 +307,8 @@ function drawBotanicalNodeOverlay() {
       drawSprout(octx, pos.x, pos.y, scaledSize);
     }
     // Seeds (< 50 XP) have no special overlay — just the dim circle from the reducer
+
+    octx.restore();
   });
 }
 
@@ -308,6 +347,13 @@ function botanicalNodeReducer(node, data) {
     } else if (isFrontierNode(node)) {
       res.label = `${data.label} \u2014 not yet learned`;
     }
+  }
+
+  // Wilting: apply AFTER growth stage so mastery shape is preserved (D-09)
+  // overdueMap is pre-computed module-level state — no per-frame computation
+  const daysOverdue = overdueMap[node];
+  if (daysOverdue !== undefined && daysOverdue >= 1) {
+    applyWiltingStyle(res, daysOverdue);
   }
 
   if (selectedNodeId === null) return res;
@@ -410,6 +456,13 @@ export function initSigma(container, onNodeClick, onNodeEnter, onNodeLeave) {
 // Update user progress map and refresh Sigma rendering (called from Rust via bridge)
 export function updateUserProgress(progressJson) {
   userProgressMap = progressJson ? JSON.parse(progressJson) : {};
+  if (sigmaInstance) sigmaInstance.refresh();
+}
+
+// Update overdue map and refresh Sigma rendering (called from Rust via bridge after review queue fetch)
+// overdueJson is a JSON object mapping nodeId -> daysOverdue (e.g. {"uuid1": 3.5, "uuid2": 8.1})
+export function updateOverdueMap(overdueJson) {
+  overdueMap = overdueJson ? JSON.parse(overdueJson) : {};
   if (sigmaInstance) sigmaInstance.refresh();
 }
 
@@ -549,4 +602,5 @@ export function killSigma() {
   selectedNodeId = null;
   prereqChainSet = new Set();
   userProgressMap = {};
+  overdueMap = {};
 }
