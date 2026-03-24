@@ -163,15 +163,6 @@ fn ReviewResultCard(
     let streak = result.streak;
     let freeze_used = result.freeze_used;
 
-    // Set up auto-advance timer (2 seconds)
-    #[cfg(target_arch = "wasm32")]
-    {
-        let on_next_clone = on_next;
-        leptos::task::spawn_local(async move {
-            gloo_timers::future::TimeoutFuture::new(2000).await;
-            on_next_clone.run(());
-        });
-    }
 
     view! {
         <div class="bg-bark-dark border border-leaf-green rounded-card px-4 py-4 mt-6">

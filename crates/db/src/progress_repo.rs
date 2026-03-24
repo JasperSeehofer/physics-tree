@@ -52,8 +52,8 @@ pub async fn get_dashboard_summary(
                 / NULLIF((SELECT COUNT(*) FROM nodes), 0)::float8 * 100.0,
                 0.0
             ) AS overall_mastery_pct,
-            COALESCE(s.current_streak, 0) AS current_streak,
-            COALESCE(s.freeze_tokens, 0) AS freeze_tokens
+            COALESCE(MAX(s.current_streak), 0) AS current_streak,
+            COALESCE(MAX(s.freeze_tokens), 0) AS freeze_tokens
         FROM progress p
         LEFT JOIN user_streaks s ON s.user_id = $1
         WHERE p.user_id = $1
@@ -85,7 +85,7 @@ pub async fn get_user_node_progress(
         SELECT n.id AS node_id, n.slug, n.title, n.branch, n.depth_tier,
                COALESCE(p.mastery_level, 0) AS mastery_level,
                CASE WHEN p.next_review IS NOT NULL AND p.next_review <= NOW()
-                    THEN EXTRACT(EPOCH FROM (NOW() - p.next_review)) / 86400.0
+                    THEN (EXTRACT(EPOCH FROM (NOW() - p.next_review)) / 86400.0)::float8
                     ELSE NULL END AS overdue_days
         FROM nodes n
         LEFT JOIN progress p ON p.node_id = n.id AND p.user_id = $1

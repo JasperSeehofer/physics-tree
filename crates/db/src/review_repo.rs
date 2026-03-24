@@ -56,7 +56,7 @@ pub async fn get_review_queue(
             n.slug,
             n.title,
             n.depth_tier,
-            EXTRACT(EPOCH FROM (NOW() - p.next_review)) / 86400.0 AS days_overdue,
+            (EXTRACT(EPOCH FROM (NOW() - p.next_review)) / 86400.0)::float8 AS days_overdue,
             p.fsrs_state
         FROM progress p
         JOIN nodes n ON n.id = p.node_id

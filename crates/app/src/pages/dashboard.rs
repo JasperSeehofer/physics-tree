@@ -22,6 +22,8 @@ struct NodeProgressRaw {
     branch: String,
     depth_tier: String,
     mastery_level: i32,
+    #[serde(default)]
+    overdue_days: Option<f64>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -116,7 +118,7 @@ pub fn DashboardPage() -> impl IntoView {
                                 branch: n.branch.clone(),
                                 depth_tier: n.depth_tier.clone(),
                                 mastery_level: n.mastery_level,
-                                overdue_days: None,
+                                overdue_days: n.overdue_days,
                             })
                             .collect();
 
