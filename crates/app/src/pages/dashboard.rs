@@ -115,6 +115,7 @@ pub fn DashboardPage() -> impl IntoView {
                                 branch: n.branch.clone(),
                                 depth_tier: n.depth_tier.clone(),
                                 mastery_level: n.mastery_level,
+                                overdue_days: None,
                             })
                             .collect();
 

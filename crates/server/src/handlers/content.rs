@@ -1,12 +1,20 @@
 //! Content API handler — serves parsed markdown HTML for approved concept modules.
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
 };
+use serde::Deserialize as QueryDeserialize;
 use serde::Serialize;
 use sqlx::PgPool;
+
+/// Optional query parameters for the quiz endpoint.
+#[derive(QueryDeserialize, Default)]
+pub struct QuizQueryParams {
+    /// If provided, return at most this many questions (random subset for review quizzes, D-02).
+    pub limit: Option<usize>,
+}
 
 use app::components::content::markdown_renderer::render_content_markdown;
 use domain::quiz::QuizQuestion;
@@ -130,9 +138,13 @@ pub async fn get_content(
 /// randomizes order and truncates to at most 5 questions, shuffles multiple
 /// choice option order (per D-22).
 ///
+/// If `limit` query parameter is provided, returns at most that many questions
+/// (for review quiz subsets per D-02 — 2-3 questions instead of full set).
+///
 /// Returns 404 if the quiz JSON file does not exist.
 pub async fn get_quiz(
     Path(slug): Path<String>,
+    Query(params): Query<QuizQueryParams>,
 ) -> Result<Json<Vec<QuizQuestion>>, (StatusCode, String)> {
     let quiz_path = format!("content/classical-mechanics/{}.quiz.json", slug);
 
@@ -143,11 +155,13 @@ pub async fn get_quiz(
     let mut questions: Vec<QuizQuestion> = serde_json::from_str(&quiz_json)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Randomize question pool and limit to 5 (per D-22)
+    // Randomize question pool
     use rand::seq::SliceRandom;
     let mut rng = rand::thread_rng();
     questions.shuffle(&mut rng);
-    questions.truncate(5);
+    // Apply limit: use caller-specified limit (for review subsets) or default cap of 5 (D-22)
+    let cap = params.limit.unwrap_or(5);
+    questions.truncate(cap);
 
     // Shuffle multiple choice options so correct answer position is random
     for q in &mut questions {

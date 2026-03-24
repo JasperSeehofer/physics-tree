@@ -49,5 +49,25 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/progress/award-xp",
             axum::routing::post(handlers::progress::award_xp),
         )
+        .route(
+            "/api/review/queue",
+            axum::routing::get(handlers::review::get_review_queue),
+        )
+        .route(
+            "/api/review/submit",
+            axum::routing::post(handlers::review::submit_review),
+        )
+        .route(
+            "/api/review/skip",
+            axum::routing::post(handlers::review::skip_review),
+        )
+        .route(
+            "/api/review/due-count",
+            axum::routing::get(handlers::review::get_due_count),
+        )
+        .route(
+            "/api/review/suggestions",
+            axum::routing::get(handlers::review::get_suggestions),
+        )
         .with_state(pool)
 }
