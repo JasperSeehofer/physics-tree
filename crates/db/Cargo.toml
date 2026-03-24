@@ -11,3 +11,4 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }
 chrono = { workspace = true }
+rs-fsrs = "1.2.1"
