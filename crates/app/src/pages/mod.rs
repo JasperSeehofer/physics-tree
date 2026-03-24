@@ -4,3 +4,4 @@ pub mod graph_explorer;
 pub mod landing;
 pub mod login;
 pub mod register;
+pub mod review;

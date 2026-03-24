@@ -2,6 +2,7 @@ use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::components::dashboard::mini_tree::{MiniTree, NodeProgress};
+use crate::components::dashboard::review_widget::ReviewWidget;
 use crate::components::dashboard::stats_cards::{DashboardSummary, StatsCards};
 use crate::components::dashboard::streak_detail::StreakDetail;
 
@@ -129,6 +130,11 @@ pub fn DashboardPage() -> impl IntoView {
                             // Streak detail row (desktop only — hidden on mobile per UI-SPEC)
                             <div class="mt-4">
                                 <StreakDetail streak=streak freeze_tokens=freeze_tokens />
+                            </div>
+
+                            // Review widget — due count with link to /review
+                            <div class="mt-6">
+                                <ReviewWidget />
                             </div>
 
                             // Mini tree section
