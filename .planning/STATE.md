@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-24T10:55:21.103Z"
+status: Ready to execute
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-24T11:35:56.994Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 23
+  completed_plans: 21
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 05 — gamification-and-personal-tree
+**Current focus:** Phase 06 — spaced-repetition
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: 06 (spaced-repetition) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Plan: Not started
 | Phase 05-gamification-and-personal-tree P01 | 5 | 2 tasks | 8 files |
 | Phase 05-gamification-and-personal-tree P03 | 12 | 2 tasks | 3 files |
 | Phase 05-gamification-and-personal-tree P02 | 12 | 2 tasks | 14 files |
+| Phase 06-spaced-repetition P01 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 05-gamification-and-personal-tree]: checkpoint_passed Vec<Option<bool>>: Some(true)=correct, Some(false)=skipped, None=unanswered — enables score_pct computation for XP award threshold (D-02: 70% minimum)
 - [Phase 05-gamification-and-personal-tree]: MasteryBadge shows mastery from award-xp response (not fetched on load) — no per-node mastery GET endpoint exists; badge is hidden until first quiz completion
 - [Phase 05-gamification-and-personal-tree]: node_id added to ConceptContent (server+client) — was missing from Phase 3 design; required for award-xp POST body
+- [Phase 06-01]: rs-fsrs added to crates/db only (not crates/app) to keep WASM bundle unaffected per Pitfall 7
+- [Phase 06-01]: review_repo.submit_review handles its own XP INSERT with is_review=TRUE; award_xp_to_user keeps is_review=FALSE — clean separation of initial quiz vs review XP
+- [Phase 06-01]: Skip does not modify FSRS state (stability/difficulty/reps/lapses) — only defers next_review +24h per Pitfall 6
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T10:55:21.101Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-spaced-repetition/06-CONTEXT.md
+Last session: 2026-03-24T11:35:56.992Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

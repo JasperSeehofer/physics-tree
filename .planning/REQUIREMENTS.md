@@ -35,7 +35,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GAME-02**: User maintains daily streaks with streak freeze mechanic
 - [x] **GAME-03**: Each concept has mastery levels (bronze → silver → gold) tied to plant growth visual
 - [ ] **GAME-04**: Each concept has quizzes with multiple question types (multiple choice, fill-in-formula, matching)
-- [ ] **GAME-05**: User receives a spaced repetition review queue surfacing concepts due for review (FSRS algorithm)
+- [x] **GAME-05**: User receives a spaced repetition review queue surfacing concepts due for review (FSRS algorithm)
 
 ### Design
 
@@ -96,7 +96,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-02 | Phase 5 | Complete |
 | GAME-03 | Phase 5 | Complete |
 | GAME-04 | Phase 3 | Pending |
-| GAME-05 | Phase 6 | Pending |
+| GAME-05 | Phase 6 | Complete |
 | DSGN-01 | Phase 1 | Complete |
 
 **Coverage:**
