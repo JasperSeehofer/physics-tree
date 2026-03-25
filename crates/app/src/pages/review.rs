@@ -265,7 +265,8 @@ fn ConceptReviewQuestion(
                 "multiple_choice" => view! {
                     <QuizMultipleChoice
                         question=q_for_mc
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |_hint_used: bool| {
+                            // Reviews do not track hint penalties (separate endpoint)
                             if !answered.get_untracked() {
                                 answered.set(true);
                                 on_answered.run(true);
@@ -276,7 +277,8 @@ fn ConceptReviewQuestion(
                 "formula" => view! {
                     <QuizFormulaInput
                         question=q_for_formula
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |_hint_used: bool| {
+                            // Reviews do not track hint penalties (separate endpoint)
                             if !answered.get_untracked() {
                                 answered.set(true);
                                 on_answered.run(true);
@@ -287,7 +289,8 @@ fn ConceptReviewQuestion(
                 "matching" => view! {
                     <QuizMatching
                         question=q_for_matching
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |_hint_used: bool| {
+                            // Reviews do not track hint penalties (separate endpoint)
                             if !answered.get_untracked() {
                                 answered.set(true);
                                 on_answered.run(true);

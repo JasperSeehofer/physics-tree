@@ -14,6 +14,7 @@ pub struct XpAwardData {
     pub perfect_bonus: bool,
     pub streak_milestone: Option<i32>,
     pub freeze_used: bool,
+    pub hint_penalty: bool,
 }
 
 /// Floating XP award toast — appears after a quiz checkpoint is passed.
@@ -85,6 +86,9 @@ pub fn XpToast(data: RwSignal<Option<XpAwardData>>) -> impl IntoView {
                                 </div>
                                 {award.perfect_bonus.then(|| view! {
                                     <span class="text-sm text-sun-amber">"1.5x perfect score bonus!"</span>
+                                })}
+                                {award.hint_penalty.then(|| view! {
+                                    <span class="text-sm text-sky-teal">"hint penalty applied"</span>
                                 })}
                                 {award.freeze_used.then(|| view! {
                                     <span class="text-sm text-sky-teal">"Freeze token used. Streak protected for today."</span>

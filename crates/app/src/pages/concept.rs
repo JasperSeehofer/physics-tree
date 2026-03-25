@@ -47,6 +47,7 @@ pub struct ConceptContent {
 struct AwardXpRequest {
     node_id: String,
     score_pct: u32,
+    hints_used: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +60,7 @@ struct AwardXpResponse {
     streak_milestone: Option<i32>,
     perfect_bonus: bool,
     freeze_used: bool,
+    hint_penalty: bool,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -125,8 +127,8 @@ async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
 /// POST /api/progress/award-xp — awards XP for completing quiz checkpoints.
 /// Returns None if the request fails or user is not authenticated.
 #[cfg(target_arch = "wasm32")]
-async fn post_award_xp(node_id: String, score_pct: u32) -> Option<AwardXpResponse> {
-    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct }).ok()?;
+async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Option<AwardXpResponse> {
+    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct, hints_used }).ok()?;
     let resp = gloo_net::http::Request::post("/api/progress/award-xp")
         .header("Content-Type", "application/json")
         .body(body)
@@ -161,9 +163,11 @@ pub fn ConceptPage() -> impl IntoView {
     let loading = RwSignal::new(false);
     let quiz_questions: RwSignal<Vec<domain::quiz::QuizQuestion>> = RwSignal::new(vec![]);
 
-    // Track which quiz checkpoints have been answered and whether correctly.
-    // Some(true) = correct, Some(false) = skipped, None = unanswered
-    let checkpoint_passed: RwSignal<Vec<Option<bool>>> = RwSignal::new(vec![]);
+    // Track which quiz checkpoints have been answered.
+    // Some((correct, hint_used)) = answered, None = unanswered
+    // correct: true = answered correctly, false = skipped
+    // hint_used: true = user used a hint before getting correct
+    let checkpoint_passed: RwSignal<Vec<Option<(bool, bool)>>> = RwSignal::new(vec![]);
 
     // XP toast data — set when award-xp returns a response
     let xp_toast_data: RwSignal<Option<XpAwardData>> = RwSignal::new(None);
@@ -177,10 +181,19 @@ pub fn ConceptPage() -> impl IntoView {
     // TOC overlay toggle (mobile/tablet only)
     let toc_open: RwSignal<bool> = RwSignal::new(false);
 
-    // ── Fetch content and quiz on mount (client-only) ────────────────────────
+    // ── Fetch content and quiz on mount and on client-side navigation (D-07) ──
+    // Using Effect instead of one-shot spawn_local so this re-runs when the route
+    // slug changes (client-side navigation between concept pages).
     #[cfg(target_arch = "wasm32")]
-    {
-        let slug_val = slug();
+    Effect::new(move |_| {
+        let slug_val = slug(); // reactive — re-runs when slug changes on navigation
+
+        // Reset state for the new concept
+        content.set(None);
+        load_error.set(None);
+        quiz_questions.set(vec![]);
+        checkpoint_passed.set(vec![]);
+
         let slug_for_quiz = slug_val.clone();
 
         leptos::task::spawn_local(async move {
@@ -202,7 +215,7 @@ pub fn ConceptPage() -> impl IntoView {
             checkpoint_passed.set(vec![None; n]);
             quiz_questions.set(questions);
         });
-    }
+    });
 
     // ── Effect: when all checkpoints answered → award XP ─────────────────────
     #[cfg(target_arch = "wasm32")]
@@ -221,8 +234,11 @@ pub fn ConceptPage() -> impl IntoView {
         }
 
         // Compute score: correct / total * 100
-        let correct_count = passed.iter().filter(|&&p| p == Some(true)).count();
+        let correct_count = passed.iter().filter(|p| matches!(p, Some((true, _)))).count();
         let score_pct = ((correct_count as f64 / total as f64) * 100.0).round() as u32;
+
+        // Aggregate hint usage: any correct answer that used a hint (D-13)
+        let any_hints_used = passed.iter().any(|p| matches!(p, Some((_, true))));
 
         // Only award XP if score >= 70% (D-02)
         if score_pct < 70 {
@@ -237,7 +253,7 @@ pub fn ConceptPage() -> impl IntoView {
         let concept_name = content.get().map(|c| c.title.clone()).unwrap_or_default();
 
         leptos::task::spawn_local(async move {
-            if let Some(response) = post_award_xp(node_id, score_pct).await {
+            if let Some(response) = post_award_xp(node_id, score_pct, any_hints_used).await {
                 // Update mastery XP after award
                 mastery_xp.set(response.new_total_xp);
 
@@ -247,6 +263,7 @@ pub fn ConceptPage() -> impl IntoView {
                     perfect_bonus: response.perfect_bonus,
                     streak_milestone: response.streak_milestone,
                     freeze_used: response.freeze_used,
+                    hint_penalty: response.hint_penalty,
                 }));
             }
         });
@@ -456,7 +473,7 @@ pub fn ConceptPage() -> impl IntoView {
                                         <div class="mt-8">
                                             {questions.into_iter().enumerate().map(|(idx, question)| {
                                                 // Is this checkpoint (and all before it) cleared?
-                                                let this_passed = passed.get(idx).copied().flatten().is_some();
+                                                let this_passed = passed.get(idx).and_then(|p| *p).is_some();
 
                                                 // Content below is blurred until THIS checkpoint is passed
                                                 let blur_class = if this_passed {
@@ -464,7 +481,7 @@ pub fn ConceptPage() -> impl IntoView {
                                                 } else {
                                                     // Only blur if there's a previous checkpoint that's also passed
                                                     // or this is the first unanswered one
-                                                    if idx == 0 || passed.get(idx - 1).copied().flatten().is_some() {
+                                                    if idx == 0 || passed.get(idx - 1).and_then(|p| *p).is_some() {
                                                         "" // checkpoint itself is not blurred
                                                     } else {
                                                         "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
@@ -475,10 +492,10 @@ pub fn ConceptPage() -> impl IntoView {
                                                     <div class=blur_class>
                                                         <QuizCheckpoint
                                                             question=question
-                                                            on_answered=Callback::new(move |correct: bool| {
+                                                            on_answered=Callback::new(move |(correct, hint_used): (bool, bool)| {
                                                                 checkpoint_passed.update(|passed| {
                                                                     if let Some(slot) = passed.get_mut(idx) {
-                                                                        *slot = Some(correct);
+                                                                        *slot = Some((correct, hint_used));
                                                                     }
                                                                 });
                                                             })

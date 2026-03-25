@@ -15,17 +15,18 @@ use super::multiple_choice::QuizMultipleChoice;
 
 /// A quiz checkpoint that soft-blocks the content below it until answered.
 ///
-/// The `on_answered` callback is called when the checkpoint is cleared:
-/// - `true` = answered correctly
-/// - `false` = skipped ("Skip for now")
+/// The `on_answered` callback is called when the checkpoint is cleared.
+/// Tuple: `(correct, hint_used)` where:
+/// - `correct` = true if answered correctly, false if skipped
+/// - `hint_used` = true if the user used a hint before getting it right
 ///
-/// The distinction is used by ConceptPage to compute a score_pct for XP awards
-/// (only correct answers count toward score).
+/// These values are used by ConceptPage to compute score_pct for XP awards
+/// and whether to apply the hint penalty (D-13).
 #[component]
 pub fn QuizCheckpoint(
     question: QuizQuestion,
-    /// Called when the checkpoint is cleared. `true` = correct, `false` = skipped.
-    on_answered: Callback<bool>,
+    /// Called when the checkpoint is cleared. `(correct, hint_used)`.
+    on_answered: Callback<(bool, bool)>,
 ) -> impl IntoView {
     let answered = RwSignal::new(false);
     let skipped = RwSignal::new(false);
@@ -42,27 +43,27 @@ pub fn QuizCheckpoint(
                 "multiple_choice" => view! {
                     <QuizMultipleChoice
                         question=q_for_mc
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |hint_used: bool| {
                             answered.set(true);
-                            on_answered.run(true); // correct
+                            on_answered.run((true, hint_used)); // correct=true, hint_used from component
                         })
                     />
                 }.into_any(),
                 "formula" => view! {
                     <QuizFormulaInput
                         question=q_for_formula
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |hint_used: bool| {
                             answered.set(true);
-                            on_answered.run(true); // correct
+                            on_answered.run((true, hint_used)); // correct=true, hint_used from component
                         })
                     />
                 }.into_any(),
                 "matching" => view! {
                     <QuizMatching
                         question=q_for_matching
-                        on_correct=Callback::new(move |_| {
+                        on_correct=Callback::new(move |hint_used: bool| {
                             answered.set(true);
-                            on_answered.run(true); // correct
+                            on_answered.run((true, hint_used)); // correct=true, hint_used from component
                         })
                     />
                 }.into_any(),
@@ -77,7 +78,7 @@ pub fn QuizCheckpoint(
                     class="text-sm text-mist underline hover:text-petal-white mt-4 block"
                     on:click=move |_| {
                         skipped.set(true);
-                        on_answered.run(false); // skipped — does not count as correct
+                        on_answered.run((false, false)); // skipped — no hint, not correct
                     }
                 >
                     "Skip for now"
