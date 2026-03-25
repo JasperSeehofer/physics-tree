@@ -75,7 +75,7 @@ pub fn QuizMatching(
         let state = match_state.get();
 
         if let MatchState::Checked { correct: true } = &state {
-            return "w-full text-left p-3 rounded-lg border border-leaf-green bg-bark-mid text-petal-white text-sm mb-2".into();
+            return "w-full text-left p-3 rounded-lg border border-leaf-green bg-leaf-green text-void text-sm mb-2".into();
         }
 
         if is_matched {
@@ -93,7 +93,7 @@ pub fn QuizMatching(
         let state = match_state.get();
 
         if let MatchState::Checked { correct: true } = &state {
-            return "w-full text-left p-3 rounded-lg border border-leaf-green bg-bark-mid text-petal-white text-sm mb-2".into();
+            return "w-full text-left p-3 rounded-lg border border-leaf-green bg-leaf-green text-void text-sm mb-2".into();
         }
         if let MatchState::Checked { correct: false } = &state {
             // Show wrong matches in pink
@@ -146,7 +146,12 @@ pub fn QuizMatching(
                                     }
                                 }
                             >
-                                {left_term}
+                                <span class="flex items-center gap-2">
+                                    {move || matches!(match_state.get(), MatchState::Checked { correct: true }).then(|| view! {
+                                        <span class="font-bold">"\u{2713}"</span>
+                                    })}
+                                    <span>{left_term}</span>
+                                </span>
                             </button>
                         }
                     }).collect_view()}
@@ -175,7 +180,12 @@ pub fn QuizMatching(
                                     }
                                 }
                             >
-                                {right_def}
+                                <span class="flex items-center gap-2">
+                                    {move || matches!(match_state.get(), MatchState::Checked { correct: true }).then(|| view! {
+                                        <span class="font-bold">"\u{2713}"</span>
+                                    })}
+                                    <span>{right_def}</span>
+                                </span>
                             </button>
                         }
                     }).collect_view()}

@@ -73,8 +73,10 @@ pub fn QuizMultipleChoice(
                 {options_for_view.into_iter().map(|opt| {
                     let opt_id = opt.id.clone();
                     let opt_id_for_class = opt.id.clone();
+                    let opt_id_for_check = opt.id.clone();
                     let opt_text = opt.text.clone();
                     let correct_id_clone = correct_id_for_style.clone();
+                    let correct_id_for_check2 = correct_id_for_style.clone();
                     let is_locked = move || {
                         matches!(state.get(), QuizState::Correct | QuizState::Revealed(_))
                     };
@@ -87,7 +89,8 @@ pub fn QuizMultipleChoice(
                                 let is_selected = selected.get().as_deref() == Some(&opt_id_for_class);
                                 let is_correct = opt_id_for_class == correct_id_clone;
                                 match &s {
-                                    QuizState::Correct if is_correct => format!("{base} bg-bark-mid border-leaf-green"),
+                                    QuizState::Correct if is_correct => format!("{base} bg-leaf-green text-void border-leaf-green"),
+                                    QuizState::Correct if !is_correct => format!("{base} bg-bark-mid border-bark-light text-petal-white opacity-50"),
                                     QuizState::Revealed(_) if is_correct => format!("{base} bg-bark-mid border-leaf-green"),
                                     QuizState::Revealed(_) if is_selected && !is_correct => format!("{base} bg-bark-mid border-bloom-pink"),
                                     QuizState::ShowHint(_) | QuizState::Unanswered if is_selected => format!("{base} bg-bark-light border-nebula-purple"),
@@ -101,7 +104,16 @@ pub fn QuizMultipleChoice(
                                 }
                             }
                         >
-                            {opt_text}
+                            <span class="flex items-center gap-2">
+                                {move || {
+                                    let s = state.get();
+                                    let show_check = s == QuizState::Correct && opt_id_for_check == correct_id_for_check2;
+                                    show_check.then(|| view! {
+                                        <span class="font-bold">"\u{2713}"</span>
+                                    })
+                                }}
+                                <span>{opt_text}</span>
+                            </span>
                         </button>
                     }
                 }).collect_view()}
