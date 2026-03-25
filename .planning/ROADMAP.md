@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard (completed 2026-03-23)
 - [ ] **Phase 5: Gamification and Personal Tree** - XP, streaks, mastery levels, and the growing personal knowledge tree
 - [x] **Phase 6: Spaced Repetition** - FSRS review queue for long-term retention (completed 2026-03-24)
+- [ ] **Phase 7: Sigma Bridge Exports & Mastery Fix** - Fix sigma_entry.js exports and MasteryBadge per-concept XP (gap closure)
 
 ## Phase Details
 
@@ -118,6 +119,20 @@ Plans:
 - [x] 06-02-PLAN.md — Review API endpoints, /review page, dashboard widget, navbar badge
 - [x] 06-03-PLAN.md — Botanical wilting visuals on graph and MiniTree, human verification
 
+### Phase 7: Sigma Bridge Exports & Mastery Fix
+**Goal**: The sigma_entry.js bundle correctly exports updateUserProgress and updateOverdueMap so authenticated graph loads no longer WASM-panic, botanical growth stages render, overdue wilting works, and the MasteryBadge on concept pages shows the correct per-concept mastery tier.
+**Depends on**: Phase 5, Phase 6
+**Requirements**: GRAPH-05, GAME-03
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Authenticated user loads /graph without WASM panic — botanical growth stages render for mastered concepts
+  2. Overdue concepts show wilting overlay on the graph
+  3. MasteryBadge on concept page shows the correct tier for that specific concept, not aggregate XP
+  4. sigma_bundle.js exports both updateUserProgress and updateOverdueMap via window.__sigma_bridge
+**Plans**: 0 plans
+Plans:
+- (none yet)
+
 ## Progress
 
 **Execution Order:**
@@ -131,6 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
 | 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
+| 7. Sigma Bridge Exports & Mastery Fix | 0/0 | Pending |  |
 
 ## Backlog
 
