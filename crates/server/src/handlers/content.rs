@@ -16,7 +16,7 @@ pub struct QuizQueryParams {
     pub limit: Option<usize>,
 }
 
-use app::components::content::markdown_renderer::render_content_markdown;
+use app::components::content::markdown_renderer::{extract_latex_placeholders, render_content_markdown};
 use domain::quiz::QuizQuestion;
 
 /// A prerequisite or next-concept item in the API response.
@@ -167,6 +167,25 @@ pub async fn get_quiz(
     for q in &mut questions {
         if let Some(ref mut opts) = q.options {
             opts.shuffle(&mut rng);
+        }
+    }
+
+    // Pre-process LaTeX in quiz strings (D-04, D-05)
+    for q in &mut questions {
+        q.question = extract_latex_placeholders(&q.question);
+        q.hint = extract_latex_placeholders(&q.hint);
+        q.explanation = extract_latex_placeholders(&q.explanation);
+        if let Some(ref mut opts) = q.options {
+            for opt in opts.iter_mut() {
+                opt.text = extract_latex_placeholders(&opt.text);
+            }
+        }
+        // Also process matching pair text
+        if let Some(ref mut pairs) = q.pairs {
+            for (left, right) in pairs.iter_mut() {
+                *left = extract_latex_placeholders(left);
+                *right = extract_latex_placeholders(right);
+            }
         }
     }
 

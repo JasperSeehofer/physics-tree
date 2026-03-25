@@ -124,12 +124,24 @@ pub fn QuizFormulaInput(
 
     let is_locked = move || matches!(state.get(), FormulaState::Correct | FormulaState::Revealed(_));
 
+    // Re-run renderAllPlaceholders when state changes (new LaTeX elements appear in DOM)
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let _ = state.get(); // subscribe to state changes
+        use wasm_bindgen::JsValue;
+        let window = web_sys::window().unwrap();
+        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                let func: js_sys::Function = func.into();
+                let _ = func.call0(&bridge);
+            }
+        }
+    });
+
     view! {
         <div class="space-y-4">
             // Question text
-            <p class="text-base text-petal-white font-bold leading-relaxed">
-                {question_text}
-            </p>
+            <p class="text-base text-petal-white font-bold leading-relaxed" inner_html=question_text />
 
             // Formula input field (per UI-SPEC: border-nebula-purple)
             <div class="space-y-2">
@@ -177,7 +189,7 @@ pub fn QuizFormulaInput(
                 }.into_any(),
                 FormulaState::ShowHint(h) => view! {
                     <p class="text-sun-amber text-sm">
-                        "Not quite \u{2014} " {h} " Try again."
+                        "Not quite \u{2014} " <span inner_html=h /> " Try again."
                     </p>
                 }.into_any(),
                 FormulaState::Revealed(exp) => view! {
@@ -186,7 +198,7 @@ pub fn QuizFormulaInput(
                             "The expected formula is: "
                             <span class="font-mono text-petal-white">{expected_display.clone()}</span>
                         </p>
-                        <p class="text-mist text-sm">{exp}</p>
+                        <p class="text-mist text-sm" inner_html=exp />
                     </div>
                 }.into_any(),
                 FormulaState::Unanswered => view! { <span /> }.into_any(),

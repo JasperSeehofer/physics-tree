@@ -8,6 +8,8 @@
 
 use leptos::prelude::*;
 use leptos::web_sys;
+#[cfg(target_arch = "wasm32")]
+use js_sys;
 
 use domain::quiz::QuizQuestion;
 
@@ -61,12 +63,24 @@ pub fn QuizMultipleChoice(
         }
     });
 
+    // Re-run renderAllPlaceholders when state changes (new LaTeX elements appear in DOM)
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let _ = state.get(); // subscribe to state changes
+        use wasm_bindgen::JsValue;
+        let window = web_sys::window().unwrap();
+        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                let func: js_sys::Function = func.into();
+                let _ = func.call0(&bridge);
+            }
+        }
+    });
+
     view! {
         <div class="space-y-4">
             // Question text
-            <p class="text-base text-petal-white font-bold leading-relaxed">
-                {question_text}
-            </p>
+            <p class="text-base text-petal-white font-bold leading-relaxed" inner_html=question_text />
 
             // Answer options
             <div>
@@ -112,7 +126,7 @@ pub fn QuizMultipleChoice(
                                         <span class="font-bold">"\u{2713}"</span>
                                     })
                                 }}
-                                <span>{opt_text}</span>
+                                <span inner_html=opt_text.clone() />
                             </span>
                         </button>
                     }
@@ -126,13 +140,13 @@ pub fn QuizMultipleChoice(
                 }.into_any(),
                 QuizState::ShowHint(h) => view! {
                     <p class="text-sun-amber text-sm">
-                        "Not quite \u{2014} " {h} " Try again."
+                        "Not quite \u{2014} " <span inner_html=h /> " Try again."
                     </p>
                 }.into_any(),
                 QuizState::Revealed(exp) => view! {
                     <div class="space-y-1">
                         <p class="text-bloom-pink text-sm font-bold">"The answer is shown above. Here\u{2019}s why:"</p>
-                        <p class="text-mist text-sm">{exp}</p>
+                        <p class="text-mist text-sm" inner_html=exp />
                     </div>
                 }.into_any(),
                 QuizState::Unanswered => view! { <span /> }.into_any(),

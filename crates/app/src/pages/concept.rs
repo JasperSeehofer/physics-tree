@@ -177,10 +177,19 @@ pub fn ConceptPage() -> impl IntoView {
     // TOC overlay toggle (mobile/tablet only)
     let toc_open: RwSignal<bool> = RwSignal::new(false);
 
-    // ── Fetch content and quiz on mount (client-only) ────────────────────────
+    // ── Fetch content and quiz on mount and on client-side navigation (D-07) ──
+    // Using Effect instead of one-shot spawn_local so this re-runs when the route
+    // slug changes (client-side navigation between concept pages).
     #[cfg(target_arch = "wasm32")]
-    {
-        let slug_val = slug();
+    Effect::new(move |_| {
+        let slug_val = slug(); // reactive — re-runs when slug changes on navigation
+
+        // Reset state for the new concept
+        content.set(None);
+        load_error.set(None);
+        quiz_questions.set(vec![]);
+        checkpoint_passed.set(vec![]);
+
         let slug_for_quiz = slug_val.clone();
 
         leptos::task::spawn_local(async move {
@@ -202,7 +211,7 @@ pub fn ConceptPage() -> impl IntoView {
             checkpoint_passed.set(vec![None; n]);
             quiz_questions.set(questions);
         });
-    }
+    });
 
     // ── Effect: when all checkpoints answered → award XP ─────────────────────
     #[cfg(target_arch = "wasm32")]

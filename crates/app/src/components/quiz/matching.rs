@@ -10,6 +10,7 @@
 //! Per CONTEXT.md D-20 and UI-SPEC Matching interaction spec.
 
 use leptos::prelude::*;
+use leptos::web_sys;
 
 use domain::quiz::QuizQuestion;
 
@@ -112,12 +113,24 @@ pub fn QuizMatching(
 
     let hint_clone = hint.clone();
 
+    // Re-run renderAllPlaceholders when match_state changes (new LaTeX elements appear in DOM)
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let _ = match_state.get(); // subscribe to state changes
+        use wasm_bindgen::JsValue;
+        let window = web_sys::window().unwrap();
+        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                let func: js_sys::Function = func.into();
+                let _ = func.call0(&bridge);
+            }
+        }
+    });
+
     view! {
         <div class="space-y-4">
             // Question text
-            <p class="text-base text-petal-white font-bold leading-relaxed">
-                {question_text}
-            </p>
+            <p class="text-base text-petal-white font-bold leading-relaxed" inner_html=question_text />
 
             <p class="text-mist text-sm">
                 "Click a term on the left, then its match on the right."
@@ -150,7 +163,7 @@ pub fn QuizMatching(
                                     {move || matches!(match_state.get(), MatchState::Checked { correct: true }).then(|| view! {
                                         <span class="font-bold">"\u{2713}"</span>
                                     })}
-                                    <span>{left_term}</span>
+                                    <span inner_html=left_term.clone() />
                                 </span>
                             </button>
                         }
@@ -184,7 +197,7 @@ pub fn QuizMatching(
                                     {move || matches!(match_state.get(), MatchState::Checked { correct: true }).then(|| view! {
                                         <span class="font-bold">"\u{2713}"</span>
                                     })}
-                                    <span>{right_def}</span>
+                                    <span inner_html=right_def.clone() />
                                 </span>
                             </button>
                         }
@@ -199,8 +212,8 @@ pub fn QuizMatching(
                 }.into_any(),
                 MatchState::Checked { correct: false } => view! {
                     <div class="space-y-1">
-                        <p class="text-sun-amber text-sm">"Not quite \u{2014} " {hint_clone.clone()} " Try again."</p>
-                        <p class="text-mist text-sm">{explanation_text.clone()}</p>
+                        <p class="text-sun-amber text-sm">"Not quite \u{2014} " <span inner_html=hint_clone.clone() /> " Try again."</p>
+                        <p class="text-mist text-sm" inner_html=explanation_text.clone() />
                     </div>
                 }.into_any(),
                 _ => view! { <span /> }.into_any(),
