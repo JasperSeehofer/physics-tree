@@ -145,6 +145,9 @@ pub fn QuizFormulaInput(
                     }
                     prop:disabled=is_locked
                     on:input=move |ev: web_sys::Event| {
+                        // Note: prop:value binding intentionally removed — two-way binding caused
+                        // Leptos reactive updates to strip structured LaTeX characters (braces,
+                        // underscores) from the input value between keystrokes (D-08/D-09 fix).
                         let val = event_target_value(&ev);
                         // Update live KaTeX preview
                         preview_html.set(katex_render(&val));
