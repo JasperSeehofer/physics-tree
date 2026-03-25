@@ -47,6 +47,7 @@ pub struct ConceptContent {
 struct AwardXpRequest {
     node_id: String,
     score_pct: u32,
+    hints_used: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +60,7 @@ struct AwardXpResponse {
     streak_milestone: Option<i32>,
     perfect_bonus: bool,
     freeze_used: bool,
+    hint_penalty: bool,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -125,8 +127,8 @@ async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
 /// POST /api/progress/award-xp — awards XP for completing quiz checkpoints.
 /// Returns None if the request fails or user is not authenticated.
 #[cfg(target_arch = "wasm32")]
-async fn post_award_xp(node_id: String, score_pct: u32) -> Option<AwardXpResponse> {
-    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct }).ok()?;
+async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Option<AwardXpResponse> {
+    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct, hints_used }).ok()?;
     let resp = gloo_net::http::Request::post("/api/progress/award-xp")
         .header("Content-Type", "application/json")
         .body(body)
@@ -235,6 +237,9 @@ pub fn ConceptPage() -> impl IntoView {
         let correct_count = passed.iter().filter(|p| matches!(p, Some((true, _)))).count();
         let score_pct = ((correct_count as f64 / total as f64) * 100.0).round() as u32;
 
+        // Aggregate hint usage: any correct answer that used a hint (D-13)
+        let any_hints_used = passed.iter().any(|p| matches!(p, Some((_, true))));
+
         // Only award XP if score >= 70% (D-02)
         if score_pct < 70 {
             return;
@@ -248,7 +253,7 @@ pub fn ConceptPage() -> impl IntoView {
         let concept_name = content.get().map(|c| c.title.clone()).unwrap_or_default();
 
         leptos::task::spawn_local(async move {
-            if let Some(response) = post_award_xp(node_id, score_pct).await {
+            if let Some(response) = post_award_xp(node_id, score_pct, any_hints_used).await {
                 // Update mastery XP after award
                 mastery_xp.set(response.new_total_xp);
 
@@ -258,6 +263,7 @@ pub fn ConceptPage() -> impl IntoView {
                     perfect_bonus: response.perfect_bonus,
                     streak_milestone: response.streak_milestone,
                     freeze_used: response.freeze_used,
+                    hint_penalty: response.hint_penalty,
                 }));
             }
         });

@@ -31,6 +31,7 @@ pub struct RecordEventRequest {
 pub struct AwardXpRequest {
     pub node_id: Uuid,
     pub score_pct: u32,
+    pub hints_used: bool,
 }
 
 /// Response body for the award-xp endpoint.
@@ -44,6 +45,7 @@ pub struct AwardXpResponse {
     pub streak_milestone: Option<i32>,
     pub perfect_bonus: bool,
     pub freeze_used: bool,
+    pub hint_penalty: bool,
 }
 
 /// GET /api/progress/dashboard — return dashboard summary and node progress for the current user.
@@ -167,6 +169,7 @@ pub async fn award_xp(
             streak_milestone: None,
             perfect_bonus: false,
             freeze_used: false,
+            hint_penalty: false,
         }));
     }
 
@@ -183,9 +186,9 @@ pub async fn award_xp(
         None => return Err((StatusCode::NOT_FOUND, "Node not found.".to_string())),
     };
 
-    // Compute XP
-    let is_perfect = xp_logic::is_perfect_score(req.score_pct);
-    let xp_amount = xp_logic::compute_xp(&depth_tier, req.score_pct, false);
+    // Compute XP — pass hints_used so penalty is applied and perfect bonus is suppressed
+    let is_perfect = xp_logic::is_perfect_score(req.score_pct) && !req.hints_used;
+    let xp_amount = xp_logic::compute_xp(&depth_tier, req.score_pct, req.hints_used);
 
     // Award XP — get new cumulative mastery_level for the concept
     let new_concept_xp = db::progress_repo::award_xp_to_user(
@@ -232,5 +235,6 @@ pub async fn award_xp(
         streak_milestone,
         perfect_bonus: is_perfect,
         freeze_used,
+        hint_penalty: req.hints_used,
     }))
 }
