@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/katex/dist/katex.mjs
+  // ../../../node_modules/katex/dist/katex.mjs
   var ParseError = class _ParseError extends Error {
     // Error start position based on passed-in Token or ParseNode.
     // Length of affected text based on passed-in Token or ParseNode.
