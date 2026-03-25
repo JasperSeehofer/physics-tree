@@ -125,22 +125,30 @@ async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
 }
 
 /// POST /api/progress/award-xp — awards XP for completing quiz checkpoints.
-/// Returns None if the request fails or user is not authenticated.
+///
+/// Returns:
+/// - `Ok(response)` = success
+/// - `Err(true)` = auth failure (401 — user not logged in)
+/// - `Err(false)` = other error (network, server error, etc.)
 #[cfg(target_arch = "wasm32")]
-async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Option<AwardXpResponse> {
-    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct, hints_used }).ok()?;
+async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Result<AwardXpResponse, bool> {
+    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct, hints_used })
+        .map_err(|_| false)?;
     let resp = gloo_net::http::Request::post("/api/progress/award-xp")
         .header("Content-Type", "application/json")
         .body(body)
-        .ok()?
+        .map_err(|_| false)?
         .send()
         .await
-        .ok()?;
+        .map_err(|_| false)?;
 
-    if !resp.ok() {
-        return None;
+    if resp.status() == 401 {
+        return Err(true); // Auth failure — user not logged in
     }
-    resp.json::<AwardXpResponse>().await.ok()
+    if !resp.ok() {
+        return Err(false); // Other error
+    }
+    resp.json::<AwardXpResponse>().await.map_err(|_| false)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,6 +180,9 @@ pub fn ConceptPage() -> impl IntoView {
     // XP toast data — set when award-xp returns a response
     let xp_toast_data: RwSignal<Option<XpAwardData>> = RwSignal::new(None);
 
+    // Login nudge — shown when quiz completed but user is not authenticated (401)
+    let login_nudge: RwSignal<bool> = RwSignal::new(false);
+
     // Current mastery XP for this concept (fetched on load)
     let mastery_xp: RwSignal<i32> = RwSignal::new(0);
 
@@ -193,6 +204,7 @@ pub fn ConceptPage() -> impl IntoView {
         load_error.set(None);
         quiz_questions.set(vec![]);
         checkpoint_passed.set(vec![]);
+        login_nudge.set(false);
 
         let slug_for_quiz = slug_val.clone();
 
@@ -253,18 +265,27 @@ pub fn ConceptPage() -> impl IntoView {
         let concept_name = content.get().map(|c| c.title.clone()).unwrap_or_default();
 
         leptos::task::spawn_local(async move {
-            if let Some(response) = post_award_xp(node_id, score_pct, any_hints_used).await {
-                // Update mastery XP after award
-                mastery_xp.set(response.new_total_xp);
+            match post_award_xp(node_id, score_pct, any_hints_used).await {
+                Ok(response) => {
+                    // Update mastery XP after award
+                    mastery_xp.set(response.new_total_xp);
 
-                xp_toast_data.set(Some(XpAwardData {
-                    xp_awarded: response.xp_awarded,
-                    concept_name,
-                    perfect_bonus: response.perfect_bonus,
-                    streak_milestone: response.streak_milestone,
-                    freeze_used: response.freeze_used,
-                    hint_penalty: response.hint_penalty,
-                }));
+                    xp_toast_data.set(Some(XpAwardData {
+                        xp_awarded: response.xp_awarded,
+                        concept_name,
+                        perfect_bonus: response.perfect_bonus,
+                        streak_milestone: response.streak_milestone,
+                        freeze_used: response.freeze_used,
+                        hint_penalty: response.hint_penalty,
+                    }));
+                }
+                Err(true) => {
+                    // 401 — user not logged in; show login nudge
+                    login_nudge.set(true);
+                }
+                Err(false) => {
+                    // Other error (network, server) — silently ignore
+                }
             }
         });
     });
@@ -512,6 +533,19 @@ pub fn ConceptPage() -> impl IntoView {
                                         </div>
                                     }.into_any()
                                 }}
+
+                                // Login nudge — shown after quiz completion when user is not logged in
+                                {move || login_nudge.get().then(|| view! {
+                                    <div class="mt-4 px-4 py-3 bg-bark-mid border border-bark-light rounded-card flex items-center gap-3">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="text-sky-teal shrink-0">
+                                            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 8a.75.75 0 01-1.5 0V5a.75.75 0 011.5 0v3z"/>
+                                        </svg>
+                                        <p class="text-sm text-mist">
+                                            <a href="/login" class="text-sky-teal hover:underline font-bold">"Log in"</a>
+                                            " to track your progress and earn XP."
+                                        </p>
+                                    </div>
+                                })}
 
                                 // Next concept navigation
                                 <NextConceptNav concepts=next />
