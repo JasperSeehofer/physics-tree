@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 **Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness — green fill + checkmark on correct answers, server-side LaTeX for quiz text, formula preview fix, and 50% XP penalty for hint-assisted answers.
 **Requirements:** D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
-**Plans:** 5 plans (3 complete, 2 gap closure)
+**Plans:** 5/5 plans complete
 
 **Items:**
 1. **Correct answer positive feedback** — Multiple-choice quizzes should show green highlighting (or similar visual confirmation) when the selected answer is correct. Currently only wrong answers get feedback.

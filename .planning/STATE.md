@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Completed 999.1-03 Tasks 1-3; stopped at Task 4 human-verify checkpoint
-last_updated: "2026-03-25T18:09:27.960Z"
+stopped_at: Completed 999.1-05-PLAN.md
+last_updated: "2026-03-25T19:20:46.110Z"
 progress:
   total_phases: 7
   completed_phases: 7
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 28
+  completed_plans: 28
 ---
 
 # Project State
@@ -66,6 +66,8 @@ Plan: Not started
 | Phase 06-spaced-repetition P02 | 393 | 2 tasks | 10 files |
 | Phase 999.1 P02 | 135s | 2 tasks | 3 files |
 | Phase 999.1-quiz-ux-improvements P01 | 4 | 2 tasks | 4 files |
+| Phase 999.1 P04 | 15 | 2 tasks | 7 files |
+| Phase 999.1 P05 | 526147min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -139,6 +141,9 @@ Recent decisions affecting current work:
 - [Phase 999.1-quiz-ux-improvements]: extract_latex_placeholders is cfg(not(target_arch = wasm32)) — avoids WASM bundle, callable from non-ssr server contexts
 - [Phase 999.1]: D-07 fix: reactive Effect with slug() dependency for concept page data fetch — re-runs on client-side navigation; content/quiz/checkpoint state reset at start of each run
 - [Phase 999.1]: QuizCheckpoint on_answered: Callback<(bool, bool)> propagates (correct, hint_used) tuple; checkpoint_passed Vec<Option<(bool, bool)>> in concept.rs
+- [Phase 999.1]: KaTeX CSS loaded via CDN link tag in HTML shell — esbuild silently drops CSS imports without extraction config
+- [Phase 999.1]: renderAllPlaceholders deferred via requestAnimationFrame in quiz components and concept page — Leptos Effects fire before DOM commits inner_html
+- [Phase 999.1]: post_award_xp returns Result<AwardXpResponse, bool> — Err(true) = 401 (auth failure), Err(false) = other error — enables login nudge on unauthenticated quiz completion
 
 ### Pending Todos
 
@@ -151,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T09:59:40.631Z
-Stopped at: Completed 999.1-03 Tasks 1-3; stopped at Task 4 human-verify checkpoint
+Last session: 2026-03-25T18:57:43.874Z
+Stopped at: Completed 999.1-05-PLAN.md
 Resume file: None
