@@ -26,11 +26,12 @@ enum QuizState {
 #[component]
 pub fn QuizMultipleChoice(
     question: QuizQuestion,
-    on_correct: Callback<()>,
+    on_correct: Callback<bool>,
 ) -> impl IntoView {
     let selected: RwSignal<Option<String>> = RwSignal::new(None);
     let attempts: RwSignal<u32> = RwSignal::new(0);
     let state: RwSignal<QuizState> = RwSignal::new(QuizState::Unanswered);
+    let hint_shown: RwSignal<bool> = RwSignal::new(false);
 
     let question_text = question.question.clone();
     let hint = question.hint.clone();
@@ -55,10 +56,11 @@ pub fn QuizMultipleChoice(
 
         if sel == correct_id_for_check {
             state.set(QuizState::Correct);
-            on_correct.run(());
+            on_correct.run(hint_shown.get());
         } else if attempt >= 2 {
             state.set(QuizState::Revealed(explanation.clone()));
         } else {
+            hint_shown.set(true);
             state.set(QuizState::ShowHint(hint.clone()));
         }
     });

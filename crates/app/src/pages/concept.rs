@@ -161,9 +161,11 @@ pub fn ConceptPage() -> impl IntoView {
     let loading = RwSignal::new(false);
     let quiz_questions: RwSignal<Vec<domain::quiz::QuizQuestion>> = RwSignal::new(vec![]);
 
-    // Track which quiz checkpoints have been answered and whether correctly.
-    // Some(true) = correct, Some(false) = skipped, None = unanswered
-    let checkpoint_passed: RwSignal<Vec<Option<bool>>> = RwSignal::new(vec![]);
+    // Track which quiz checkpoints have been answered.
+    // Some((correct, hint_used)) = answered, None = unanswered
+    // correct: true = answered correctly, false = skipped
+    // hint_used: true = user used a hint before getting correct
+    let checkpoint_passed: RwSignal<Vec<Option<(bool, bool)>>> = RwSignal::new(vec![]);
 
     // XP toast data — set when award-xp returns a response
     let xp_toast_data: RwSignal<Option<XpAwardData>> = RwSignal::new(None);
@@ -230,7 +232,7 @@ pub fn ConceptPage() -> impl IntoView {
         }
 
         // Compute score: correct / total * 100
-        let correct_count = passed.iter().filter(|&&p| p == Some(true)).count();
+        let correct_count = passed.iter().filter(|p| matches!(p, Some((true, _)))).count();
         let score_pct = ((correct_count as f64 / total as f64) * 100.0).round() as u32;
 
         // Only award XP if score >= 70% (D-02)
@@ -465,7 +467,7 @@ pub fn ConceptPage() -> impl IntoView {
                                         <div class="mt-8">
                                             {questions.into_iter().enumerate().map(|(idx, question)| {
                                                 // Is this checkpoint (and all before it) cleared?
-                                                let this_passed = passed.get(idx).copied().flatten().is_some();
+                                                let this_passed = passed.get(idx).and_then(|p| *p).is_some();
 
                                                 // Content below is blurred until THIS checkpoint is passed
                                                 let blur_class = if this_passed {
@@ -473,7 +475,7 @@ pub fn ConceptPage() -> impl IntoView {
                                                 } else {
                                                     // Only blur if there's a previous checkpoint that's also passed
                                                     // or this is the first unanswered one
-                                                    if idx == 0 || passed.get(idx - 1).copied().flatten().is_some() {
+                                                    if idx == 0 || passed.get(idx - 1).and_then(|p| *p).is_some() {
                                                         "" // checkpoint itself is not blurred
                                                     } else {
                                                         "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
@@ -484,10 +486,10 @@ pub fn ConceptPage() -> impl IntoView {
                                                     <div class=blur_class>
                                                         <QuizCheckpoint
                                                             question=question
-                                                            on_answered=Callback::new(move |correct: bool| {
+                                                            on_answered=Callback::new(move |(correct, hint_used): (bool, bool)| {
                                                                 checkpoint_passed.update(|passed| {
                                                                     if let Some(slot) = passed.get_mut(idx) {
-                                                                        *slot = Some(correct);
+                                                                        *slot = Some((correct, hint_used));
                                                                     }
                                                                 });
                                                             })

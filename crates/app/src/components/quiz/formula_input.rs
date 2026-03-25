@@ -86,12 +86,13 @@ enum FormulaState {
 #[component]
 pub fn QuizFormulaInput(
     question: QuizQuestion,
-    on_correct: Callback<()>,
+    on_correct: Callback<bool>,
 ) -> impl IntoView {
     let input_value: RwSignal<String> = RwSignal::new(String::new());
     let preview_html: RwSignal<String> = RwSignal::new(String::new());
     let attempts: RwSignal<u32> = RwSignal::new(0);
     let state: RwSignal<FormulaState> = RwSignal::new(FormulaState::Unanswered);
+    let hint_shown: RwSignal<bool> = RwSignal::new(false);
 
     let question_text = question.question.clone();
     let hint = question.hint.clone();
@@ -114,10 +115,11 @@ pub fn QuizFormulaInput(
 
         if is_correct {
             state.set(FormulaState::Correct);
-            on_correct.run(());
+            on_correct.run(hint_shown.get());
         } else if attempt >= 2 {
             state.set(FormulaState::Revealed(explanation.clone()));
         } else {
+            hint_shown.set(true);
             state.set(FormulaState::ShowHint(hint.clone()));
         }
     });

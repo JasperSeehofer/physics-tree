@@ -25,7 +25,7 @@ enum MatchState {
 #[component]
 pub fn QuizMatching(
     question: QuizQuestion,
-    on_correct: Callback<()>,
+    on_correct: Callback<bool>,
 ) -> impl IntoView {
     let pairs = question.pairs.clone().unwrap_or_default();
     let n = pairs.len();
@@ -47,6 +47,7 @@ pub fn QuizMatching(
     // Signal: matched pairs as (left_idx, right_idx)
     let matched_pairs: RwSignal<Vec<(usize, usize)>> = RwSignal::new(vec![]);
     let match_state: RwSignal<MatchState> = RwSignal::new(MatchState::Selecting);
+    let hint_shown: RwSignal<bool> = RwSignal::new(false);
 
     let question_text = question.question.clone();
     let hint = question.hint.clone();
@@ -63,9 +64,12 @@ pub fn QuizMatching(
         let matched = matched_pairs.get();
         // Check: for each (left_idx, right_idx), right_idx must equal left_idx
         let correct = matched.iter().all(|(l, r)| l == r);
+        if !correct {
+            hint_shown.set(true);
+        }
         match_state.set(MatchState::Checked { correct });
         if correct {
-            on_correct.run(());
+            on_correct.run(hint_shown.get());
         }
     };
 
