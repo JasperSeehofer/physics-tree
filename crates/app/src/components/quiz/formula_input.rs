@@ -136,10 +136,18 @@ pub fn QuizFormulaInput(
                 <input
                     type="text"
                     placeholder="Enter formula (e.g. 0.5*m*v^2)"
-                    class="w-full bg-bark-mid border-2 border-nebula-purple rounded px-3 py-2 text-petal-white font-mono text-sm focus:outline-none focus:border-leaf-green disabled:opacity-50"
+                    class=move || {
+                        let base = "w-full rounded px-3 py-2 text-petal-white font-mono text-sm focus:outline-none";
+                        match state.get() {
+                            FormulaState::Correct => format!("{base} bg-leaf-green border-2 border-leaf-green text-void disabled:opacity-100"),
+                            _ => format!("{base} bg-bark-mid border-2 border-nebula-purple focus:border-leaf-green disabled:opacity-50"),
+                        }
+                    }
                     prop:disabled=is_locked
-                    prop:value=move || input_value.get()
                     on:input=move |ev: web_sys::Event| {
+                        // Note: prop:value binding intentionally removed — two-way binding caused
+                        // Leptos reactive updates to strip structured LaTeX characters (braces,
+                        // underscores) from the input value between keystrokes (D-08/D-09 fix).
                         let val = event_target_value(&ev);
                         // Update live KaTeX preview
                         preview_html.set(katex_render(&val));
@@ -150,7 +158,13 @@ pub fn QuizFormulaInput(
                 // Live KaTeX preview below the input field (per D-21 / UI-SPEC)
                 <Show when=move || !preview_html.get().is_empty()>
                     <div
-                        class="px-3 py-2 bg-bark-mid rounded border border-bark-light min-h-[2.5rem] flex items-center"
+                        class=move || {
+                            if matches!(state.get(), FormulaState::Correct) {
+                                "px-3 py-2 bg-leaf-green/20 rounded border border-leaf-green min-h-[2.5rem] flex items-center"
+                            } else {
+                                "px-3 py-2 bg-bark-mid rounded border border-bark-light min-h-[2.5rem] flex items-center"
+                            }
+                        }
                         inner_html=move || preview_html.get()
                     />
                 </Show>
