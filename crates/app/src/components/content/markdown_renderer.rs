@@ -65,25 +65,7 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
     });
 
     // ── 3. Extract LaTeX blocks ─────────────────────────────────────────────
-    // Display math $$...$$  must be matched BEFORE inline $...$
-    let display_re = Regex::new(r"\$\$([\s\S]*?)\$\$").unwrap();
-    let content = display_re.replace_all(&content, |caps: &regex::Captures| {
-        let latex = html_attr_escape(caps[1].trim());
-        format!(
-            r#"<div data-latex="{latex}" data-display="true"></div>"#,
-            latex = latex
-        )
-    });
-
-    // Inline math $...$  (single dollar, non-empty, no newlines inside)
-    let inline_re = Regex::new(r"\$([^$\n]+)\$").unwrap();
-    let content = inline_re.replace_all(&content, |caps: &regex::Captures| {
-        let latex = html_attr_escape(caps[1].trim());
-        format!(
-            r#"<span data-latex="{latex}" data-display="false"></span>"#,
-            latex = latex
-        )
-    });
+    let content = extract_latex_placeholders(&content);
 
     // ── 4. Parse markdown with pulldown-cmark ──────────────────────────────
     use pulldown_cmark::{html as cmark_html, Options, Parser};
@@ -122,6 +104,27 @@ pub fn strip_yaml_frontmatter(src: &str) -> String {
     } else {
         src.to_string()
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+/// Extract `$...$` inline and `$$...$$` display LaTeX into placeholder `<span>`/`<div>` elements.
+///
+/// Replaces display math (`$$...$$`) with `<div data-latex="..." data-display="true"></div>` and
+/// inline math (`$...$`) with `<span data-latex="..." data-display="false"></span>`.
+/// Display pass runs first to avoid `$$` being matched by the inline `$` pattern.
+/// LaTeX content is HTML-attribute-escaped.
+pub fn extract_latex_placeholders(input: &str) -> String {
+    use regex::Regex;
+    let display_re = Regex::new(r"\$\$([\s\S]*?)\$\$").unwrap();
+    let s = display_re.replace_all(input, |caps: &regex::Captures| {
+        let latex = html_attr_escape(caps[1].trim());
+        format!(r#"<div data-latex="{latex}" data-display="true"></div>"#)
+    });
+    let inline_re = Regex::new(r"\$([^$\n]+)\$").unwrap();
+    inline_re.replace_all(&s, |caps: &regex::Captures| {
+        let latex = html_attr_escape(caps[1].trim());
+        format!(r#"<span data-latex="{latex}" data-display="false"></span>"#)
+    }).to_string()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -363,6 +366,76 @@ mod tests {
             rendered.sections.contains(&"derivation".to_string()),
             "Sections should contain 'derivation', got: {:?}",
             rendered.sections
+        );
+    }
+
+    // ── extract_latex_placeholders (TDD — Feature 2) ─────────────────────────
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_inline_produces_data_latex_attr() {
+        let result = extract_latex_placeholders("The force $F=ma$ is");
+        assert!(
+            result.contains(r#"data-latex="F=ma""#),
+            "Should contain data-latex=\"F=ma\", got: {}",
+            result
+        );
+        assert!(
+            result.contains(r#"data-display="false""#),
+            "Should contain data-display=\"false\", got: {}",
+            result
+        );
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_display_produces_data_display_true() {
+        let result = extract_latex_placeholders("$$E=mc^2$$");
+        assert!(
+            result.contains(r#"data-latex="E=mc^2""#),
+            "Should contain data-latex=\"E=mc^2\", got: {}",
+            result
+        );
+        assert!(
+            result.contains(r#"data-display="true""#),
+            "Should contain data-display=\"true\", got: {}",
+            result
+        );
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_no_math_returns_unchanged() {
+        let input = "No math here";
+        let result = extract_latex_placeholders(input);
+        assert_eq!(result, input);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_inline_and_display_both_present() {
+        let result = extract_latex_placeholders("Inline $a$ and display $$b$$");
+        assert!(result.contains(r#"data-display="false""#), "Should have inline span");
+        assert!(result.contains(r#"data-display="true""#), "Should have display div");
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_single_dollar_no_closing_returns_unchanged() {
+        // Single $ without closing $ should not match
+        let input = "Price is $5";
+        let result = extract_latex_placeholders(input);
+        assert_eq!(result, input, "Single $ without closing should be unchanged");
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn extract_latex_html_escapes_angle_brackets() {
+        let result = extract_latex_placeholders("$x < y$");
+        assert!(
+            result.contains(r#"data-latex="x &lt; y""#),
+            "Angle brackets should be HTML-escaped, got: {}",
+            result
         );
     }
 }

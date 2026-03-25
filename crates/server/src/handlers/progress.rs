@@ -185,7 +185,7 @@ pub async fn award_xp(
 
     // Compute XP
     let is_perfect = xp_logic::is_perfect_score(req.score_pct);
-    let xp_amount = xp_logic::compute_xp(&depth_tier, req.score_pct);
+    let xp_amount = xp_logic::compute_xp(&depth_tier, req.score_pct, false);
 
     // Award XP — get new cumulative mastery_level for the concept
     let new_concept_xp = db::progress_repo::award_xp_to_user(

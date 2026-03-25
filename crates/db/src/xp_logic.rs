@@ -8,8 +8,9 @@ pub const MAX_FREEZE_TOKENS: u32 = 3;
 /// Compute XP awarded for completing a quiz at a given depth tier with a given score.
 ///
 /// Returns 0 if score_pct < 70 (failed quiz threshold per D-02).
-/// Base XP varies by concept depth; score scales the reward; 100% grants a 1.5x perfect bonus.
-pub fn compute_xp(depth_tier: &str, score_pct: u32) -> u32 {
+/// Base XP varies by concept depth; score scales the reward; 100% without hints grants a 1.5x
+/// perfect bonus. Using hints halves XP and disables the perfect bonus (D-10, D-11).
+pub fn compute_xp(depth_tier: &str, score_pct: u32, hints_used: bool) -> u32 {
     if score_pct < 70 {
         return 0;
     }
@@ -22,9 +23,12 @@ pub fn compute_xp(depth_tier: &str, score_pct: u32) -> u32 {
         _ => 20,
     };
 
-    if score_pct == 100 {
-        // Perfect bonus: 1.5x the base (not the scaled value)
+    if score_pct == 100 && !hints_used {
+        // Perfect bonus: 1.5x the base (only without hints)
         (base as f64 * 1.5).round() as u32
+    } else if hints_used {
+        // Hint penalty: 50% of normal score-scaled XP, no perfect bonus
+        (base as f64 * score_pct as f64 / 100.0 * 0.5).round() as u32
     } else {
         (base as f64 * score_pct as f64 / 100.0).round() as u32
     }
@@ -126,38 +130,38 @@ mod tests {
 
     #[test]
     fn compute_xp_root_85_returns_13() {
-        assert_eq!(compute_xp("root", 85), 13);
+        assert_eq!(compute_xp("root", 85, false), 13);
     }
 
     #[test]
     fn compute_xp_trunk_100_perfect_returns_30() {
-        assert_eq!(compute_xp("trunk", 100), 30);
+        assert_eq!(compute_xp("trunk", 100, false), 30);
     }
 
     #[test]
     fn compute_xp_branch_70_threshold_returns_21() {
-        assert_eq!(compute_xp("branch", 70), 21);
+        assert_eq!(compute_xp("branch", 70, false), 21);
     }
 
     #[test]
     fn compute_xp_leaf_100_perfect_returns_60() {
-        assert_eq!(compute_xp("leaf", 100), 60);
+        assert_eq!(compute_xp("leaf", 100, false), 60);
     }
 
     #[test]
     fn compute_xp_branch_65_below_threshold_returns_0() {
-        assert_eq!(compute_xp("branch", 65), 0);
+        assert_eq!(compute_xp("branch", 65, false), 0);
     }
 
     #[test]
     fn compute_xp_branch_0_returns_0() {
-        assert_eq!(compute_xp("branch", 0), 0);
+        assert_eq!(compute_xp("branch", 0, false), 0);
     }
 
     #[test]
     fn compute_xp_unknown_tier_uses_default_base() {
         // default base = 20, score 80 → (20 * 0.8).round() = 16
-        assert_eq!(compute_xp("unknown", 80), 16);
+        assert_eq!(compute_xp("unknown", 80, false), 16);
     }
 
     // ── xp_to_mastery_tier ──────────────────────────────────────────────────
@@ -313,5 +317,55 @@ mod tests {
     #[test]
     fn perfect_score_99_returns_false() {
         assert!(!is_perfect_score(99));
+    }
+
+    // ── compute_xp with hints_used (TDD — Feature 1) ─────────────────────────
+
+    #[test]
+    fn compute_xp_trunk_100_hints_used_returns_10() {
+        // base=20, score=100, hints_used=true => 20*1.0*0.5=10, NO perfect bonus
+        assert_eq!(compute_xp("trunk", 100, true), 10);
+    }
+
+    #[test]
+    fn compute_xp_trunk_100_no_hints_returns_30() {
+        // base=20, perfect bonus => 20*1.5=30
+        assert_eq!(compute_xp("trunk", 100, false), 30);
+    }
+
+    #[test]
+    fn compute_xp_leaf_85_hints_used_returns_17() {
+        // base=40, 40*0.85*0.5=17
+        assert_eq!(compute_xp("leaf", 85, true), 17);
+    }
+
+    #[test]
+    fn compute_xp_leaf_85_no_hints_returns_34() {
+        // base=40, 40*0.85=34
+        assert_eq!(compute_xp("leaf", 85, false), 34);
+    }
+
+    #[test]
+    fn compute_xp_branch_70_hints_used_returns_11() {
+        // base=30, 30*0.70*0.5=10.5 rounds to 11
+        assert_eq!(compute_xp("branch", 70, true), 11);
+    }
+
+    #[test]
+    fn compute_xp_branch_65_hints_used_returns_0() {
+        // below 70% threshold
+        assert_eq!(compute_xp("branch", 65, true), 0);
+    }
+
+    #[test]
+    fn compute_xp_root_85_no_hints_regression() {
+        // regression: same as existing test (with hints_used=false)
+        assert_eq!(compute_xp("root", 85, false), 13);
+    }
+
+    #[test]
+    fn compute_xp_leaf_100_no_hints_regression() {
+        // regression: same as existing test (with hints_used=false)
+        assert_eq!(compute_xp("leaf", 100, false), 60);
     }
 }
