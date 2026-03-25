@@ -136,9 +136,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ### Phase 999.1: Quiz UX Improvements (BACKLOG)
 
-**Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness.
-**Requirements:** TBD
-**Plans:** 0 plans
+**Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness — green fill + checkmark on correct answers, server-side LaTeX for quiz text, formula preview fix, and 50% XP penalty for hint-assisted answers.
+**Requirements:** D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
+**Plans:** 3 plans
 
 **Items:**
 1. **Correct answer positive feedback** — Multiple-choice quizzes should show green highlighting (or similar visual confirmation) when the selected answer is correct. Currently only wrong answers get feedback.
@@ -147,4 +147,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 4. **Reduce XP for hint-assisted answers** — When a user gets a wrong answer and receives a hint, then answers correctly on retry, they should not receive full XP. Apply a penalty (e.g., 50% XP) for hint-assisted correct answers.
 
 Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+- [ ] 999.1-01-PLAN.md — TDD: compute_xp hint penalty + extract_latex_placeholders utility
+- [ ] 999.1-02-PLAN.md — Green fill + checkmark on correct answers, formula preview fix
+- [ ] 999.1-03-PLAN.md — Server-side LaTeX for quiz, hint tracking data flow, XP toast
