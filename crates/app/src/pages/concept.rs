@@ -255,74 +255,85 @@ pub fn ConceptPage() -> impl IntoView {
     // ── Effect: hydrate content after it loads ───────────────────────────────
     #[cfg(target_arch = "wasm32")]
     Effect::new(move |_| {
-        use crate::components::content::derivation_stepper::hydrate_derivation_steps;
-        use crate::components::content::inline_concept_link::hydrate_concept_links;
-        use crate::components::content::misconception_card::hydrate_misconception_cards;
         use wasm_bindgen::JsCast;
         use wasm_bindgen::JsValue;
+        use wasm_bindgen::closure::Closure;
 
-        if content.get().is_none() {
+        // Subscribe to content signal — reactive dependency
+        let content_val = content.get();
+        if content_val.is_none() {
             return;
         }
 
-        let document = match web_sys::window().and_then(|w| w.document()) {
-            Some(d) => d,
-            None => return,
-        };
-
-        // Find the content container
-        let container = match document.get_element_by_id("concept-content") {
-            Some(el) => el,
-            None => return,
-        };
-        let container: web_sys::HtmlElement = match container.dyn_into() {
-            Ok(el) => el,
-            Err(_) => return,
-        };
-
-        // 1. KaTeX: render all LaTeX placeholders
+        // Defer all DOM hydration to next animation frame so inner_html has committed
         let window = web_sys::window().unwrap();
-        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
-                let func: js_sys::Function = func.into();
-                let _ = func.call0(&bridge);
-            }
-        }
+        let cb = Closure::<dyn FnMut()>::new(move || {
+            use crate::components::content::derivation_stepper::hydrate_derivation_steps;
+            use crate::components::content::inline_concept_link::hydrate_concept_links;
+            use crate::components::content::misconception_card::hydrate_misconception_cards;
 
-        // 2. Misconception cards
-        hydrate_misconception_cards(&container);
+            let window = web_sys::window().unwrap();
 
-        // 3. Derivation steppers
-        hydrate_derivation_steps(&container);
+            let document = match window.document() {
+                Some(d) => d,
+                None => return,
+            };
 
-        // 4. Inline concept links
-        hydrate_concept_links(&container);
+            // Find the content container
+            let container = match document.get_element_by_id("concept-content") {
+                Some(el) => el,
+                None => return,
+            };
+            let container: web_sys::HtmlElement = match container.dyn_into() {
+                Ok(el) => el,
+                Err(_) => return,
+            };
 
-        // 5. TOC scroll-spy via JS bridge
-        if let Some(c) = content.get() {
-            let section_ids = c.sections.clone();
-            if !section_ids.is_empty() {
-                let ids_array = js_sys::Array::new();
-                for id in &section_ids {
-                    ids_array.push(&JsValue::from_str(id));
+            // 1. KaTeX: render all LaTeX placeholders
+            if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+                if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                    let func: js_sys::Function = func.into();
+                    let _ = func.call0(&bridge);
                 }
+            }
 
-                let callback = wasm_bindgen::closure::Closure::<dyn Fn(String)>::new(
-                    move |id: String| {
-                        set_active_section.set(id);
-                    },
-                );
+            // 2. Misconception cards
+            hydrate_misconception_cards(&container);
 
-                if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__toc_bridge")) {
-                    if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("initScrollSpy")) {
-                        let func: js_sys::Function = func.into();
-                        let _ = func.call2(&bridge, &ids_array, callback.as_ref());
+            // 3. Derivation steppers
+            hydrate_derivation_steps(&container);
+
+            // 4. Inline concept links
+            hydrate_concept_links(&container);
+
+            // 5. TOC scroll-spy via JS bridge
+            if let Some(c) = content_val.clone() {
+                let section_ids = c.sections.clone();
+                if !section_ids.is_empty() {
+                    let ids_array = js_sys::Array::new();
+                    for id in &section_ids {
+                        ids_array.push(&JsValue::from_str(id));
                     }
-                }
 
-                callback.forget();
+                    let callback = wasm_bindgen::closure::Closure::<dyn Fn(String)>::new(
+                        move |id: String| {
+                            set_active_section.set(id);
+                        },
+                    );
+
+                    if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__toc_bridge")) {
+                        if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("initScrollSpy")) {
+                            let func: js_sys::Function = func.into();
+                            let _ = func.call2(&bridge, &ids_array, callback.as_ref());
+                        }
+                    }
+
+                    callback.forget();
+                }
             }
-        }
+        });
+        let _ = window.request_animation_frame(cb.as_ref().unchecked_ref());
+        cb.forget();
     });
 
     // ── View ─────────────────────────────────────────────────────────────────

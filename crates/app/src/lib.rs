@@ -34,6 +34,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>"PhysicsTree \u{2014} Explore the physics universe"</title>
                 <HashedStylesheet options=options.clone() id="main-stylesheet" />
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.40/dist/katex.min.css" crossorigin="anonymous" />
                 <script src="/js/sigma_bundle.js"></script>
                 <script src="/js/katex_bundle.js"></script>
                 <script src="/js/toc_bundle.js"></script>

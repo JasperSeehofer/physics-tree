@@ -10,6 +10,7 @@
 //! Per CONTEXT.md D-20 and UI-SPEC Matching interaction spec.
 
 use leptos::prelude::*;
+use leptos::web_sys;
 
 use domain::quiz::QuizQuestion;
 
@@ -109,6 +110,29 @@ pub fn QuizMatching(
             "w-full text-left p-3 rounded-lg border border-bark-light bg-bark-mid text-petal-white text-sm mb-2 hover:bg-bark-light cursor-pointer".into()
         }
     };
+
+    // Defer renderAllPlaceholders to next animation frame so DOM has committed inner_html
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::JsCast;
+        use wasm_bindgen::JsValue;
+        use wasm_bindgen::closure::Closure;
+        Effect::new(move |_| {
+            let _ = match_state.get(); // subscribe to state changes
+            let window = web_sys::window().unwrap();
+            let cb = Closure::<dyn FnMut()>::new(move || {
+                let window = web_sys::window().unwrap();
+                if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+                    if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                        let func: js_sys::Function = func.into();
+                        let _ = func.call0(&bridge);
+                    }
+                }
+            });
+            let _ = window.request_animation_frame(cb.as_ref().unchecked_ref());
+            cb.forget();
+        });
+    }
 
     let hint_clone = hint.clone();
 

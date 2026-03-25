@@ -45,6 +45,29 @@ pub fn QuizMultipleChoice(
     let correct_id_for_check = correct_id.clone();
     let correct_id_for_style = correct_id.clone();
 
+    // Defer renderAllPlaceholders to next animation frame so DOM has committed inner_html
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::JsCast;
+        use wasm_bindgen::JsValue;
+        use wasm_bindgen::closure::Closure;
+        Effect::new(move |_| {
+            let _ = state.get(); // subscribe to state changes
+            let window = web_sys::window().unwrap();
+            let cb = Closure::<dyn FnMut()>::new(move || {
+                let window = web_sys::window().unwrap();
+                if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
+                    if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                        let func: js_sys::Function = func.into();
+                        let _ = func.call0(&bridge);
+                    }
+                }
+            });
+            let _ = window.request_animation_frame(cb.as_ref().unchecked_ref());
+            cb.forget();
+        });
+    }
+
     let handle_check = StoredValue::new(move |_: web_sys::MouseEvent| {
         let Some(sel) = selected.get() else { return };
 
