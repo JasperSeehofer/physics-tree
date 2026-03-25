@@ -461,35 +461,30 @@ pub fn ConceptPage() -> impl IntoView {
                                 />
 
                                 // Quiz checkpoints — soft-block content below until answered/skipped
+                                // Note: quiz_questions.get() runs once to build the list, but
+                                // blur_class uses a reactive closure per-item so updating
+                                // checkpoint_passed doesn't remount QuizCheckpoint components.
                                 {move || {
                                     let questions = quiz_questions.get();
                                     if questions.is_empty() {
                                         return view! { <div /> }.into_any();
                                     }
 
-                                    let passed = checkpoint_passed.get();
-
                                     view! {
                                         <div class="mt-8">
                                             {questions.into_iter().enumerate().map(|(idx, question)| {
-                                                // Is this checkpoint (and all before it) cleared?
-                                                let this_passed = passed.get(idx).and_then(|p| *p).is_some();
-
-                                                // Content below is blurred until THIS checkpoint is passed
-                                                let blur_class = if this_passed {
-                                                    ""
-                                                } else {
-                                                    // Only blur if there's a previous checkpoint that's also passed
-                                                    // or this is the first unanswered one
-                                                    if idx == 0 || passed.get(idx - 1).and_then(|p| *p).is_some() {
-                                                        "" // checkpoint itself is not blurred
-                                                    } else {
-                                                        "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
-                                                    }
-                                                };
-
                                                 view! {
-                                                    <div class=blur_class>
+                                                    <div class=move || {
+                                                        let passed = checkpoint_passed.get();
+                                                        let this_passed = passed.get(idx).and_then(|p| *p).is_some();
+                                                        if this_passed {
+                                                            ""
+                                                        } else if idx == 0 || passed.get(idx - 1).and_then(|p| *p).is_some() {
+                                                            "" // checkpoint itself is not blurred
+                                                        } else {
+                                                            "opacity-40 blur-[2px] pointer-events-none transition-all duration-300"
+                                                        }
+                                                    }>
                                                         <QuizCheckpoint
                                                             question=question
                                                             on_answered=Callback::new(move |(correct, hint_used): (bool, bool)| {

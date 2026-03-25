@@ -123,7 +123,7 @@ fn Navbar() -> impl IntoView {
             <div class="flex items-center gap-3">
                 // Auth section (desktop)
                 <div class="hidden md:block">
-                    <Suspense fallback=|| ()>
+                    <Suspense fallback=|| view! { <span /> }>
                         {move || {
                             auth_user.get().map(|user_opt| {
                                 match user_opt {
@@ -178,7 +178,7 @@ fn Navbar() -> impl IntoView {
                 >
                     "Review"
                 </a>
-                <Suspense fallback=|| ()>
+                <Suspense fallback=|| view! { <span /> }>
                     {move || {
                         auth_user.get().map(|user_opt| {
                             match user_opt {
