@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Phase 999.1 UI-SPEC approved
-last_updated: "2026-03-24T22:15:31.918Z"
+status: Milestone complete
+stopped_at: Completed 999.1-03 Tasks 1-3; stopped at Task 4 human-verify checkpoint
+last_updated: "2026-03-25T18:09:27.960Z"
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 26
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 06 — spaced-repetition
+**Current focus:** Phase 999.1 — quiz-ux-improvements
 
 ## Current Position
 
@@ -64,6 +64,8 @@ Plan: Not started
 | Phase 06-spaced-repetition P01 | 4 | 2 tasks | 6 files |
 | Phase 06-spaced-repetition P03 | 5 | 1 tasks | 6 files |
 | Phase 06-spaced-repetition P02 | 393 | 2 tasks | 10 files |
+| Phase 999.1 P02 | 135s | 2 tasks | 3 files |
+| Phase 999.1-quiz-ux-improvements P01 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -131,6 +133,12 @@ Recent decisions affecting current work:
 - [Phase 06-spaced-repetition]: MiniTree wilting uses wrapper <g> with opacity + filter attributes — single clean separation of wilting concern from shape rendering
 - [Phase 06-02]: StoredValue used for node_id in ConceptReviewCard to share across Leptos closures without move conflicts
 - [Phase 06-02]: ConceptReviewQuestion renders inline instead of QuizCheckpoint — review page needs standalone per-question flow without soft-block overlay
+- [Phase 999.1]: Removed prop:value two-way binding from formula input to fix LaTeX brace-stripping in live preview
+- [Phase 999.1]: Green fill (bg-leaf-green text-void) applied to correct answers across all 3 quiz types per D-01/D-03
+- [Phase 999.1-quiz-ux-improvements]: compute_xp callers progress.rs and review_repo.rs pass false for hints_used — Plan 03 will wire req.hints_used for the award-xp path
+- [Phase 999.1-quiz-ux-improvements]: extract_latex_placeholders is cfg(not(target_arch = wasm32)) — avoids WASM bundle, callable from non-ssr server contexts
+- [Phase 999.1]: D-07 fix: reactive Effect with slug() dependency for concept page data fetch — re-runs on client-side navigation; content/quiz/checkpoint state reset at start of each run
+- [Phase 999.1]: QuizCheckpoint on_answered: Callback<(bool, bool)> propagates (correct, hint_used) tuple; checkpoint_passed Vec<Option<(bool, bool)>> in concept.rs
 
 ### Pending Todos
 
@@ -143,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T22:15:31.917Z
-Stopped at: Phase 999.1 UI-SPEC approved
-Resume file: .planning/phases/999.1-quiz-ux-improvements/999.1-UI-SPEC.md
+Last session: 2026-03-25T09:59:40.631Z
+Stopped at: Completed 999.1-03 Tasks 1-3; stopped at Task 4 human-verify checkpoint
+Resume file: None
