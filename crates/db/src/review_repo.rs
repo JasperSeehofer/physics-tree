@@ -167,7 +167,7 @@ pub async fn submit_review(
         .await?
         .try_get::<String, _>("depth_tier")?;
 
-    let base_xp = xp_logic::compute_xp(&depth_tier, score_pct);
+    let base_xp = xp_logic::compute_xp(&depth_tier, score_pct, false);
     let multiplier = fsrs_logic::review_xp_multiplier(review_count_this_week as u32);
     let xp_awarded = (base_xp as f64 * multiplier).round() as i32;
 
