@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-26T09:59:14.131Z"
+status: Executing Phase 07
+stopped_at: Phase 7 context gathered
+last_updated: "2026-03-26T09:52:27.790Z"
 progress:
   total_phases: 8
-  completed_phases: 8
+  completed_phases: 7
   total_plans: 29
-  completed_plans: 29
+  completed_plans: 28
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 999.1 — quiz-ux-improvements
+**Current focus:** Phase 07 — sigma-exports-mastery-fix
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
+Phase: 07 (sigma-exports-mastery-fix) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -68,7 +68,6 @@ Plan: Not started
 | Phase 999.1-quiz-ux-improvements P01 | 4 | 2 tasks | 4 files |
 | Phase 999.1 P04 | 15 | 2 tasks | 7 files |
 | Phase 999.1 P05 | 526147min | 1 tasks | 1 files |
-| Phase 07 P01 | 12 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -145,9 +144,6 @@ Recent decisions affecting current work:
 - [Phase 999.1]: KaTeX CSS loaded via CDN link tag in HTML shell — esbuild silently drops CSS imports without extraction config
 - [Phase 999.1]: renderAllPlaceholders deferred via requestAnimationFrame in quiz components and concept page — Leptos Effects fire before DOM commits inner_html
 - [Phase 999.1]: post_award_xp returns Result<AwardXpResponse, bool> — Err(true) = 401 (auth failure), Err(false) = other error — enables login nudge on unauthenticated quiz completion
-- [Phase 07]: sigma_entry.js re-export pattern: all bridge functions must appear in both import list and window.__sigma_bridge object
-- [Phase 07]: concept_mastery_xp separate from new_total_xp: mastery badge uses per-concept XP; AwardXpResponse now carries both fields
-- [Phase 07]: GET /api/progress/node/:node_id: slim endpoint for per-concept mastery on page load
 
 ### Pending Todos
 
@@ -160,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T09:59:14.130Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: None
+Last session: 2026-03-26T09:38:36.885Z
+Stopped at: Phase 7 context gathered
+Resume file: .planning/phases/07-sigma-exports-mastery-fix/07-CONTEXT.md
