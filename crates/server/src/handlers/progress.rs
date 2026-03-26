@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::StatusCode,
     Json,
 };
@@ -39,6 +39,9 @@ pub struct AwardXpRequest {
 pub struct AwardXpResponse {
     pub xp_awarded: i32,
     pub new_total_xp: i32,
+    /// Per-concept cumulative mastery XP for the specific node that was quizzed.
+    /// Use this for MasteryBadge — NOT new_total_xp which is aggregate user XP.
+    pub concept_mastery_xp: i32,
     pub mastery_tier: String,
     pub streak: i32,
     pub freeze_tokens: i32,
@@ -46,6 +49,13 @@ pub struct AwardXpResponse {
     pub perfect_bonus: bool,
     pub freeze_used: bool,
     pub hint_penalty: bool,
+}
+
+/// Response body for the per-concept node mastery endpoint.
+#[derive(Serialize)]
+pub struct ConceptMasteryResponse {
+    pub mastery_level: i32,
+    pub mastery_tier: String,
 }
 
 /// GET /api/progress/dashboard — return dashboard summary and node progress for the current user.
@@ -160,9 +170,22 @@ pub async fn award_xp(
         .try_get::<i64, _>("coalesce")
         .unwrap_or(0);
 
+        // Fetch per-concept mastery XP for this specific node
+        let concept_mastery: i32 = sqlx::query(
+            "SELECT COALESCE(mastery_level, 0) FROM progress WHERE user_id = $1 AND node_id = $2",
+        )
+        .bind(user_id)
+        .bind(req.node_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+        .map(|r| r.try_get::<i32, _>("coalesce").unwrap_or(0))
+        .unwrap_or(0);
+
         return Ok(Json(AwardXpResponse {
             xp_awarded: 0,
             new_total_xp: total_xp as i32,
+            concept_mastery_xp: concept_mastery,
             mastery_tier: "none".to_string(),
             streak,
             freeze_tokens: tokens,
@@ -229,6 +252,7 @@ pub async fn award_xp(
     Ok(Json(AwardXpResponse {
         xp_awarded: xp_amount as i32,
         new_total_xp: total_xp as i32,
+        concept_mastery_xp: new_concept_xp,
         mastery_tier,
         streak: new_streak,
         freeze_tokens: new_freeze_tokens,
@@ -236,5 +260,45 @@ pub async fn award_xp(
         perfect_bonus: is_perfect,
         freeze_used,
         hint_penalty: req.hints_used,
+    }))
+}
+
+/// GET /api/progress/node/:node_id — return per-concept mastery level for the current user.
+///
+/// Used by the concept page to show MasteryBadge on load without a full dashboard fetch.
+/// Returns 200 with mastery_level=0 when no progress exists for this node.
+/// Returns 401 when unauthenticated (client should hide the badge).
+pub async fn get_concept_mastery(
+    session: Session,
+    State(pool): State<PgPool>,
+    Path(node_id): Path<Uuid>,
+) -> Result<Json<ConceptMasteryResponse>, (StatusCode, String)> {
+    use sqlx::Row;
+
+    let user_id = session
+        .get::<Uuid>("user_id")
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let Some(user_id) = user_id else {
+        return Err((StatusCode::UNAUTHORIZED, "Not authenticated.".to_string()));
+    };
+
+    let mastery_level: i32 = sqlx::query(
+        "SELECT COALESCE(mastery_level, 0) FROM progress WHERE user_id = $1 AND node_id = $2",
+    )
+    .bind(user_id)
+    .bind(node_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+    .map(|r| r.try_get::<i32, _>("coalesce").unwrap_or(0))
+    .unwrap_or(0);
+
+    let mastery_tier = db::xp_logic::xp_to_mastery_tier(mastery_level).to_string();
+
+    Ok(Json(ConceptMasteryResponse {
+        mastery_level,
+        mastery_tier,
     }))
 }

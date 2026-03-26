@@ -50,6 +50,10 @@ pub fn api_routes(pool: PgPool) -> Router {
             axum::routing::post(handlers::progress::award_xp),
         )
         .route(
+            "/api/progress/node/{node_id}",
+            axum::routing::get(handlers::progress::get_concept_mastery),
+        )
+        .route(
             "/api/review/queue",
             axum::routing::get(handlers::review::get_review_queue),
         )
