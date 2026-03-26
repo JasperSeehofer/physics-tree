@@ -129,9 +129,9 @@ Plans:
   2. Overdue concepts show wilting overlay on the graph
   3. MasteryBadge on concept page shows the correct tier for that specific concept, not aggregate XP
   4. sigma_bundle.js exports both updateUserProgress and updateOverdueMap via window.__sigma_bridge
-**Plans**: 0 plans
+**Plans**: 1 plan
 Plans:
-- (none yet)
+- [ ] 07-01-PLAN.md — Fix sigma_entry.js exports, canvas.rs graceful fallback, AwardXpResponse concept_xp field, MasteryBadge data flow
 
 ## Progress
 
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
 | 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
-| 7. Sigma Bridge Exports & Mastery Fix | 0/0 | Pending |  |
+| 7. Sigma Bridge Exports & Mastery Fix | 0/1 | In Progress |  |
 
 ## Backlog
 
