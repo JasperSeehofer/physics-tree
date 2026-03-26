@@ -65,4 +65,4 @@ Users can visually explore the interconnected landscape of physics and deeply le
 | Classical mechanics as v1 content | Well-understood domain, rich in visualization opportunities, proves the full stack | — Pending |
 
 ---
-*Last updated: 2026-03-23 after Phase 5 completion — XP awards, streaks with freeze tokens, mastery tiers, botanical MiniTree, and personal knowledge graph with progressive reveal shipped*
+*Last updated: 2026-03-26 after Phase 7 completion — sigma_entry.js exports fixed (updateUserProgress, updateOverdueMap), MasteryBadge shows per-concept XP, graceful WASM fallback for bridge calls*
