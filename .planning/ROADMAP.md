@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard (completed 2026-03-23)
 - [ ] **Phase 5: Gamification and Personal Tree** - XP, streaks, mastery levels, and the growing personal knowledge tree
 - [x] **Phase 6: Spaced Repetition** - FSRS review queue for long-term retention (completed 2026-03-24)
-- [ ] **Phase 7: Sigma Bridge Exports & Mastery Fix** - Fix sigma_entry.js exports and MasteryBadge per-concept XP (gap closure)
+- [x] **Phase 7: Sigma Bridge Exports & Mastery Fix** - Fix sigma_entry.js exports and MasteryBadge per-concept XP (gap closure) (completed 2026-03-26)
 
 ## Phase Details
 
@@ -129,9 +129,9 @@ Plans:
   2. Overdue concepts show wilting overlay on the graph
   3. MasteryBadge on concept page shows the correct tier for that specific concept, not aggregate XP
   4. sigma_bundle.js exports both updateUserProgress and updateOverdueMap via window.__sigma_bridge
-**Plans**: 1 plan
+**Plans**: 0 plans
 Plans:
-- [ ] 07-01-PLAN.md — Fix sigma_entry.js exports, canvas.rs graceful fallback, AwardXpResponse concept_xp field, MasteryBadge data flow
+- (none yet)
 
 ## Progress
 
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
 | 5. Gamification and Personal Tree | 2/3 | In Progress|  |
 | 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
-| 7. Sigma Bridge Exports & Mastery Fix | 0/1 | In Progress |  |
+| 7. Sigma Bridge Exports & Mastery Fix | 1/1 | Complete   | 2026-03-26 |
 
 ## Backlog
 
@@ -154,7 +154,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 **Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness — green fill + checkmark on correct answers, server-side LaTeX for quiz text, formula preview fix, and 50% XP penalty for hint-assisted answers.
 **Requirements:** D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
-**Plans:** 5/5 plans complete
+**Plans:** 1/1 plans complete
 
 **Items:**
 1. **Correct answer positive feedback** — Multiple-choice quizzes should show green highlighting (or similar visual confirmation) when the selected answer is correct. Currently only wrong answers get feedback.

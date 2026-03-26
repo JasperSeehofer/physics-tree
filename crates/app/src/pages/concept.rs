@@ -54,6 +54,8 @@ struct AwardXpRequest {
 struct AwardXpResponse {
     xp_awarded: i32,
     new_total_xp: i32,
+    /// Per-concept cumulative mastery XP — use this for MasteryBadge.
+    concept_mastery_xp: i32,
     mastery_tier: String,
     streak: i32,
     freeze_tokens: i32,
@@ -61,6 +63,12 @@ struct AwardXpResponse {
     perfect_bonus: bool,
     freeze_used: bool,
     hint_penalty: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ConceptMasteryResponse {
+    mastery_level: i32,
+    mastery_tier: String,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,6 +130,30 @@ async fn fetch_quiz_questions(slug: &str) -> Vec<domain::quiz::QuizQuestion> {
 #[cfg(not(target_arch = "wasm32"))]
 async fn fetch_quiz_questions(_slug: &str) -> Vec<domain::quiz::QuizQuestion> {
     vec![]
+}
+
+/// GET /api/progress/node/:node_id — fetch per-concept mastery level on page load.
+///
+/// Returns None when unauthenticated (401) or on error (badge stays hidden).
+/// Returns Some(mastery_level) when authenticated and progress exists.
+#[cfg(target_arch = "wasm32")]
+async fn fetch_concept_mastery(node_id: &str) -> Option<i32> {
+    if node_id.is_empty() {
+        return None;
+    }
+    let url = format!("/api/progress/node/{}", node_id);
+    let resp = gloo_net::http::Request::get(&url)
+        .send()
+        .await
+        .ok()?;
+    if resp.status() == 401 {
+        return None; // Not authenticated — badge stays hidden
+    }
+    if !resp.ok() {
+        return None;
+    }
+    let data: ConceptMasteryResponse = resp.json().await.ok()?;
+    Some(data.mastery_level)
 }
 
 /// POST /api/progress/award-xp — awards XP for completing quiz checkpoints.
@@ -205,14 +237,21 @@ pub fn ConceptPage() -> impl IntoView {
         quiz_questions.set(vec![]);
         checkpoint_passed.set(vec![]);
         login_nudge.set(false);
+        mastery_xp.set(0); // Reset badge on navigation — fetched below after content loads
 
         let slug_for_quiz = slug_val.clone();
 
         leptos::task::spawn_local(async move {
             match fetch_concept_content(&slug_val).await {
                 Ok(c) => {
+                    // Fetch per-concept mastery now that we have the node_id
+                    let node_id = c.node_id.clone();
                     content.set(Some(c));
                     loading.set(false);
+                    // Fetch mastery after content so node_id is available
+                    if let Some(xp) = fetch_concept_mastery(&node_id).await {
+                        mastery_xp.set(xp);
+                    }
                 }
                 Err(e) => {
                     load_error.set(Some(e));
@@ -267,8 +306,8 @@ pub fn ConceptPage() -> impl IntoView {
         leptos::task::spawn_local(async move {
             match post_award_xp(node_id, score_pct, any_hints_used).await {
                 Ok(response) => {
-                    // Update mastery XP after award
-                    mastery_xp.set(response.new_total_xp);
+                    // Update mastery XP after award — use per-concept XP, NOT aggregate
+                    mastery_xp.set(response.concept_mastery_xp);
 
                     xp_toast_data.set(Some(XpAwardData {
                         xp_awarded: response.xp_awarded,
