@@ -7,6 +7,8 @@ import {
   navigateToNode,
   clearSelection,
   killSigma,
+  updateUserProgress,
+  updateOverdueMap,
 } from "./sigma_bridge.js";
 
 window.__sigma_bridge = {
@@ -16,4 +18,6 @@ window.__sigma_bridge = {
   navigateToNode,
   clearSelection,
   killSigma,
+  updateUserProgress,
+  updateOverdueMap,
 };
