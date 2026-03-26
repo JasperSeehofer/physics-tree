@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Phase 7 discuss-phase next
-last_updated: "2026-03-25T19:47:35.715Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-26T09:59:14.131Z"
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 28
-  completed_plans: 28
+  completed_phases: 8
+  total_plans: 29
+  completed_plans: 29
 ---
 
 # Project State
@@ -68,6 +68,7 @@ Plan: Not started
 | Phase 999.1-quiz-ux-improvements P01 | 4 | 2 tasks | 4 files |
 | Phase 999.1 P04 | 15 | 2 tasks | 7 files |
 | Phase 999.1 P05 | 526147min | 1 tasks | 1 files |
+| Phase 07 P01 | 12 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [Phase 999.1]: KaTeX CSS loaded via CDN link tag in HTML shell — esbuild silently drops CSS imports without extraction config
 - [Phase 999.1]: renderAllPlaceholders deferred via requestAnimationFrame in quiz components and concept page — Leptos Effects fire before DOM commits inner_html
 - [Phase 999.1]: post_award_xp returns Result<AwardXpResponse, bool> — Err(true) = 401 (auth failure), Err(false) = other error — enables login nudge on unauthenticated quiz completion
+- [Phase 07]: sigma_entry.js re-export pattern: all bridge functions must appear in both import list and window.__sigma_bridge object
+- [Phase 07]: concept_mastery_xp separate from new_total_xp: mastery badge uses per-concept XP; AwardXpResponse now carries both fields
+- [Phase 07]: GET /api/progress/node/:node_id: slim endpoint for per-concept mastery on page load
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T19:47:35.713Z
-Stopped at: Phase 7 discuss-phase next
-Resume file: .planning/phases/07-sigma-exports-mastery-fix/
+Last session: 2026-03-26T09:59:14.130Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None

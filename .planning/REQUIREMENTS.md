@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GRAPH-02**: User can search concepts by name and navigate directly to a node
 - [x] **GRAPH-03**: User can see prerequisite dependencies for any concept before engaging with it
 - [x] **GRAPH-04**: Graph renders with botanical metaphor: roots (prerequisites), trunk (foundations), branches (fields), leaves (research frontiers)
-- [ ] **GRAPH-05**: User sees a personal knowledge tree that grows visually as they master concepts
+- [x] **GRAPH-05**: User sees a personal knowledge tree that grows visually as they master concepts
 
 ### Educational Content
 
@@ -33,7 +33,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **GAME-01**: User earns XP for completing concept modules and quizzes
 - [x] **GAME-02**: User maintains daily streaks with streak freeze mechanic
-- [ ] **GAME-03**: Each concept has mastery levels (bronze → silver → gold) tied to plant growth visual
+- [x] **GAME-03**: Each concept has mastery levels (bronze → silver → gold) tied to plant growth visual
 - [ ] **GAME-04**: Each concept has quizzes with multiple question types (multiple choice, fill-in-formula, matching)
 - [x] **GAME-05**: User receives a spaced repetition review queue surfacing concepts due for review (FSRS algorithm)
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GRAPH-02 | Phase 2 | Complete |
 | GRAPH-03 | Phase 2 | Complete |
 | GRAPH-04 | Phase 2 | Complete |
-| GRAPH-05 | Phase 7 | Pending |
+| GRAPH-05 | Phase 7 | Complete |
 | CONT-01 | Phase 3 | Pending |
 | CONT-02 | Phase 3 | Complete |
 | CONT-03 | Phase 3 | Pending |
@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-04 | Phase 4 | Complete |
 | GAME-01 | Phase 5 | Complete |
 | GAME-02 | Phase 5 | Complete |
-| GAME-03 | Phase 7 | Pending |
+| GAME-03 | Phase 7 | Complete |
 | GAME-04 | Phase 3 | Pending |
 | GAME-05 | Phase 6 | Complete |
 | DSGN-01 | Phase 1 | Complete |
