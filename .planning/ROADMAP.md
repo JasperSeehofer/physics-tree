@@ -45,7 +45,10 @@
   3. A content file with missing phases, invalid metadata, or malformed YAML is rejected at ingest with a clear error message naming the violation
   4. An EQF 4+ node requires a derivation section; an EQF 2 node does not — both are validated correctly
   5. Each phase has documented typed requirements (e.g., Phase 0 needs recall prompt + linkage map + wonder hook) that a human author can follow without guessing
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — Content spec document and Rust type definitions
+- [ ] 08-02-PLAN.md — Validation logic (TDD) and CLI binary
 **UI hint**: no
 
 ### Phase 9: Database & Ingest
@@ -125,7 +128,7 @@
 | 6. Spaced Repetition | v1.0 | 3/3 | Complete | 2026-03-24 |
 | 7. Sigma Bridge Exports & Mastery Fix | v1.0 | 1/1 | Complete | 2026-03-26 |
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
-| 8. Content Specification | v1.1 | 0/? | Not started | - |
+| 8. Content Specification | v1.1 | 0/2 | Planning | - |
 | 9. Database & Ingest | v1.1 | 0/? | Not started | - |
 | 10. Manual Pilot Node | v1.1 | 0/? | Not started | - |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |
