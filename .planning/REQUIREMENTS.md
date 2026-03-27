@@ -101,13 +101,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| SPEC-01 | Phase 8 | Pending |
+| SPEC-02 | Phase 8 | Pending |
+| SPEC-03 | Phase 8 | Pending |
+| SPEC-04 | Phase 8 | Pending |
+| SPEC-05 | Phase 8 | Pending |
+| DB-01 | Phase 9 | Pending |
+| DB-02 | Phase 9 | Pending |
+| DB-03 | Phase 9 | Pending |
+| PILOT-01 | Phase 10 | Pending |
+| UI-01 | Phase 11 | Pending |
+| UI-02 | Phase 11 | Pending |
+| UI-03 | Phase 11 | Pending |
+| UI-04 | Phase 11 | Pending |
+| UI-05 | Phase 11 | Pending |
+| PIPE-01 | Phase 12 | Pending |
+| PIPE-02 | Phase 12 | Pending |
+| PIPE-03 | Phase 12 | Pending |
+| PIPE-04 | Phase 12 | Pending |
+| PIPE-05 | Phase 12 | Pending |
+| PIPE-06 | Phase 12 | Pending |
+| PIPE-07 | Phase 12 | Pending |
+| QG-01 | Phase 13 | Pending |
+| QG-02 | Phase 13 | Pending |
+| QG-03 | Phase 13 | Pending |
+| QG-04 | Phase 13 | Pending |
+| PILOT-02 | Phase 14 | Pending |
+| PILOT-03 | Phase 14 | Pending |
+| PILOT-04 | Phase 14 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24
+- v1.1 requirements: 28 total
+- Mapped to phases: 28
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 after roadmap creation (traceability populated)*
