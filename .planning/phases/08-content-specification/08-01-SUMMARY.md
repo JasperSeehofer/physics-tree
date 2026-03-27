@@ -134,3 +134,16 @@ None beyond the serde_json test gating issue (documented as deviation above).
 ---
 *Phase: 08-content-specification*
 *Completed: 2026-03-28*
+
+## Self-Check: PASSED
+
+- FOUND: docs/content-spec.md
+- FOUND: crates/domain/src/content_spec.rs
+- FOUND: 08-01-SUMMARY.md
+- FOUND: commit 935e4c7 (Task 1)
+- FOUND: commit 2f3f2a2 (Task 2)
+- FOUND: commit 64fa057 (metadata)
+- cargo check -p domain: PASSED
+- cargo check -p domain --features ssr: PASSED
+- cargo test -p domain: 4 tests passed
+- cargo test -p domain --features ssr: 6 tests passed
