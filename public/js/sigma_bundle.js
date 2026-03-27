@@ -10641,10 +10641,6 @@ function applyWiltingStyle(res, daysOverdue) {
     res.color = hexWithAlpha(res.color, 0.6);
   }
 }
-function isFrontierNode(nodeId) {
-  if (!graphInstance || !graphInstance.hasNode(nodeId)) return false;
-  return graphInstance.neighbors(nodeId).some((n) => (userProgressMap[n] ?? 0) > 0);
-}
 function applyGrowthStageStyle(res, xp) {
   if (xp >= 300) {
     res.color = COLORS.leafGreen;
@@ -10753,15 +10749,8 @@ function botanicalNodeReducer(node, data) {
   const res = { ...data };
   if (Object.keys(userProgressMap).length > 0) {
     const nodeXp = userProgressMap[node];
-    if (nodeXp === void 0 && !isFrontierNode(node)) {
-      res.hidden = true;
-      return res;
-    }
     if (nodeXp !== void 0 && nodeXp > 0) {
       applyGrowthStageStyle(res, nodeXp);
-    } else {
-      res.color = COLORS.barkLight;
-      res.size = (res.size || 8) * 0.75;
     }
     if (nodeXp !== void 0) {
       if (nodeXp >= 300) {
@@ -10773,8 +10762,6 @@ function botanicalNodeReducer(node, data) {
       } else if (nodeXp > 0) {
         res.label = `${data.label} \u2014 ${nodeXp} XP`;
       }
-    } else if (isFrontierNode(node)) {
-      res.label = `${data.label} \u2014 not yet learned`;
     }
   }
   const daysOverdue = overdueMap[node];

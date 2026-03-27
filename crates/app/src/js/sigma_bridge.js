@@ -315,22 +315,15 @@ function drawBotanicalNodeOverlay() {
 function botanicalNodeReducer(node, data) {
   const res = { ...data };
 
-  // Progressive reveal: if user has progress loaded, hide nodes outside frontier
+  // Growth stage styling: show botanical overlays for learned concepts
+  // All nodes remain visible — the main graph is always a full exploratory view.
+  // Progressive reveal (hiding non-learned nodes) belongs on the dashboard MiniTree only.
   if (Object.keys(userProgressMap).length > 0) {
     const nodeXp = userProgressMap[node];
 
-    if (nodeXp === undefined && !isFrontierNode(node)) {
-      res.hidden = true;
-      return res;
-    }
-
-    // Apply growth stage styling to learned and frontier nodes
+    // Apply growth stage styling to learned nodes
     if (nodeXp !== undefined && nodeXp > 0) {
       applyGrowthStageStyle(res, nodeXp);
-    } else {
-      // Frontier node or seed: dim styling
-      res.color = COLORS.barkLight;
-      res.size = (res.size || 8) * 0.75;
     }
 
     // Update tooltip/label for nodes with progress
@@ -344,8 +337,6 @@ function botanicalNodeReducer(node, data) {
       } else if (nodeXp > 0) {
         res.label = `${data.label} \u2014 ${nodeXp} XP`;
       }
-    } else if (isFrontierNode(node)) {
-      res.label = `${data.label} \u2014 not yet learned`;
     }
   }
 
