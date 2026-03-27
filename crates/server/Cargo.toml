@@ -26,6 +26,9 @@ tower-sessions = "0.14"
 tower-sessions-sqlx-store = { version = "0.15", features = ["postgres"] }
 axum-extra = { version = "0.12", features = ["cookie"] }
 time = "0.3"
+serde-saphyr = { workspace = true }
+gray_matter = { workspace = true }
+pulldown-cmark = { workspace = true }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
@@ -33,6 +36,10 @@ http = "1"
 http-body-util = "0.1"
 serde_json = { workspace = true }
 dotenvy = "0.15"
+
+[[bin]]
+name = "validate"
+path = "src/bin/validate.rs"
 
 [features]
 default = []
