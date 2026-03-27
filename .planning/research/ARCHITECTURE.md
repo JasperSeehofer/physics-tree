@@ -1,393 +1,675 @@
 # Architecture Research
 
-**Domain:** Interactive educational platform with knowledge graph, physics simulations, gamification
-**Researched:** 2026-03-17
-**Confidence:** MEDIUM (architectural patterns from research; Rust/WASM specifics from verified docs)
+**Domain:** 7-phase content architecture and AI authoring pipeline integration into existing Rust/WASM platform
+**Researched:** 2026-03-27
+**Confidence:** HIGH (based on direct codebase inspection + verified Leptos/Axum patterns)
 
-## Standard Architecture
+> This file supersedes the initial ARCHITECTURE.md (2026-03-17) for the v1.1 milestone scope.
+> The existing v1.0 architecture is treated as fixed; this document focuses entirely on
+> what changes, what's added, and how the new capabilities integrate.
 
-### System Overview
+---
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                         Browser (WASM + JS)                            │
-├──────────────────┬────────────────────┬────────────────────────────────┤
-│  Graph Explorer  │  Concept Module UI │  Gamification UI               │
-│  (canvas/WebGL)  │  (lesson content)  │  (XP, streaks, leaderboards)   │
-├──────────────────┴────────────────────┴────────────────────────────────┤
-│                         Leptos SPA (WASM)                              │
-│   Routing · State Management · Component Tree · Reactive Signals       │
-├──────────────────┬────────────────────┬────────────────────────────────┤
-│  Simulation WASM │  Graph Renderer    │  Code Sandbox                  │
-│  (physics engine)│  (D3/WebGL layer)  │  (Pyodide WASM)                │
-└──────────────────┴─────────┬──────────┴────────────────────────────────┘
-                             │ HTTP/REST (JSON)
-┌────────────────────────────▼───────────────────────────────────────────┐
-│                         Axum API Server (Rust)                         │
-├──────────────┬─────────────────┬──────────────┬────────────────────────┤
-│  Auth        │  Graph API      │  Progress    │  Content API           │
-│  (JWT/cookie)│  (nodes, edges) │  (XP, mastery│  (concepts, modules)   │
-│              │                 │  streaks)    │                        │
-├──────────────┴─────────────────┴──────────────┴────────────────────────┤
-│                   Domain Layer (Rust structs + business logic)         │
-├──────────────┬─────────────────┬──────────────┬────────────────────────┤
-│  PostgreSQL  │  Redis          │  Object      │  (future: graph DB)    │
-│  (users,     │  (session cache,│  Storage     │                        │
-│   progress,  │   leaderboards, │  (static     │                        │
-│   content)   │   rate limits)  │   assets)    │                        │
-└──────────────┴─────────────────┴──────────────┴────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| Leptos SPA | UI routing, reactive state, component tree | Leptos 0.6+ compiled to WASM |
-| Graph Explorer | Pan/zoom/click knowledge graph, botanical viz | D3.js (force layout) or custom WebGL via wasm-bindgen |
-| Concept Module UI | Displays per-concept lesson: derivation, quiz, viz | Leptos components with Markdown/MathJax rendering |
-| Simulation WASM | Physics engine for interactive parameter tweaking | Rapier.rs or custom Rust sim compiled to WASM |
-| Code Sandbox | In-browser Python/JS execution for user code snippets | Pyodide (CPython → WASM) loaded lazily |
-| Axum API Server | REST endpoints, auth middleware, request routing | Axum + Tower middleware stack |
-| Auth Service | JWT issuance, session management | Axum-login or custom JWT with argon2 password hashing |
-| Graph API | Serve node/edge data, traversals, path-finding | Axum handlers querying PostgreSQL graph tables |
-| Progress Service | XP calculation, mastery level updates, streak logic | Domain service with PostgreSQL writes |
-| Content API | Serve concept modules, quizzes, derivations | Axum reading from PostgreSQL + object storage |
-| PostgreSQL | Primary data store for all structured data | Postgres 16+, SQLx for compile-time checked queries |
-| Redis | Session cache, leaderboard sorted sets, rate limiting | Redis 7+, accessed via deadpool-redis |
-| Object Storage | Large static assets: images, animation bundles | MinIO (self-hosted S3-compatible) |
-
-## Recommended Project Structure
+## Existing Architecture Snapshot (v1.0 — Do Not Break)
 
 ```
-physics-tree/
-├── crates/
-│   ├── app/                    # Leptos frontend SPA
-│   │   ├── src/
-│   │   │   ├── components/     # Reusable UI components
-│   │   │   │   ├── graph/      # Graph Explorer components
-│   │   │   │   ├── concept/    # Concept module components
-│   │   │   │   └── gamify/     # XP, streak, leaderboard UI
-│   │   │   ├── pages/          # Route-level page components
-│   │   │   ├── state/          # Global reactive signals/stores
-│   │   │   └── lib.rs
-│   │   └── Cargo.toml
-│   ├── server/                 # Axum API server
-│   │   ├── src/
-│   │   │   ├── handlers/       # HTTP request handlers (thin)
-│   │   │   ├── middleware/     # Auth, rate-limit, CORS
-│   │   │   ├── routes.rs       # Route registration
-│   │   │   └── main.rs
-│   │   └── Cargo.toml
-│   ├── domain/                 # Shared domain types (no I/O)
-│   │   ├── src/
-│   │   │   ├── graph.rs        # Node, Edge, Path types
-│   │   │   ├── progress.rs     # XP, mastery, streak models
-│   │   │   ├── content.rs      # Concept, Module, Quiz types
-│   │   │   └── user.rs         # User, session types
-│   │   └── Cargo.toml
-│   ├── db/                     # Database access layer
-│   │   ├── src/
-│   │   │   ├── graph_repo.rs   # Graph node/edge queries
-│   │   │   ├── progress_repo.rs
-│   │   │   ├── content_repo.rs
-│   │   │   └── user_repo.rs
-│   │   └── Cargo.toml
-│   └── simulation/             # Physics engine (WASM target)
-│       ├── src/
-│       │   ├── mechanics/      # Classical mechanics simulations
-│       │   └── lib.rs          # wasm-bindgen exports
-│       └── Cargo.toml
-├── migrations/                 # SQLx migration files
-├── content/                    # Source content files (YAML/MDX)
-│   └── classical-mechanics/    # v1 branch content
-├── scripts/                    # Content ingestion, CI tooling
-└── Cargo.toml                  # Workspace root
+┌─────────────────────────────────────────────────────────────────┐
+│  Browser (WASM + JS)                                            │
+│  ┌───────────────┐  ┌────────────────────────────────────────┐  │
+│  │ Sigma.js      │  │ Leptos WASM App (crates/app)           │  │
+│  │ (WebGL graph) │  │  ConceptPage, Dashboard, Review, etc.  │  │
+│  └───────────────┘  └────────────────────────────────────────┘  │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │ HTTP/REST JSON
+┌───────────────────────────────▼─────────────────────────────────┐
+│  Axum server (crates/server)                                    │
+│  GET /api/content/{slug}   — reads .md from disk, renders HTML  │
+│  GET /api/quiz/{slug}       — reads .quiz.json from disk        │
+│  POST /api/progress/award-xp                                    │
+│  GET/POST /api/review/*                                         │
+└────────────────┬──────────────────────────────┬─────────────────┘
+                 │ SQLx / PgPool                │ tokio::fs
+┌────────────────▼──────────────┐  ┌────────────▼─────────────────┐
+│  PostgreSQL                   │  │  content/ filesystem          │
+│  nodes, edges, progress,      │  │  classical-mechanics/*.md     │
+│  content_metadata (file_path) │  │  classical-mechanics/*.json   │
+└───────────────────────────────┘  └──────────────────────────────┘
 ```
 
-### Structure Rationale
+**Key observation from code inspection:** `content_metadata` stores only a `file_path`
+pointer; the actual Markdown body lives on disk. The server reads the file on every
+`GET /api/content/{slug}` request, renders it to HTML, and returns it. There is no
+per-phase structure in the database or in the Markdown files — content is one flat
+document per node.
 
-- **crates/domain/:** Pure Rust types with no I/O dependencies — shared between `server` and compiled into `app` WASM. Enforces clean boundary between business logic and infrastructure.
-- **crates/db/:** Isolates all SQLx queries. Means `server` never touches SQL directly; easy to test with mock repos.
-- **crates/simulation/:** Separate crate with `wasm-bindgen` as the WASM-to-JS bridge. Compiled independently; keeps main `app` bundle smaller.
-- **content/:** Human-readable YAML/MDX source files checked into version control. A script ingests into PostgreSQL. AI-generated drafts live here for review before ingestion.
-- **migrations/:** SQLx offline migrations run at deploy time — never auto-migrate in production.
+---
+
+## v1.1 Target Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Browser (WASM + JS)                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Leptos WASM App (crates/app)                                        │    │
+│  │  ┌──────────────────────────────────────────────────────────────┐   │    │
+│  │  │ LearningRoom page (NEW)                                      │   │    │
+│  │  │   Phase stepper: 0→1→2→3→4→5→(6 async)                      │   │    │
+│  │  │   PhaseRenderer component per phase type                     │   │    │
+│  │  │   Format switcher (video / interactive / reading / audio)    │   │    │
+│  │  │   Phase progress persisted to server                         │   │    │
+│  │  └──────────────────────────────────────────────────────────────┘   │    │
+│  │  ConceptPage (UNCHANGED — keep as legacy fallback in v1.1)          │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└────────────────────────────────────────┬────────────────────────────────────┘
+                                         │ HTTP/REST JSON
+┌────────────────────────────────────────▼────────────────────────────────────┐
+│  Axum server (crates/server)                                                │
+│  GET /api/content/{slug}          (unchanged)                               │
+│  GET /api/learning-room/{slug}    (NEW — returns NodeLearningContent)       │
+│  GET /api/learning-room/{slug}/phase/{n}  (NEW — single phase fetch)        │
+│  POST /api/learning-room/{slug}/phase/{n}/complete  (NEW — phase progress)  │
+│  (quiz, progress, review routes unchanged)                                  │
+└──────────────────┬──────────────────────────────────────┬───────────────────┘
+                   │ SQLx / PgPool                        │ tokio::fs
+┌──────────────────▼─────────────────────┐  ┌────────────▼───────────────────┐
+│  PostgreSQL                            │  │  content/ filesystem           │
+│  nodes (unchanged)                     │  │  classical-mechanics/          │
+│  edges (unchanged)                     │  │    kinematics/                 │
+│  content_metadata (unchanged for now)  │  │      node.yaml  (metadata)     │
+│  node_phases (NEW table)               │  │      phase-0.md                │
+│  phase_progress (NEW table)            │  │      phase-1.md                │
+└────────────────────────────────────────┘  │      phase-2.md                │
+                                            │      ...                       │
+                                            │      phase-5.md                │
+                                            └────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  AI Authoring Pipeline (OUTSIDE the Rust app — Claude Code skills)          │
+│                                                                             │
+│  /gsd:author-node [slug]                                                    │
+│    → Author agent generates phase-0.md ... phase-5.md + node.yaml          │
+│    → Physics Reviewer agent checks scientific accuracy                      │
+│    → Pedagogy Reviewer agent checks phase structure compliance              │
+│    → Student Simulator agent checks cognitive load / clarity                │
+│    → Quality gate validator script (Rust CLI or shell script)               │
+│    → Output: draft files in content/{branch}/{slug}/ marked review_status=draft │
+│                                                                             │
+│  Human reviews diff in git, edits files, approves via:                      │
+│  /gsd:approve-node [slug]  → sets review_status=approved in DB              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Breakdown: New vs Modified vs Unchanged
+
+### New Components
+
+| Component | Location | What It Does |
+|-----------|----------|--------------|
+| `node_phases` table | `migrations/` | Per-node, per-phase content pointer (file_path, phase_number, format) |
+| `phase_progress` table | `migrations/` | Per-user, per-node, per-phase completion tracking |
+| `NodeMetadata` type | `crates/domain/src/content.rs` | EQF level, Bloom minimum, wonder hook, domain of applicability, common misconceptions |
+| `PhaseContent` type | `crates/domain/src/content.rs` | Phase number, format options, rendered HTML per format |
+| `NodeLearningContent` type | `crates/domain/src/content.rs` | Full Learning Room response: metadata + all phases |
+| `phase_repo` | `crates/db/src/phase_repo.rs` | Fetch phases for a node, record phase completion |
+| `learning_room` handler | `crates/server/src/handlers/learning_room.rs` | Serves NodeLearningContent, records phase progress |
+| `LearningRoom` page | `crates/app/src/pages/learning_room.rs` | Phase stepper UI, format switcher |
+| `PhaseRenderer` component | `crates/app/src/components/learning_room/` | Renders a single phase by type |
+| `PhaseStepper` component | `crates/app/src/components/learning_room/` | Phase navigation, completion indicators |
+| `FormatSwitcher` component | `crates/app/src/components/learning_room/` | Toggle between format options per phase |
+| Phase Markdown files | `content/{branch}/{slug}/phase-{n}.md` | Authored content per phase |
+| `node.yaml` files | `content/{branch}/{slug}/node.yaml` | Node metadata (EQF, Bloom, misconceptions, etc.) |
+| AI authoring skills | `.claude/commands/` | `/gsd:author-node`, `/gsd:approve-node` skills |
+| Quality gate validator | `scripts/validate_node.sh` (or `tools/validate/`) | Automated checklist against spec |
+
+### Modified Components
+
+| Component | Location | What Changes |
+|-----------|----------|--------------|
+| `ContentMetadata` | `crates/domain/src/content.rs` | Add `eqf_level`, `bloom_minimum`, `has_phases: bool` fields |
+| `content_repo` | `crates/db/src/content_repo.rs` | Add `get_node_metadata` query; existing queries unchanged |
+| Route registration | `crates/server/src/routes.rs` | Add `/api/learning-room/*` routes alongside existing routes |
+| `content/` directory layout | filesystem | Per-node subdirectory (kinematics/ not kinematics.md) for phase-structured nodes |
+| `content_metadata` migration | `migrations/` | Additive migration to add `eqf_level`, `bloom_minimum` columns |
+| Concept page route | `crates/app/src/lib.rs` (router) | Add `/graph/:slug/learn-room` route alongside existing `/graph/:slug/learn` |
+
+### Unchanged Components
+
+| Component | Why Unchanged |
+|-----------|--------------|
+| `ConceptPage` | Existing flat content still works; Learning Room is additive |
+| `GET /api/content/{slug}` | Existing API untouched; Learning Room uses new endpoints |
+| `GET /api/quiz/{slug}` | Quiz system unchanged; quizzes in Learning Room served by same endpoint |
+| `nodes`, `edges` tables | Graph schema unchanged |
+| `progress`, `fsrs_state` tables | XP/FSRS unchanged; phase completion is separate tracking |
+| All gamification components | XP awarded after Learning Room completion, same endpoint |
+| Sigma.js graph | Graph navigation unchanged |
+| Simulations WASM | `SimulationEmbed` reused inside Learning Room's Phase 2/3 rendering |
+
+---
+
+## Recommended Project Structure (v1.1 additions only)
+
+```
+crates/
+├── app/src/
+│   ├── components/
+│   │   ├── learning_room/         # NEW: Learning Room UI components
+│   │   │   ├── mod.rs
+│   │   │   ├── phase_stepper.rs   # Phase navigation + completion state
+│   │   │   ├── phase_renderer.rs  # Dispatches to per-phase render logic
+│   │   │   ├── format_switcher.rs # Toggle formats within a phase
+│   │   │   └── struggle_timer.rs  # Phase 1 soft timer
+│   │   └── content/               # EXISTING — no changes needed
+│   └── pages/
+│       ├── learning_room.rs       # NEW: /graph/:slug/learn-room
+│       └── concept.rs             # UNCHANGED
+├── db/src/
+│   └── phase_repo.rs              # NEW: node_phases + phase_progress queries
+├── domain/src/
+│   └── content.rs                 # MODIFIED: add PhaseContent, NodeMetadata types
+└── server/src/handlers/
+    └── learning_room.rs           # NEW: Learning Room API handlers
+
+migrations/
+├── ... (existing)
+├── 20260327000001_node_phases.sql      # NEW: node_phases table
+├── 20260327000002_phase_progress.sql   # NEW: phase_progress table
+└── 20260327000003_node_metadata.sql    # NEW: additive columns on content_metadata
+
+content/
+└── classical-mechanics/
+    ├── kinematics/                # NEW layout for phase-structured nodes
+    │   ├── node.yaml              # Node metadata (EQF, Bloom, etc.)
+    │   ├── phase-0.md             # Schema Activation
+    │   ├── phase-1.md             # Productive Struggle
+    │   ├── phase-2.md             # Concreteness Fading
+    │   ├── phase-3.md             # Worked Examples
+    │   ├── phase-4.md             # Self-Explanation Practice
+    │   └── phase-5.md             # Formative Retrieval Check
+    ├── kinematics.md              # KEEP: existing flat content (legacy fallback)
+    └── kinematics.quiz.json       # KEEP: unchanged
+
+scripts/
+└── validate_node.sh               # NEW: quality gate automation
+```
+
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Graph as Relational Tables (not a graph DB)
+### Pattern 1: Hybrid Filesystem + Database (Extend the Existing Pattern)
 
-**What:** Store the knowledge graph in two PostgreSQL tables (`nodes` and `edges`) rather than a dedicated graph database like Neo4j. Traversal queries use recursive CTEs.
+**What:** The existing codebase already stores content body on disk (`.md` files) with
+a `file_path` pointer in `content_metadata`. Phase-structured content extends this
+pattern: per-phase Markdown files on disk, with a `node_phases` table in PostgreSQL
+holding one row per `(node_id, phase_number, format)` with a `file_path` pointer.
 
-**When to use:** When graph has < 100k nodes and traversal depth is bounded (physics knowledge graph is maybe 1,000–5,000 nodes). The operational simplicity of one database outweighs the query elegance of a graph DB.
+**Why this, not pure database:** The existing architecture does this for flat content.
+Changing to database-stored Markdown bodies would require a content migration and
+break the file-based authoring workflow. Keeping content on disk also makes AI-generated
+drafts natural to review via git diff.
 
-**Trade-offs:** Recursive CTE syntax is verbose but well-supported in Postgres 16+. Migrate to graph DB if traversal queries become a bottleneck at scale — the domain model stays identical.
+**Why this, not pure filesystem:** Phase progress (which user has completed which phase)
+must live in the database with foreign keys to `users` and `nodes`. Metadata querying
+(find all EQF-3 nodes in draft status) needs SQL. The database handles structured
+queries; the filesystem handles human-editable content bodies.
 
-**Example:**
+**Trade-offs:** File path must stay in sync with DB row. Mitigated by the ingestion/
+approval workflow: the DB row is only created/updated when content is explicitly promoted.
+
 ```sql
--- nodes table
-CREATE TABLE nodes (
-    id          UUID PRIMARY KEY,
-    slug        TEXT UNIQUE NOT NULL,       -- "newtons-second-law"
-    title       TEXT NOT NULL,
-    node_type   TEXT NOT NULL,              -- 'concept' | 'formula' | 'theorem'
-    branch      TEXT NOT NULL,              -- 'classical-mechanics'
-    depth_tier  TEXT NOT NULL               -- 'root' | 'trunk' | 'branch' | 'leaf'
+-- New table: one row per (node, phase, format)
+CREATE TABLE node_phases (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    node_id         UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+    phase_number    SMALLINT NOT NULL,      -- 0-5 (phase 6 is platform-generated)
+    format          TEXT NOT NULL DEFAULT 'reading',   -- 'reading' | 'video' | 'interactive'
+    file_path       TEXT NOT NULL,          -- e.g. content/classical-mechanics/kinematics/phase-2.md
+    review_status   review_status NOT NULL DEFAULT 'draft',
+    content_hash    TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(node_id, phase_number, format)
 );
 
--- edges table
-CREATE TABLE edges (
-    from_node   UUID REFERENCES nodes(id),
-    to_node     UUID REFERENCES nodes(id),
-    edge_type   TEXT NOT NULL,              -- 'prerequisite' | 'derives' | 'applies'
-    PRIMARY KEY (from_node, to_node)
+-- New table: phase completion tracking per user
+CREATE TABLE phase_progress (
+    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    node_id         UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+    phase_number    SMALLINT NOT NULL,
+    completed_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    format_used     TEXT NOT NULL,
+    PRIMARY KEY (user_id, node_id, phase_number)
 );
-
--- Find all prerequisites for a concept (recursive)
-WITH RECURSIVE prereqs AS (
-    SELECT from_node FROM edges WHERE to_node = $1 AND edge_type = 'prerequisite'
-    UNION
-    SELECT e.from_node FROM edges e
-    JOIN prereqs p ON e.to_node = p.from_node
-    WHERE e.edge_type = 'prerequisite'
-)
-SELECT * FROM nodes WHERE id IN (SELECT from_node FROM prereqs);
 ```
 
-### Pattern 2: WASM Module Isolation for Simulations
+### Pattern 2: Additive API — Learning Room Runs Alongside Legacy Content
 
-**What:** Each physics simulation is a self-contained Rust module compiled separately to WASM. The Leptos frontend loads simulation bundles on-demand (lazy import) rather than including them in the main bundle.
+**What:** Add `/api/learning-room/{slug}` endpoints; do NOT modify `/api/content/{slug}`.
+The `ConceptPage` route (`/graph/:slug/learn`) continues to work. `LearningRoom` page
+lives at `/graph/:slug/learn-room`. Both routes exist; the graph node panel can link to
+either depending on whether the node has phases authored.
 
-**When to use:** Simulations are CPU-heavy and large. Splitting them prevents the main SPA from bloating. Users who only browse the graph never download simulation code.
+**Why:** Avoids regressions. 16 existing nodes in v1.0 don't need to be rebuilt for v1.1.
+The 3-5 pilot nodes for v1.1 get the new Learning Room treatment. The rest keep the flat
+page. This also lets the UI test both routes in parallel.
 
-**Trade-offs:** Adds build complexity (multiple WASM targets). Requires async loading in the UI with a loading state. Worth it: a single rigid-body simulation with Rapier can be 500KB+ WASM binary.
+**How to select route:** `ContentMetadata` gains a `has_phases: bool` (or query
+`node_phases` by node_id at count > 0). The concept panel in the graph links to
+`/learn-room` when phases exist, `/learn` otherwise.
 
-**Example:**
 ```rust
-// In simulation crate — exposed via wasm-bindgen
-#[wasm_bindgen]
-pub struct HarmonicOscillator {
-    mass: f64,
-    spring_k: f64,
-    position: f64,
-    velocity: f64,
-}
-
-#[wasm_bindgen]
-impl HarmonicOscillator {
-    #[wasm_bindgen(constructor)]
-    pub fn new(mass: f64, spring_k: f64) -> Self { ... }
-
-    pub fn step(&mut self, dt: f64) {
-        let accel = -(self.spring_k / self.mass) * self.position;
-        self.velocity += accel * dt;
-        self.position += self.velocity * dt;
-    }
-
-    pub fn position(&self) -> f64 { self.position }
+// New endpoint in learning_room.rs handler
+// GET /api/learning-room/{slug}
+// Returns NodeLearningContent: all phases with their rendered HTML
+pub async fn get_learning_room(
+    State(pool): State<PgPool>,
+    Path(slug): Path<String>,
+) -> Result<Json<NodeLearningContent>, (StatusCode, String)> {
+    // 1. Fetch node_id from slug (reuse content_repo::get_by_slug)
+    // 2. Fetch all approved node_phases rows for this node
+    // 3. Read each phase file, render Markdown→HTML (reuse render_content_markdown)
+    // 4. Fetch node.yaml metadata
+    // 5. Return NodeLearningContent
 }
 ```
 
-### Pattern 3: Content-as-Data with Ingestion Pipeline
+### Pattern 3: AI Authoring Pipeline as Claude Code Skills (not a Service)
 
-**What:** Concept content (derivations, quiz questions, explanations, code snippets) is stored as structured data in PostgreSQL (JSONB columns for flexible content blocks), not as files served from disk. An ingestion script reads YAML/MDX source files and upserts into the DB.
+**What:** The four-agent pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student
+Simulator) runs as Claude Code skills invoked from the terminal, not as a deployed
+microservice. Each skill spawns a subagent that reads the spec docs, generates content
+into `content/{branch}/{slug}/` files, and writes a review report. The pipeline is
+sequential: Author → Physics Reviewer → Pedagogy Reviewer → Student Simulator →
+Quality Gate script.
 
-**When to use:** Always for this project. Enables: querying content, AI-assisted drafting with review workflow, versioned updates without deploys, future search indexing.
+**Why CLI, not service:** The content authoring rate is low (a few nodes per day at most).
+A deployed service adds infrastructure complexity with no throughput benefit. Claude Code
+skills are already available, already authenticated, and can read the spec documents
+directly from the repo. The output is files on disk — the natural format for git review.
 
-**Trade-offs:** Content editing requires running the ingestion script rather than editing files live. Acceptable since content goes through human review anyway.
+**Why not a single monolithic prompt:** Multi-agent separation enforces role boundaries.
+A Physics Reviewer cannot rationalize away a derivation error because "the pedagogy is
+good". Each agent has a single mandate and its output is reviewable independently.
 
-### Pattern 4: Spaced Repetition as a Domain Service
+**Pipeline flow:**
+```
+/gsd:author-node kinematics
+    ↓
+[Author agent]
+  reads: PhysicsLearningPlatform_NodeContentRequirements.md
+         content/classical-mechanics/kinematics.md (existing flat content as source)
+         node.yaml spec template
+  writes: content/classical-mechanics/kinematics/phase-0.md ... phase-5.md
+          content/classical-mechanics/kinematics/node.yaml
+    ↓
+[Physics Reviewer agent]
+  reads: generated phase files
+  checks: formula correctness, unit consistency, derivation steps, domain of applicability
+  writes: content/classical-mechanics/kinematics/review-physics.md
+    ↓
+[Pedagogy Reviewer agent]
+  reads: generated phase files + NodeContentRequirements spec
+  checks: phase sequence integrity, struggle problem solvability, concreteness fading order
+  writes: content/classical-mechanics/kinematics/review-pedagogy.md
+    ↓
+[Student Simulator agent]
+  reads: generated phase files
+  simulates: typical EQF-3 learner working through phases, flags clarity issues
+  writes: content/classical-mechanics/kinematics/review-student.md
+    ↓
+[Quality gate script: scripts/validate_node.sh]
+  checks: all required fields in node.yaml, all 6 phase files present,
+          no phase file below minimum word count, review reports exist
+  outputs: PASS / FAIL with checklist
+    ↓
+Human reviews git diff, edits files
+    ↓
+/gsd:approve-node kinematics
+  sets review_status='approved' for all node_phases rows in DB
+  inserts/updates content_metadata with has_phases=true
+```
 
-**What:** The SM-2 (or FSRS) spaced repetition algorithm runs as a pure domain function. It takes a `ConceptReview` event and returns the next review timestamp and updated ease factor. No external dependency on a spaced-repetition library — implement the algorithm directly.
+**Trade-offs:** Human step is required before content goes live. This is intentional —
+physics accuracy is non-negotiable. The pipeline reduces authoring effort from ~8h to
+~2h per node; it does not eliminate human review.
 
-**When to use:** SM-2 is simple enough (< 50 lines of Rust) that a library adds no value. FSRS is more complex but also has Rust implementations. Keeping it in-domain means the scheduling logic can be tested exhaustively.
+### Pattern 4: Phase Markdown Format Convention
 
-**Trade-offs:** Must implement correctly. Write property-based tests against the algorithm's invariants.
+**What:** Each `phase-N.md` file uses YAML frontmatter for phase metadata and a
+structured Markdown body that the existing `render_content_markdown` function can process
+without modification.
+
+**Why reuse the existing renderer:** `render_content_markdown` already handles LaTeX
+extraction, custom directives (`::simulation[]`, `::misconception[]`), and derivation
+step markers. Phase Markdown files use the same directives. No new rendering logic needed
+for the MVP.
+
+**Phase file format:**
+```markdown
+---
+phase: 2
+type: concreteness_fading
+format: reading
+estimated_minutes: 10
+requires_simulation: projectile
+---
+
+## Concrete Experience {#phase-2-concrete}
+
+Look at this video of a ball thrown horizontally from a cliff...
+
+::simulation[projectile]
+
+## Representational Layer {#phase-2-iconic}
+
+The motion decomposes into two independent axes...
+
+<div data-derivation-step="1">
+
+**Horizontal motion (constant velocity):**
+$$x(t) = v_0 t$$
+
+</div>
+
+## Mathematical Formulation {#phase-2-symbolic}
+
+$$\vec{r}(t) = (v_0 t)\hat{x} + (h - \tfrac{1}{2}gt^2)\hat{y}$$
+
+...
+```
+
+**Phase 6 (Spaced Return):** Not authored per-node. Generated from the existing FSRS
+spaced repetition system. The `phase_progress` table triggers spaced return prompts via
+the existing review queue system — no new infrastructure needed.
+
+---
 
 ## Data Flow
 
-### Request Flow: User Opens a Concept Node
+### Learning Room: User Starts a Node
 
 ```
-User clicks node in graph
+User clicks node → panel shows "Start Learning Room"
     ↓
-Leptos event handler fires
+GET /api/learning-room/{slug}
     ↓
-Reactive signal updates (selected_node_id)
+Axum: fetch node_phases (approved only) from PostgreSQL
     ↓
-Leptos resource fetches /api/concepts/{slug}
+Axum: for each phase, read file from disk, render HTML
     ↓
-Axum handler → content_repo::get_concept(slug)
+Axum: return NodeLearningContent (phases 0-5 with HTML)
     ↓
-PostgreSQL: SELECT concept + JOIN content_blocks
+LearningRoom page renders Phase 0 (Schema Activation)
     ↓
-JSON response → Leptos deserializes into ConceptView
+User completes Phase 0 → POST /api/learning-room/{slug}/phase/0/complete
     ↓
-Concept module renders: derivation, quiz, code snippet UI
-    ↓ (if simulation exists)
-Simulation WASM bundle loaded lazily
+Axum: INSERT into phase_progress (user_id, node_id, phase=0, format_used)
     ↓
-Canvas/WebGL element initialized with WASM instance
+LearningRoom advances to Phase 1
+    ↓
+... (repeat for phases 1-5)
+    ↓
+Phase 5 completion → POST /api/progress/award-xp (existing endpoint, unchanged)
+    ↓
+XP awarded, FSRS state updated (existing logic unchanged)
+    ↓
+Phase 6 prompts delivered via existing review queue at Day-1, Day-3, etc.
 ```
 
-### Request Flow: User Completes a Quiz
+### AI Authoring: Node Production
 
 ```
-User submits quiz answers
+Human invokes: /gsd:author-node kinematics
     ↓
-Leptos calls POST /api/progress/quiz-complete
+Author subagent reads spec + existing flat content
     ↓
-Axum: validate JWT, deserialize QuizResult
+Writes: content/classical-mechanics/kinematics/phase-0.md ... phase-5.md
+        content/classical-mechanics/kinematics/node.yaml
     ↓
-Domain: calculate XP earned, mastery level change
+Reviewer subagents write: review-physics.md, review-pedagogy.md, review-student.md
     ↓
-Domain: run SM-2 algorithm → next review date
+validate_node.sh checks required structure → PASS
     ↓
-progress_repo::record_quiz(user_id, concept_id, result, xp, next_review)
+Human: git diff, reviews, edits phase files
     ↓
-PostgreSQL: INSERT progress record, UPDATE user XP
+Human invokes: /gsd:approve-node kinematics
     ↓
-If XP threshold crossed → UPDATE streak, check leaderboard
+Script: INSERT INTO node_phases (one row per phase file, review_status='approved')
+        UPDATE content_metadata SET has_phases=true WHERE node slug = 'kinematics'
     ↓
-Redis: update leaderboard sorted set (ZADD)
-    ↓
-Response: new XP total, mastery level, next review date
-    ↓
-Leptos: animate XP gain, update botanical growth visual
+Node is live in Learning Room
 ```
 
-### State Management
+### State Management (Learning Room UI)
 
 ```
-Global Leptos Signals (client-side)
-    current_user: Option<UserProfile>
-    selected_node: Option<NodeId>
-    graph_state: GraphView (zoom, pan, filters)
-    ↓
-Component-local signals for UI micro-state
-    (quiz_step, simulation_params, etc.)
+LearningRoom Leptos signals:
+    node_content: RwSignal<Option<NodeLearningContent>>   -- fetched on mount
+    current_phase: RwSignal<u8>                           -- 0-5, advances on completion
+    phase_format: RwSignal<String>                        -- 'reading' | 'video' | 'interactive'
+    phase_completed: RwSignal<[bool; 6]>                  -- which phases done this session
+    struggle_submitted: RwSignal<bool>                    -- Phase 1 submission state
 
-Server State (fetched via Leptos resources)
-    concept_data: loaded per-node on demand
-    progress_data: loaded on login, refreshed after actions
-    leaderboard: polled every 60s when visible
+Effect on mount: fetch NodeLearningContent, restore phase from phase_progress API
+Effect on phase completion: POST phase complete, advance current_phase signal
+Effect on all phases done: call existing award-xp endpoint
 ```
 
-### Key Data Flows
-
-1. **Graph bootstrap:** On first load, fetch the full node+edge list (lightweight — just IDs, titles, positions, tier). Render the botanical graph. Full concept data loads only when a node is clicked.
-2. **Progress sync:** All progress events fire-and-forget optimistically in the UI. Leptos updates signals immediately; the API call confirms or corrects. Prevents UI lag on slow connections.
-3. **Simulation parameters:** Simulation state is entirely client-side (reactive signals bound to sliders). Only the physics computation crosses the JS/WASM boundary — no server calls during simulation playback.
-4. **Leaderboard:** Backed by Redis sorted sets (ZADD with XP as score). Served from Redis directly — never hits PostgreSQL for leaderboard reads.
+---
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| 0-1k users | Single server: Axum + PostgreSQL + Redis on one VPS. No CDN needed. Static assets served by Axum or Nginx. |
-| 1k-10k users | Add Nginx reverse proxy + serve WASM/JS from CDN (Cloudflare free tier). Connection pooling via PgBouncer. Redis cluster for leaderboards. |
-| 10k-100k users | Horizontal Axum replicas behind load balancer. Read replicas for PostgreSQL. Consider separating simulation asset delivery. |
-| 100k+ users | At this scale, reconsider graph DB (Neo4j/Memgraph) if traversal queries slow. Separate write and read paths. Session storage fully in Redis. |
+| 0-1k users | Current approach: disk reads per request are fine. No caching needed. |
+| 1k-10k users | Cache rendered phase HTML in memory (dashmap in Axum state) keyed by (slug, phase, content_hash). Invalidate on approval. |
+| 10k-100k users | Pre-render phase HTML at approval time, store in node_phases table alongside file_path. Eliminates disk reads on hot paths. |
+| AI authoring rate | Pipeline produces ~2-4 nodes/day with human review bottleneck; no scaling concern before 1000+ nodes/year. |
 
 ### Scaling Priorities
 
-1. **First bottleneck:** PostgreSQL connection exhaustion under concurrent users. Fix: PgBouncer connection pooler in front of Postgres.
-2. **Second bottleneck:** WASM bundle download time on first visit. Fix: Cloudflare or Nginx caching with aggressive Cache-Control headers; code-split simulation bundles.
+1. **First bottleneck:** Phase file reads on every request. Fix: in-process cache with hash-based invalidation (add in Phase 2 of v1.1 if needed, skip for MVP with 3-5 pilot nodes).
+2. **Second bottleneck:** WASM bundle size if PhaseRenderer imports heavy new dependencies. Prevention: reuse existing `render_content_markdown` and existing component library; no new npm dependencies.
+
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Storing the Full Graph in Frontend State
+### Anti-Pattern 1: Storing Phase Content Bodies in PostgreSQL
 
-**What people do:** Fetch all concept data (content, derivations, quiz questions) for all nodes upfront and store in client state for instant navigation.
+**What people do:** Store the full Markdown or HTML of each phase as a TEXT/JSONB
+column in `node_phases`.
 
-**Why it's wrong:** Content per concept can be large (derivations, images, code). 1,000 concepts × 10KB = 10MB loaded before users see anything. Kills initial load time.
+**Why it's wrong:** Breaks the existing file-based authoring and review workflow.
+Makes git diff meaningless for content review. Prevents direct editing without
+a database tool. The existing architecture explicitly chose disk-based content
+bodies with DB pointers — this milestone must preserve that.
 
-**Do this instead:** Bootstrap only the graph structure (node IDs, titles, edges, visual positions — maybe 50KB). Fetch full concept content lazily on click. Cache in Leptos resources keyed by node slug.
+**Do this instead:** Keep content on disk as `.md` files. The DB stores only
+`file_path`, `phase_number`, `review_status`, and `content_hash`. The hash enables
+cache invalidation without DB polling.
 
-### Anti-Pattern 2: Running Physics Simulations Server-Side
+### Anti-Pattern 2: Requiring Phase Completion Before Access
 
-**What people do:** Send simulation parameters to the server, run the physics, stream results back.
+**What people do:** Hard-gate Phase 2 behind Phase 1 completion — the user cannot
+proceed without submitting the struggle problem.
 
-**Why it's wrong:** Adds server load, latency between parameter change and visual feedback, and WebSocket complexity. Physics simulations for educational use run at 60fps — server round-trips make this impossible.
+**Why it's wrong:** Users must be able to leave and return. A returning user who
+already completed Phase 1 should not be forced through it again. The phase stepper
+must restore progress from `phase_progress` on load.
 
-**Do this instead:** All simulation computation runs in the WASM module in the user's browser. The server never touches simulation state.
+**Do this instead:** Soft gates: show the phase sequence, indicate completed phases,
+default-open the first incomplete phase. Completed phases are accessible for review
+but not re-submitted. The Phase 1 submission is captured even if the answer is empty
+("I don't know") — what matters is the struggle attempt, not correctness.
 
-### Anti-Pattern 3: One Monolithic WASM Bundle
+### Anti-Pattern 3: One Monolithic AI Prompt for the Whole Node
 
-**What people do:** Compile all simulations, the graph renderer, and the app UI into a single WASM binary.
+**What people do:** Send "write a complete kinematics node" prompt to one Claude
+invocation and accept the output.
 
-**Why it's wrong:** A combined binary can exceed 5MB, bloating initial load even for users who only browse the knowledge graph.
+**Why it's wrong:** Single-agent generation produces internally inconsistent content
+(the worked example in Phase 3 may not build on the concrete experience from Phase 2).
+There is no adversarial review — the same reasoning that generated an error will not
+catch it. Physics derivation errors in particular require independent verification.
 
-**Do this instead:** Separate WASM crates compiled independently. Leptos lazy-loads simulation bundles when a user navigates to a concept that has a simulation. The core app bundle stays lean.
+**Do this instead:** Sequential multi-agent pipeline: Author writes, Physics Reviewer
+checks independently, Pedagogy Reviewer checks structure against the spec. Each agent
+reads the previous agent's output as input but has a distinct mandate. The Student
+Simulator agent provides a final naive-reader check on clarity.
 
-### Anti-Pattern 4: Mutable Graph Schema Baked Into Domain Types
+### Anti-Pattern 4: Building the AI Pipeline as a Deployed Service
 
-**What people do:** Hard-code the botanical tiers (root/trunk/branch/leaf) as Rust enums used everywhere.
+**What people do:** Build a Flask/FastAPI service that orchestrates Claude API calls,
+stores draft content in a separate database, and exposes a content management UI.
 
-**Why it's wrong:** The graph structure for classical mechanics v1 should not constrain future branches. Quantum mechanics or thermodynamics may not fit the same metaphor depth.
+**Why it's wrong:** Over-engineering for a content rate of 2-4 nodes/day. Adds
+infrastructure complexity (another service to deploy, monitor, secure). The reviewer
+is a human working in their terminal — CLI tools match the workflow.
 
-**Do this instead:** Tiers are content metadata stored in the `nodes` table as strings. The visualization layer interprets them. Domain types stay generic (NodeId, edges, depth integer) — the botanical metaphor is a rendering concern, not a schema constraint.
+**Do this instead:** Claude Code skills that write files to the existing `content/`
+directory. The approval workflow is git-native: review the diff, edit, commit. The
+existing `content_metadata` table already has `review_status` — use it.
 
-### Anti-Pattern 5: AI-Generated Content Directly to Production DB
+### Anti-Pattern 5: Modifying the Existing `/api/content/{slug}` Handler
 
-**What people do:** Pipe LLM output directly into the content database without review.
+**What people do:** Extend the existing content handler to detect and return phase-
+structured content if it exists.
 
-**Why it's wrong:** Physics accuracy is non-negotiable. AI makes derivation errors, unit mistakes, incorrect formula statements. For a platform teaching physics, an unchecked error spreads to every student.
+**Why it's wrong:** The existing handler is used by `ConceptPage` which expects
+`ConceptContent` (flat HTML + sections + simulations). Changing this response shape
+breaks 16 existing content pages that are already in production.
 
-**Do this instead:** AI generates drafts into version-controlled YAML/MDX files. Human reviewer edits and approves. Ingestion script promotes approved content to the database. The pipeline is: `AI draft → file in /content/ → human review → ingestion script → DB`.
+**Do this instead:** New endpoint `/api/learning-room/{slug}` returning `NodeLearningContent`
+(different type). The existing handler and page are unchanged. When all nodes are
+eventually migrated to phase structure, the old endpoint can be deprecated — but not
+in v1.1.
+
+---
 
 ## Integration Points
 
-### External Services
+### Existing Crate Boundaries
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Pyodide | Loaded as script tag / ES module from CDN or self-hosted; runs in Web Worker | Load lazily only when user opens a concept with runnable code. Web Worker prevents blocking main thread. |
-| MathJax/KaTeX | JS library loaded in browser for rendering LaTeX in derivations | KaTeX is faster and self-hostable; preferred over MathJax for performance |
-| MinIO (object storage) | Axum backend uses S3-compatible SDK for asset reads; presigned URLs for browser direct download | Store animation bundles, large images. Self-hosted S3 keeps data on-prem. |
-| SMTP (email) | Axum sends transactional email via SMTP (streak reminders, account confirm) | Use Postfix or external relay. No dependency on third-party email SaaS for v1. |
+| Boundary | Communication | v1.1 Change |
+|----------|---------------|-------------|
+| `app` ↔ `server` | REST/JSON, shared `domain` types | Add `NodeLearningContent`, `PhaseContent` to `domain::content` |
+| `server` ↔ `db` | Direct function calls via `PgPool` | Add `db::phase_repo` module; existing repos unchanged |
+| `server` ↔ filesystem | `tokio::fs::read_to_string` | Same pattern; new phase file paths |
+| `app` ↔ simulation WASM | JS bridge via wasm-bindgen | Unchanged; `SimulationEmbed` component reused in Phase 2/3 of Learning Room |
+| AI pipeline ↔ `content/` | File writes (Claude Code subagents) | New directory layout; existing `.md` files untouched |
+| AI pipeline ↔ DB | Shell script + `psql` or `sqlx-cli` for approval | Only runs at explicit human approval, not during authoring |
 
-### Internal Boundaries
+### New External Dependency: `serde_yaml`
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Leptos app ↔ Axum server | REST/JSON over HTTP | Shared `domain` crate defines request/response types used on both sides. No code generation needed. |
-| Leptos app ↔ Simulation WASM | wasm-bindgen JS bindings | Simulation exposes a typed API. Leptos calls it via `web_sys` or generated JS glue code. |
-| Leptos app ↔ Pyodide | Web Worker message passing (postMessage) | Isolates Python execution from UI thread. Leptos sends code string, receives stdout/result. |
-| Axum server ↔ PostgreSQL | SQLx async connection pool | Compile-time query verification. Pool size tuned to VPS memory. |
-| Axum server ↔ Redis | deadpool-redis async pool | Used for: session storage, leaderboard sorted sets, rate limiting. |
-| Content pipeline ↔ DB | Offline ingestion script (CLI) | Not a service boundary — a one-way data pipeline run manually or in CI. |
+The `node.yaml` frontmatter parsing requires a YAML deserializer. Add `serde_yaml` to
+`crates/server/Cargo.toml` (server-side only, not in WASM bundle). Alternatively,
+`node.yaml` can be parsed as TOML (using `toml` crate already potentially in tree) or
+the YAML frontmatter can be read as the existing YAML frontmatter stripping in
+`render_content_markdown` and deserialized with `serde_json` if converted to JSON at
+parse time. The simplest path: use `serde_yaml` on the server.
 
-## Suggested Build Order
+---
 
-Dependencies determine what must exist before what can be built:
+## Suggested Build Order for v1.1
 
-1. **Domain crate** — Pure types, no I/O. Everything else depends on this. Build first.
-2. **Database schema + migrations** — PostgreSQL tables for nodes, edges, users, progress, content. No application code needed to define these.
-3. **DB crate** — Repository implementations against the schema. Depends on domain + schema.
-4. **Axum server skeleton** — Routing, auth middleware, basic health check. Depends on domain + db.
-5. **Graph API endpoints** — Serve node/edge data. Unblocks frontend graph work.
-6. **Leptos SPA skeleton** — Routing, auth flow, graph bootstrap fetch. Can stub API responses.
-7. **Graph Explorer component** — Pan/zoom/click botanical graph. Purely frontend, uses graph API.
-8. **Content API + Concept Module UI** — Requires graph to navigate to; requires schema + content ingestion.
-9. **Content ingestion pipeline** — Script to load YAML/MDX into DB. Unblocks real content.
-10. **Simulation WASM crate** — Classical mechanics sims. Independent; integrated into concept modules.
-11. **Progress + Gamification backend** — XP, mastery, streaks. Requires users + content to exist.
-12. **Gamification UI** — XP animations, leaderboards. Requires progress API.
-13. **Spaced repetition scheduler** — Layered on top of progress system. Can ship after basic progress.
-14. **Code sandbox (Pyodide)** — Independent enhancement; integrate late after core learning loop works.
+Dependencies determine ordering. Each step only requires what came before it.
+
+### Step 1: Database Schema (no app code)
+Add `node_phases`, `phase_progress`, and additive `content_metadata` columns.
+Write migrations. Run against dev database. Nothing breaks; tables are empty.
+
+**Why first:** Everything else depends on the schema. DB schema is cheap to add, hard
+to change later. Migration can be reviewed independently.
+
+### Step 2: Domain Types
+Add `PhaseContent`, `NodeMetadata`, `NodeLearningContent` structs to `crates/domain/src/content.rs`.
+These are pure data types — no I/O. Shared between server handlers and client fetch
+response deserialization.
+
+**Why second:** Server handler and Leptos page both need these types. Adding them first
+means both can be developed against the same API contract.
+
+### Step 3: Content Directory Layout + 1 Pilot Node Authored Manually
+Create `content/classical-mechanics/kinematics/` with `node.yaml` and `phase-0.md`
+through `phase-5.md`. Author one node by hand (no AI pipeline yet) so the file format
+is concrete before building tooling around it.
+
+**Why third:** The file format is the spec for both the server reader and the AI
+authoring templates. Pinning it early prevents churn. Manual authoring also validates
+the format design before committing to it.
+
+### Step 4: `phase_repo` + Learning Room Handler
+Add `crates/db/src/phase_repo.rs` with queries to fetch `node_phases` rows and insert
+into `phase_progress`. Add `crates/server/src/handlers/learning_room.rs` with
+`GET /api/learning-room/{slug}`. Register routes in `routes.rs`.
+
+At this point: `curl /api/learning-room/kinematics` returns rendered phase HTML. The
+existing app is unchanged.
+
+**Why fourth:** Backend before frontend. The Leptos page needs a working API to develop
+against. Also enables smoke-testing the file reading + rendering pipeline in isolation.
+
+### Step 5: Learning Room UI — Phase Stepper + Renderer
+Add `crates/app/src/pages/learning_room.rs` and the `learning_room/` component directory.
+Build the phase stepper and basic `PhaseRenderer` that renders phase HTML into the DOM
+(same `inner_html` pattern as `ConceptPage`). Add `/graph/:slug/learn-room` route to
+the Leptos router.
+
+At this point: a user can navigate to `/graph/kinematics/learn-room` and step through
+all 6 phases. No format switching yet, no phase completion tracking to server.
+
+**Why fifth:** Builds on Step 4. Gets the core UX working end-to-end before adding
+complexity. The basic stepper + renderer is the risky Leptos development work; format
+switching and phase progress can layer on top.
+
+### Step 6: Phase Progress Persistence
+Wire the `POST /api/learning-room/{slug}/phase/{n}/complete` endpoint. Add phase completion
+fetch on `LearningRoom` mount to restore progress. Connect phase completion to the
+existing `award-xp` endpoint after Phase 5.
+
+**Why sixth:** Separating stateless rendering (Step 5) from stateful tracking (Step 6)
+makes both easier to test and debug. The gamification integration reuses existing code.
+
+### Step 7: Format Switcher
+Add `FormatSwitcher` component. For v1.1 MVP, this likely means "reading" format only
+for 3-5 pilot nodes — no video files yet. Build the switcher UI but it only shows
+options that exist for the current phase (from `phase_format` in `node_phases`).
+
+**Why seventh:** Depends on the phase stepper working (Step 5). Low priority for MVP —
+pilot nodes will use reading format only. Implement the component correctly so future
+video/interactive formats can be added by inserting a new `node_phases` row.
+
+### Step 8: AI Authoring Pipeline
+Build Claude Code skills for `/gsd:author-node` and `/gsd:approve-node`. These are
+markdown-based skill files in `.claude/commands/`. Write `scripts/validate_node.sh`.
+
+**Why eighth:** The file format is fixed by Step 3. The DB approval path is established
+by Step 4. The pipeline can be built and tested after the end-to-end content flow works.
+Building the pipeline last also means the skill can test against the live Learning Room.
+
+### Step 9: Author Remaining Pilot Nodes via Pipeline
+Use the pipeline to author the remaining 2-4 pilot nodes. Each node is a validation of
+the pipeline, not just the content. Human review and approval exercises the full workflow.
+
+**Why ninth (last):** Validates everything. Failures in content quality expose bugs in
+the pipeline prompts or the quality gate script. Ship only after 3-5 nodes are in
+production and the end-to-end flow is confirmed.
+
+---
 
 ## Sources
 
-- [Leptos full-stack architecture](https://book.leptos.dev/) — HIGH confidence, official docs
-- [Leptos 2026 guide](https://reintech.io/blog/building-web-applications-with-leptos-complete-guide-2026) — MEDIUM confidence
-- [Axum + SQLx + PostgreSQL architecture](https://kerkour.com/rust-web-services-axum-sqlx-postgresql) — MEDIUM confidence
-- [Rapier.rs physics engine (WASM)](https://rapier.rs/) — HIGH confidence, official docs
-- [Pyodide browser Python execution](https://pyodide.com/what-is-pyodide/) — HIGH confidence, official docs
-- [D3.js force-directed graphs](https://d3js.org/) — HIGH confidence, official docs
-- [Graph visualization library comparison](https://pmc.ncbi.nlm.nih.gov/articles/PMC12061801/) — MEDIUM confidence
-- [Knowledge graph + DAG data model](https://blog.cambridgesemantics.com/knowledge-graphs-origins-inhibitors-and-breakthroughs) — MEDIUM confidence
-- [open-spaced-repetition/awesome-fsrs](https://github.com/open-spaced-repetition/awesome-fsrs) — MEDIUM confidence
+- Codebase inspection (direct): `crates/domain/src/content.rs`, `crates/db/src/content_repo.rs`, `crates/server/src/handlers/content.rs`, `crates/app/src/pages/concept.rs`, `migrations/20260318000001_initial_schema.sql`, `content/classical-mechanics/kinematics.md` — HIGH confidence
+- `PhysicsLearningPlatform_NodeContentRequirements.md` (repo) — HIGH confidence, primary spec
+- [Leptos SSR + hydration architecture](https://book.leptos.dev/ssr/index.html) — HIGH confidence
+- [PostgreSQL JSONB vs normalized](https://www.heap.io/blog/when-to-avoid-jsonb-in-a-postgresql-schema) — MEDIUM confidence, supports normalized-over-JSONB for structured data
+- [Claude Code skills and multi-agent patterns](https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/) — MEDIUM confidence, matches existing `/gsd:*` skill pattern in this repo
+- [AI pipeline sequential orchestration](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns) — MEDIUM confidence, supports sequential multi-agent over monolithic
 
 ---
-*Architecture research for: Interactive physics learning platform with knowledge graph, Rust+WASM frontend, gamification, self-hosted*
-*Researched: 2026-03-17*
+*Architecture research for: v1.1 Content Architecture and AI Authoring Pipeline integration*
+*Researched: 2026-03-27*

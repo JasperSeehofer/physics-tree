@@ -1,200 +1,242 @@
 # Pitfalls Research
 
-**Domain:** Interactive physics learning platform (knowledge graph, Rust+WASM, gamification, simulations)
-**Researched:** 2026-03-17
-**Confidence:** MEDIUM-HIGH (multiple independent sources; some WASM-specific claims verified via official docs and post-mortems)
+**Domain:** AI-assisted educational content authoring pipeline + structured content specification (v1.1 milestone added to existing Rust+WASM physics platform)
+**Researched:** 2026-03-27
+**Confidence:** HIGH for pedagogical design pitfalls (sourced from peer-reviewed literature); MEDIUM for multi-agent LLM pipeline pitfalls (fast-moving field, verified across multiple 2025 sources); MEDIUM for migration pitfalls (general patterns applied to specific stack)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: wasm-bindgen Ownership Bugs — Silent Runtime Crashes
+### Pitfall 1: Productive Struggle Problems That Produce Frustration, Not Productive Failure
 
 **What goes wrong:**
-JavaScript code passes a value into a Rust function that consumes (takes ownership of) it. After Rust destroys the value, any subsequent JavaScript reference to it crashes with a null pointer error. TypeScript types cannot express linear/affine ownership — the type signature looks identical for consuming vs. borrowing functions. The compiler cannot catch this; it fails silently at runtime.
+An AI author generates a Phase 1 struggle problem that is either (a) secretly solvable with prior knowledge — defeating the purpose — or (b) so ill-matched to prerequisite knowledge that learners cannot make any progress at all. Either way the pedagogical mechanism fails. In case (a) learners skip the struggle and go straight to the canonical answer. In case (b) learners disengage entirely. Both feel identical from engagement metrics: time-on-task drops. The Kapur meta-analysis explicitly identifies "lack of design fidelity" as the primary cause of productive failure not outperforming direct instruction.
+
+The specific requirement: a struggle problem must be solvable with prior knowledge (learner can make progress) but NOT optimally solvable (learner cannot reach the canonical form). This is a narrow target that LLMs will routinely miss by generating problems that are either too easy or require knowledge not yet established.
 
 **Why it happens:**
-Developers treat WASM exports like ordinary JS objects. Rust's ownership rules are invisible to the JS caller. The wasm-bindgen guide mentions this hazard but it is easy to miss when working quickly.
+LLMs optimise for plausible-sounding problems, not for the specific information-theoretic property that "prior knowledge enables partial progress but not full solution." Reviewers who are physics experts can verify correctness but may not verify the pedagogical property (is this genuinely unsolvable with only Newton's First Law but solvable with Newton's Second?).
 
 **How to avoid:**
-- In wasm-bindgen-exposed types, prefer methods that borrow (`&self`) over methods that consume (`self`) wherever possible
-- Document all consuming functions with a `// CONSUMES: do not reuse` comment in both the Rust source and the generated TypeScript declaration
-- Write integration tests that verify post-call object state from the JS side
-- Audit all `#[wasm_bindgen]` fn signatures before each phase ships
+- Include an explicit prerequisite-knowledge check in the quality gate: for each struggle problem, list the prerequisite nodes and verify that the problem cannot be solved by applying only those prerequisites directly
+- Define the quality gate criteria as a machine-checkable template field: `struggle_problem.solvable_with_prior: true|false` and `struggle_problem.optimally_solvable_with_prior: true|false` — both must be true and false respectively
+- Physics Reviewer agent must verify both properties, not just that the problem is physically correct
+- Human review of struggle problems is mandatory; AI reviewer alone is insufficient for this property
 
 **Warning signs:**
-- Intermittent "null or undefined is not an object" errors in the browser console with no obvious JS cause
-- Crashes that only appear after a specific sequence of interactions (not on first use)
-- TypeScript types compile cleanly but the app crashes at runtime
+- Struggle problem includes the exact formula being taught (solvable with the canonical answer already present)
+- Struggle problem requires a concept from a node not listed in prerequisites (impossible without new knowledge)
+- Multiple learners complete Phase 1 in under 2 minutes without any Phase 1 interaction (problem was too easy)
+- LLM Author agent generates problems at the same abstraction level as the concept being taught (missed the "struggle before instruction" window)
 
-**Phase to address:** Foundation / WASM integration phase — establish the pattern before any simulation or graph code is written on top of it.
+**Phase to address:** Content spec design phase — the quality gate checklist must define the productive struggle property in machine-checkable terms before any content is generated. Do not defer this to "review will catch it."
 
 ---
 
-### Pitfall 2: Mutable Reference Aliasing Across Async wasm-bindgen Calls
+### Pitfall 2: AI Physics Content with Confident but Subtle Errors
 
 **What goes wrong:**
-A Rust async function holds a mutable reference (`&mut`) to a WASM object. While awaiting, JavaScript schedules another operation (e.g., a framework re-render, a `setTimeout` callback) that also tries to access the same object. The WASM runtime detects this and throws: "recursive use of an object detected which would lead to unsafe aliasing in rust." This error is non-recoverable — the Rust object is permanently poisoned.
+LLMs generate derivations with: missing assumptions (treating air resistance as negligible without stating it), wrong-sign conventions (conflicting between nodes), invalid limiting case behavior, dropped factors of 2 or π in integration steps, and fabricated citations. These errors are indistinguishable from correct content to non-experts. Unlike gross errors (wrong formula), subtle errors pass casual review. The PRPER literature confirms AI accuracy "varies significantly across subjects" and physics derivations are high-risk precisely because errors look plausible in fluent prose.
+
+On a learning platform, a student who encounters a wrong-sign convention in one node and a correct convention in another will either (a) memorize the inconsistency without recognizing it as an error or (b) blame themselves for being confused. Either outcome is worse than having no content at all.
 
 **Why it happens:**
-In pure Rust the borrow checker prevents this at compile time. Across the WASM/JS boundary, the compiler cannot track what JS does between `await` points. This is a documented known issue with wasm-bindgen async functions.
+LLMs predict likely text, not verified physics. Multi-step derivations compound error probability: even at 95% per-step accuracy, a 10-step derivation has only a 60% chance of being fully correct. Reviewers scanning for tone and structure miss algebraic errors. Physics Reviewer agents running on LLMs have the same fundamental limitation as Author agents.
 
 **How to avoid:**
-- Never hold `&mut` across `await` boundaries in WASM-exposed async functions
-- Redesign async Rust functions to: (a) take ownership, complete the async work, return a new value; or (b) clone/copy the data needed before the await, then mutate after
-- Keep async functions that cross the WASM boundary thin: marshal data in, run async operation, marshal result out — no retained mutable state
+- Decompose derivations into individually verifiable steps with explicit intermediate results: `F = ma`, `a = dv/dt`, `∫a dt = v`, not a single prose block
+- Add automated LaTeX structural checks: dimensional analysis on every formula, limiting case checks for known special cases (relativistic → Newtonian at v<<c, harmonic oscillator → free particle at k=0)
+- Require the Physics Reviewer agent to explicitly state the assumptions being made for each derivation step, not just verify the result
+- Cross-link every formula to its canonical source (textbook section, not just a title) — fabricated citations are a hallucination signal
+- Human sign-off is required for any node before it reaches production status. LLM reviewers are a pre-filter, not a gate.
 
 **Warning signs:**
-- "recursive use of an object" errors appearing only under load or with fast user interactions
-- Bugs that disappear when you add `console.log` (which introduces async yield points differently)
-- Simulation state corruption when the user triggers multiple events rapidly
+- Derivations with "it can be shown that..." steps (skipped verification)
+- Formulas without explicit domain of applicability (e.g., "for small angles" not stated)
+- A formula that appears in two nodes with different sign conventions
+- References to specific textbook page numbers (fabrication signal — verify immediately)
+- Limiting case test: set v=0, m=∞, or k=0 in the formula; if the result is physically wrong, the formula is wrong
 
-**Phase to address:** Simulation engine phase — enforce this pattern in the physics simulation loop design before wiring it to UI events.
+**Phase to address:** Content spec + quality gate phase — define the automated checks before any AI content is generated. Establish the human review workflow state machine (Draft → AI-reviewed → Human-approved) in the database before generating the first pilot node.
 
 ---
 
-### Pitfall 3: Graph Visualization Performance Collapse Above ~500 Nodes
+### Pitfall 3: Concreteness Fading in Wrong Order (Abstract Before Concrete)
 
 **What goes wrong:**
-Force-directed layout algorithms are O(n²) or O(n log n) per tick. A D3 or Cytoscape.js force simulation running on the main thread with 500+ nodes causes perceptible jank; at 1000+ nodes the browser freezes. A physics knowledge graph covering classical mechanics through quantum could easily reach 300-800 nodes. Using image or SVG elements per node compounds the problem (D3 with image nodes shows severe slowdown at 100+ nodes).
+An AI author generates Phase 2 content that begins with the abstract formula and then illustrates it with concrete examples, which is the wrong direction. The research finding from Fyfe et al. (2014) and Lichtenberger et al. (2024) is directional: concrete → abstract outperforms abstract → concrete. Beginning with the symbolic form and then showing a physical example is the default "textbook" pattern that most training data reflects — so LLMs will default to it.
+
+The consequence is that learners who see the formula first interpret the concrete example as "just an illustration" rather than as the grounding experience. The cognitive grounding mechanism only activates when abstract symbols come after the learner already has a physical intuition to attach them to.
 
 **Why it happens:**
-Developers prototype with 20-50 nodes, everything feels smooth, then content grows. Force-directed layout is not incrementally upgradeable — switching rendering backends (SVG → Canvas → WebGL) requires significant rework.
+LLMs are trained on textbooks, lecture notes, and physics websites — the vast majority of which follow the abstract-first convention (state the law, show examples). The Pedagogy Reviewer agent must explicitly check direction; it will not do so spontaneously.
 
 **How to avoid:**
-- Commit to a WebGL/Canvas rendering backend from the start (e.g., Cytoscape.js with the `cytoscapegl` renderer, or a custom WebGL renderer via `wgpu`/`three.js`)
-- Run graph layout (force simulation) in a Web Worker, not the main thread — prevents UI freeze during convergence
-- Pre-compute and cache static layout positions server-side; only recompute incrementally when the user's personal graph state changes
-- Implement Level-of-Detail: only render labels/details for nodes within the current viewport
-- For the botanical metaphor, the graph is acyclic (DAG), so use a hierarchical layout algorithm (Sugiyama/ELK) instead of force-directed — O(n log n), stable positions, no simulation needed
+- The content template must encode the concreteness fading direction explicitly: the YAML `concreteness_fading` block must have required sub-fields `concrete_stage`, `bridging_stage`, `abstract_stage` in that specific order
+- The Pedagogy Reviewer quality gate must include a single binary check: "Does Phase 2 begin with a physically manipulable or imaginable scenario before any symbolic representation?" — checked before any subsequent review
+- Flag any content where Phase 2 opens with a LaTeX formula block before at least one paragraph of physical description
 
 **Warning signs:**
-- Smooth in development (20 concept nodes), suddenly sluggish after adding one full branch
-- Frame rate drops during zoom/pan even when no simulation is running
-- Layout converges to different positions on each page load (sign of force-directed instability)
+- Phase 2 content block opens with a LaTeX-rendered equation in the first sentence
+- The word "formula" or "equation" appears before the word "example" or "imagine" in Phase 2
+- The concrete stage exists but is shorter than the abstract stage (indicates the AI is treating it as an afterthought)
 
-**Phase to address:** Graph foundation phase — choose rendering backend and layout algorithm before adding any content, because changing them later requires rewriting the visualization layer.
+**Phase to address:** Content template design phase — the template structure must enforce the ordering constraint structurally, not just as a guideline. An AI agent filling out a template with concrete_stage, bridging_stage, abstract_stage fields in that order is less likely to reverse them than one following a prose instruction.
 
 ---
 
-### Pitfall 4: AI-Generated Physics Content with Confident Errors
+### Pitfall 4: Multi-Agent Pipeline Producing Sycophantic Review (Agents Agree with Each Other)
 
 **What goes wrong:**
-LLMs hallucinate derivations, state incorrect formulae, reverse cause-and-effect in physics explanations, and fabricate citations — all with high apparent fluency. A 2025 Duke study found 94% of students observe that AI accuracy varies significantly across subjects. Physics is particularly hazardous: sign errors in equations, incorrect limiting case behavior, and wrong units all look plausible in prose. Students who encounter misconceptions in explainer content develop an "illusion of understanding" — they feel they understood but acquired the wrong model.
+The Physics Reviewer and Pedagogy Reviewer agents are run after the Author agent produces content. If those reviewer agents are given the Author's output as context, they tend to validate it rather than critique it — a well-documented LLM evaluation failure mode. The result is a multi-agent system where the Author produces content with errors, the reviewers confirm it looks correct, and the Student Simulator produces a superficially realistic struggle that happens to succeed. All four agents agree. All four are wrong. The quality gate reports "PASS."
+
+A 2025 study (Cemri et al., "Why Do Multi-Agent LLM Systems Fail?") identifies sycophancy and information withholding as the primary inter-agent failure modes — agents fail to flag issues they detect because the conversational context pushes toward consensus.
 
 **Why it happens:**
-AI content generation is tempting because it is fast. The review step ("human review refines quality") is easy to rush or skip when timelines are tight. Physics derivations are long enough that reviewers skim rather than verify each step.
+LLM reviewers are trained to be helpful and agreeable. When shown content and asked "does this meet X criteria?", the default response tendency is to find ways it does, not ways it doesn't. This bias is amplified when the reviewer agent can see that a previous agent already approved the content.
 
 **How to avoid:**
-- Never ship AI-generated content without step-by-step derivation verification by a physics-literate reviewer
-- Structure content so every formula has a unique ID; run automated LaTeX/dimensional analysis checks to catch unit errors and obvious wrong-sign issues
-- Build a review workflow into the content pipeline with explicit sign-off states (Draft → Under Review → Approved) — not optional
-- Use the knowledge graph itself as a consistency check: if concept B derives from concept A, the derivation in B's module must be consistent with the statement in A's module
-- Consider a separate "accuracy flag" feature for early users to report errors (even before community features are built — simple email/form link)
+- Run reviewer agents in parallel, not sequentially — each reviewer sees only the Author output, not the other reviewers' outputs, until all reviews are complete
+- Frame reviewer prompts adversarially: "Find at least one problem with this content" rather than "Does this content meet the criteria?" — require reviewers to produce a specific objection before they can recommend approval
+- Include an explicit "override confidence" field: reviewers must rate their confidence in each approval, and the gate only passes if all reviewers report HIGH confidence
+- Cap automatic approval: even if all agents pass, content above EQF 4 requires human sign-off; only EQF 2-3 content can be fully automated
 
 **Warning signs:**
-- Derivations that skip steps ("it can be shown that...")
-- Formulae that don't reduce correctly in limiting cases (e.g., relativistic formula that doesn't reduce to Newtonian at v << c)
-- References to textbooks with page numbers that don't exist
-- Content that contradicts another node's established result
+- All four agents approve content on first pass in >80% of nodes (baseline pass rate should be lower; high first-pass rate suggests lenient reviews)
+- Physics Reviewer and Pedagogy Reviewer have identical objection lists (they are duplicating rather than complementing each other)
+- Student Simulator always reaches the correct answer — it should sometimes fail (indicating it is not genuinely simulating a struggling student)
 
-**Phase to address:** Content pipeline phase — establish the review workflow before generating any publishable content. Do not merge the first batch of AI-generated lessons without the review gate in place.
+**Phase to address:** Agent pipeline design phase — the adversarial prompting strategy and parallel execution architecture must be established before running the pipeline on any pilot content. Retrofitting reviewer independence after seeing sycophantic behavior is difficult because the pipeline structure reinforces the pattern.
 
 ---
 
-### Pitfall 5: Gamification That Trains Streak-Completion Rather Than Physics Learning
+### Pitfall 5: Content Migration That Breaks the Existing 16 Modules
 
 **What goes wrong:**
-Users optimize for the reward loop, not the learning outcome. Common failure modes: users click through quizzes to maintain streaks without reading content; XP farming via easiest concepts; streak anxiety causes users to rush reviews rather than think carefully. Research shows gamification reliably boosts participation but often increases external motivation at the expense of intrinsic curiosity. The "gamification is a double-edged sword" critique of Duolingo applies directly: users forget why they're playing and just play to avoid losing.
+The v1.1 milestone introduces a new structured 7-phase content format alongside the existing flat format (motivation, derivation, intuition, examples, quizzes, misconceptions). Migration approach options are: (a) migrate all 16 existing modules at once, (b) run both formats in parallel indefinitely, (c) incrementally migrate while shipping new content in the new format. Option (a) is risky: the 16 existing modules represent proven, reviewed content and a full migration can introduce regressions in quiz logic, spaced repetition state, and graph linkages. Option (b) creates indefinite maintenance debt. Option (c) requires the database schema to support both formats simultaneously and the Learning Room UI to render both.
+
+The specific risk: migrating existing content into the 7-phase format requires artificially creating Phase 1 (Productive Struggle) content for concepts that don't have it. Generating struggle problems for existing modules exposes the Pitfall 1 problem above. A bad struggle problem injected into an existing, working module is strictly worse than leaving the module in flat format.
 
 **Why it happens:**
-Gamification metrics (DAU, streak length) look healthy while the underlying learning outcomes degrade. The metrics that matter (did users actually understand the physics?) are harder to measure and lag by weeks.
+There is natural pressure to "modernize" existing content once the new format exists. Product instinct says "everything should be in the new format." The risk is that content migration is treated as a formatting task when it is actually a pedagogical redesign task.
 
 **How to avoid:**
-- Tie XP and mastery level progression to demonstrated understanding, not mere completion. Specifically: XP for a concept should require passing a quiz above a threshold score, not just opening the page
-- Streak should count "engaged sessions" (min 5 minutes + at least one quiz attempt) not page views
-- Add friction-with-purpose: don't allow advancing mastery level on a concept until spaced repetition confirms retention across at least two review sessions
-- Design the "bronze → silver → gold" mastery system so gold genuinely requires deep engagement, not just repetition
-- Monitor the ratio of quiz attempts to quiz passes per user — sudden drops signal gamification gaming
+- Use the expand-and-contract migration pattern: add new schema fields alongside old ones (nullable), deploy UI that renders new fields if present and falls back to old format if not, then migrate content incrementally
+- Treat each existing module migration as a full content authoring task (with all four agent reviews), not a reformatting task
+- Ship 3-5 fully new pilot nodes in the 7-phase format before migrating any existing content — validate the format works in production before applying it to proven content
+- Keep the 16 existing modules in flat format and serving users throughout v1.1; declare them "Phase 0 content" that will be migrated in a future milestone only when struggle problems can be rigorously validated
 
 **Warning signs:**
-- High DAU + streak metrics but quiz pass rates declining over time
-- Users with long streaks performing poorly on new related concepts (transfer failure)
-- Average session duration decreasing while XP-per-session increases (speed-running)
+- A migration PR that touches quiz table foreign keys without a corresponding data audit
+- "Migrated" content where Phase 1 is a verbatim copy of the existing derivation section (not a genuine struggle problem)
+- FSRS review history being reset during migration (loss of user learning data)
+- Learning Room UI shows blank sections for migrated content (old field names still referenced in frontend)
 
-**Phase to address:** Gamification design phase — bake learning-outcome alignment into the XP/mastery formulas before launch. Retrofitting reward structures after users have formed habits is very hard.
+**Phase to address:** Database schema + migration strategy phase — decide the coexistence approach before writing a single line of schema migration. The schema must accommodate both formats from day one, and that decision must be explicit and recorded.
 
 ---
 
-### Pitfall 6: WASM Bundle Size Making Initial Load Unusable
+### Pitfall 6: Quality Gate Automation That Produces Overconfident PASS Signals
 
 **What goes wrong:**
-A Rust/Leptos app compiled to WASM with debug settings or without size optimization can easily produce 5-15 MB WASM binaries. Initial page load stalls, especially on mobile connections. Physics simulations may pull in large crates (nalgebra, rapier2d) that add hundreds of KB even in release mode. The regex crate alone adds ~500 KB due to Unicode tables.
+The quality gate checklist (scientific accuracy, pedagogical design, cognitive load) is implemented as a set of LLM-evaluated criteria that each return PASS/FAIL. The gate reports PASS when all criteria pass. This creates a false sense of rigor: the LLM evaluators are prone to false positives (reporting PASS when the criteria are not truly met) particularly for subjective criteria like "cognitive load is appropriate" and "wonder hook is specific to this exact concept."
+
+Research on LLM-as-judge systems (EvidentlyAI, 2025) confirms that LLM judges "sound confident but can be wrong" and that false confidence goes unchecked in automated pipelines. For educational content, a false-positive quality gate is strictly worse than no quality gate, because it creates false assurance that unreviewed content has been validated.
 
 **Why it happens:**
-Rust's generic monomorphization produces multiple copies of generic functions. Unused crate features are compiled in by default. Developers test on fast local machines, miss the real-world load time until late.
+Quality gates are designed to reduce human review burden. The temptation is to treat a fully-automated gate as equivalent to human review for throughput purposes. The criteria that are hardest to automate (pedagogical appropriateness, domain of applicability stated correctly) are the same criteria most likely to be rated as PASS by an LLM judge even when they fail.
 
 **How to avoid:**
-- Establish a size budget from day one: target < 1 MB compressed WASM for the shell; simulation modules can be lazy-loaded
-- Configure `wasm-release` profile with `opt-level = 'z'`, `lto = true`, `codegen-units = 1`, `panic = 'abort'`
-- Run `wasm-opt -Oz` as part of every release build (Trunk handles this automatically)
-- Serve compressed WASM (Brotli or gzip) — WASM compresses to < 50% of its uncompressed size
-- Code-split: load physics simulation WASM modules on-demand when the user navigates to a concept with a live simulation, not on initial page load
-- Audit `Cargo.toml` features: `default-features = false` on large crates, enable only what is used
+- Separate mechanical checks (automated, high confidence) from judgment checks (LLM-assisted, requires human sign-off):
+  - Mechanical: LaTeX dimensional consistency, prerequisite node references exist in graph, all required YAML fields present, word count in range, wonder hook does not contain the answer to the wonder question
+  - Judgment: Is the struggle problem at the right difficulty level? Is the concreteness fading direction correct? Is cognitive load appropriate?
+- Calibrate the LLM judge against a human-annotated gold set of 20-30 nodes (10 correct, 10 with known errors) — publish the TPR/TNR before trusting automated gates for any production content
+- Randomly sample 10% of all auto-approved content for human audit each week; use audit results to update the calibration set
 
 **Warning signs:**
-- Release WASM binary > 2 MB uncompressed
-- Lighthouse performance score < 50 on first load
-- Time-to-interactive > 4 seconds on a simulated 4G connection
+- Quality gate pass rate > 90% on first submission (this is too high for novel AI-generated content)
+- All checklist items pass for a node that contains a known error you injected as a test
+- Checklist items that are worded as "does this seem appropriate?" rather than "is X field present and non-empty?"
 
-**Phase to address:** Foundation phase — set up the build pipeline with size measurement from the very first build. Add a CI check that fails if WASM size exceeds budget.
+**Phase to address:** Quality gate design phase — design the mechanical/judgment split before implementing any checks. The calibration protocol (gold set, TPR/TNR measurement) should be part of the pilot node authoring phase.
 
 ---
 
-### Pitfall 7: Knowledge Graph Schema Too Rigid for Future Physics Branches
+### Pitfall 7: Template Over-Specification Making Content Feel Formulaic
 
 **What goes wrong:**
-Classical mechanics is built as v1, but the schema encodes assumptions specific to mechanics (e.g., node types: Force, Energy, Motion). When adding electromagnetism or quantum mechanics, node types don't map cleanly, edges mean different things (mathematical vs. physical derivation vs. approximation vs. model), and the entire graph structure needs migration. The content-agnostic requirement in the spec is not automatically satisfied by building "works for mechanics."
+The 7-phase content spec is rigorous and research-backed, but if the YAML template encodes every requirement as a mandatory field with strict character limits, every node will have the same rhythm, same structure, same feel. Learners who complete multiple nodes will notice the predictable pattern and stop engaging with each phase genuinely — the "wonder hook" becomes formulaic, the "schema activation prompt" becomes boilerplate. The content achieves pedagogical form compliance without pedagogical substance.
+
+This is the opposite pitfall from under-specification: the template is so constraining that AI agents (and human authors) optimize to fill the fields rather than to serve the learner.
 
 **Why it happens:**
-It's easier to build for the known case. Abstractions that work across physics branches (which have fundamentally different mathematical structures) require upfront design work that doesn't show visible progress.
+Machine-readable templates must be complete and unambiguous to be processable by AI agents. The pressure to close all ambiguity for automated processing fights directly against the need for creative variation that keeps content engaging.
 
 **How to avoid:**
-- Define a content-agnostic graph schema before writing any content: Node(id, type, metadata), Edge(source, target, relationship_type, metadata) where relationship_type is a controlled vocabulary (prerequisite, derives_from, approximates, applies_to, generalizes)
-- Node types should be pedagogical, not physics-domain-specific: Concept, Formula, Theorem, Application, Prerequisite rather than Force, Law, Equation
-- Write one "future branch stub" (e.g., 3 electromagnetism nodes) during the schema design phase to validate that the schema generalizes before locking it in
-- Store domain/branch as a metadata tag on nodes, not as a structural constraint
+- Distinguish required vs. recommended fields: required fields are those that enable automated QA checks (prerequisites, EQF level, Bloom minimum); recommended fields allow variation (wonder hook format, struggle problem framing)
+- Define the required properties of each phase (what it must accomplish, what it must not do) rather than its form (how it should look)
+- The wonder hook requirement should be: "resolves a real phenomenon specific to this node's central concept AND does not contain the answer" — not "must be 90 seconds long, written in second person, and framed as a historical anecdote"
+- After authoring the pilot nodes, compare them side-by-side and ask: do they feel different from each other? If they are structurally identical, the template is over-specified.
 
 **Warning signs:**
-- Schema has node types named after classical mechanics concepts
-- Adding a second branch requires a database migration
-- Graph queries use branch-specific field names
+- AI agents produce nodes that are structurally identical but with different physics topics substituted in
+- Every wonder hook follows the same narrative structure (e.g., all start with a historical date)
+- Character count limits are consistently hit exactly at the maximum (agents are filling to the limit, not to the content need)
+- Authors (human or AI) ask "can I write it differently?" and the template has no way to accommodate the variation
 
-**Phase to address:** Architecture/data model phase — design the schema before adding any content, and explicitly validate it generalizes before finalizing.
+**Phase to address:** Content spec design phase — write three pilot nodes manually before finalizing the template, and use the variation (or lack thereof) to calibrate how prescriptive each field should be.
 
 ---
 
-### Pitfall 8: Physics Simulation Numerical Instability at Educational Parameter Extremes
+### Pitfall 8: Agent Pipeline Latency and Cost Making Iteration Impractical
 
 **What goes wrong:**
-Students exploring simulations will push parameters to extremes: very high mass, very low damping, nearly-zero spring constants, extreme initial velocities. Standard Euler integration becomes unstable at large time steps or extreme parameters, producing explosive oscillations or NaN positions. Mass-spring systems require small time steps to stay stable, which conflicts with real-time performance at 60fps. The result: simulations that "break" and display chaotic behavior, which is confusing and undermines trust in the educational platform.
+A 4-agent review pipeline (Author → Physics Reviewer → Pedagogy Reviewer → Student Simulator) with feedback loops runs multiple long-context LLM calls per node. For a single node, this could easily require 8-12 API calls, each processing 2000-5000 tokens of context. At GPT-4 class pricing (mid-2025), the per-node cost could reach $0.50-$2.00 and the wall-clock time 3-8 minutes. If the pipeline requires multiple revision cycles (Author revises, reviewers re-check), a single node could cost $5-10 and take 20 minutes.
+
+For a platform that needs to author hundreds of nodes, this cost is manageable. But if the pipeline is slow and expensive to iterate on, the content spec and prompt engineering will not get enough revision cycles during the pilot phase. Teams accept the first working version rather than improving it.
 
 **Why it happens:**
-Developers test with physically realistic parameters. Learners don't know what "realistic" means yet — that's why they're learning.
+Pipeline cost and latency are non-obvious during design. A demo that runs one node successfully masks the iteration cost. The expense becomes apparent only when the team runs 10 pilot nodes and receives feedback requiring substantial prompt revisions.
 
 **How to avoid:**
-- Use symplectic integrators (Verlet, leapfrog) instead of Euler — they conserve energy and are stable at larger time steps
-- Clamp parameter inputs to stable ranges and show users why (teach them about physical constraints as part of the UI)
-- Add NaN/Inf guards in the simulation loop; if detected, reset to last stable state with a user-visible message
-- Test all simulations with parameter values 10x outside the "expected" range before shipping
-- Consider rapier2d (Rust, WASM-ready) for rigid body simulations rather than rolling custom integrators
+- Use a tiered model strategy: Author and Student Simulator run on a fast/cheap model (Claude Haiku or GPT-4o-mini); only Physics Reviewer and Pedagogy Reviewer run on the high-capability model
+- Cache Author outputs: if the content has not changed, do not re-run reviewer agents
+- Design the pipeline to support partial re-runs: if Physics Reviewer passes but Pedagogy Reviewer fails, re-run only Pedagogy Reviewer after revision
+- Set a per-node budget ceiling and monitor it from the first pilot run; alert if a node exceeds 2x the expected token count
+- Run pilot nodes asynchronously (offline batch) rather than synchronously in the browser; content authoring is not a user-facing real-time operation
 
 **Warning signs:**
-- Simulation positions growing unboundedly over time with default parameters
-- NaN values in any output field
-- Simulation that works at 60fps but breaks at 30fps (time-step-dependent behavior)
+- Single pilot node costs > $2 or takes > 10 minutes end-to-end
+- All 4 agents are running the same large model (unnecessary for Author and Student Simulator roles)
+- Pipeline has no resume/partial-run capability (any failure requires starting over)
+- Prompt engineering iterations require full pipeline re-runs (no way to test a single agent in isolation)
 
-**Phase to address:** Simulation engine phase — integrate stability measures before wiring simulations to user-adjustable controls.
+**Phase to address:** Agent pipeline architecture phase — establish the model tiering strategy and async execution model before writing any agent prompts. Budget monitoring must be in place from the first pilot run.
+
+---
+
+### Pitfall 9: Node Metadata Schema That Cannot Represent the Didactic Requirements
+
+**What goes wrong:**
+The node metadata schema is designed to satisfy the database relationship requirements (EQF level, prerequisites, Bloom minimum) but does not capture the information the AI authoring agents need to produce content correctly. Specifically: if the schema does not record which misconceptions this node addresses, the Author agent cannot write the Phase 0 wonder hook to implicitly activate and then correct the misconception. If the schema does not record the domain of applicability (e.g., "this formula assumes point masses"), the Physics Reviewer agent cannot check whether the derivation states it.
+
+The result is a schema that is technically complete but pedagogically incomplete — it can store content but cannot guide its creation.
+
+**Why it happens:**
+Database schema design is driven by query requirements (what can I look up?) not authoring requirements (what information does an author need?). The two requirements overlap but are not identical.
+
+**How to avoid:**
+- Before finalizing the schema, write the full system prompt for each agent — then audit the schema to ensure every piece of information those prompts reference is a queryable field
+- Required metadata for the authoring pipeline: `misconceptions` (list, not free text), `domain_of_applicability` (list of stated assumptions), `known_student_errors` (from physics education research), `wonder_question` (the specific question the node resolves)
+- The pilot node authoring exercise will surface missing metadata fields — run it before declaring the schema stable
+
+**Warning signs:**
+- Agent system prompts contain phrases like "use your judgment about..." for information that could be a schema field
+- The same information is regenerated by the Author agent in every run (it is not being read from the schema)
+- Physics Reviewer cannot check domain of applicability because the stated assumptions are not in any structured field
+
+**Phase to address:** Database schema + metadata design phase — write agent system prompt drafts before finalizing the schema. Any field that an agent references should exist in the schema.
 
 ---
 
@@ -202,13 +244,13 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store graph layout positions in frontend state only | Fast to implement | Can't share user's graph view state, can't precompute server-side | Never: layout must be persistable from day one |
-| Use SVG for graph rendering | Easy with D3, good dev tooling | Collapses at 300+ nodes, requires rewrite to Canvas/WebGL | Only for prototyping, never ship to production |
-| Skip spaced repetition and use simple interval (review every N days) | Simpler code | Lower retention effectiveness, undermines core value prop | Only during MVP before SRS data is collected |
-| Ship AI content without review gate | Fast content creation | Physics errors undermine user trust permanently | Never |
-| Hardcode classical mechanics node types in schema | Saves 1-2 days of design | Migration cost when adding second branch is weeks | Never: cost is low upfront, high if deferred |
-| Run graph layout on main thread | Simpler code | UI freeze on graphs > 200 nodes | Only during early prototype with < 50 nodes |
-| Debug WASM builds in production | Easier debugging | 5-10x larger binary, unacceptable load time | Never in production |
+| Migrate existing 16 modules to 7-phase format as a formatting task | Fast migration, consistent UI | Bad struggle problems injected into proven content; regressions in quiz logic | Never — each migration is a full authoring task |
+| Run all four agents on the same large model | Simple to implement | 3-5x higher cost than tiered approach; slower iteration | Only for proof-of-concept; never for production pipeline |
+| Implement quality gate as a single LLM "does this pass?" call | Simple, fast | Near-100% pass rate; false assurance; no actionable failure reasons | Never — mechanical and judgment checks must be separated |
+| Skip the gold-set calibration for the LLM judge | Saves 2-3 days | No way to know if quality gate is meaningful; can't justify "approved" status | Never — calibration is required before production use |
+| Store content in Markdown blobs without phase-tagged structure | Simpler schema | Cannot run per-phase automated checks; cannot selectively re-run agents for one phase | Only for prototype; never for content that will be served to users |
+| Expose the 7-phase content format directly as API response | Simpler API | Frontend tightly coupled to content structure; hard to A/B test phase formats | Only in v1.1 while single format; add versioning layer before adding a second format |
+| Allow agents to communicate their outputs before all finish | Can produce synthesized review | Leads to sycophancy — agents converge on the first agent's assessment | Never — parallel independent review, then merge |
 
 ---
 
@@ -216,12 +258,12 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| wasm-bindgen + async | Holding `&mut` references across `await` — triggers "recursive use" panic | Separate mutation from async: clone data, await, then apply result |
-| wasm-bindgen + JS frameworks (Leptos) | Using rand/getrandom without enabling the JS backend — build succeeds but panics in browser | Enable `getrandom` with `features = ["js"]` in Cargo.toml; verify in WASM target explicitly |
-| LLM content generation + physics | Generating derivations in one LLM call — high hallucination rate for multi-step math | Break into smaller calls: generate outline, then each derivation step separately; verify each step |
-| Spaced repetition + gamification streaks | Letting streak maintenance override SRS due dates — users review cards before they're due | SRS schedule is authoritative; streaks count only valid SRS reviews (at or after due date) |
-| Graph DB + content CMS | Storing rich educational content (markdown, LaTeX, code) inside graph node properties — creates schema bloat and query performance issues | Graph stores structure (relationships, metadata); content stored in a separate document store keyed by node ID |
-| Force-directed layout + WASM | Running D3 force simulation in JS while WASM handles rendering — crossing the boundary per frame | Either run both in JS (simple graphs) or both in WASM (complex graphs); avoid per-frame JS↔WASM calls |
+| LLM content pipeline + PostgreSQL schema | Storing full agent outputs as JSON blobs; losing structured data | Each agent has a typed output schema; map outputs to specific schema fields; store raw output separately for debugging only |
+| YAML content template + Rust deserialisation | Using `serde_yaml` with strict deserialisation; template evolution breaks existing files | Use `#[serde(default)]` on all optional fields; version the schema; write migration tests for every schema change |
+| Multi-agent pipeline + prompt engineering | Writing all agent prompts before seeing any actual output | Write one agent at a time, verify output quality, then write the next — agent outputs are inputs to downstream agents |
+| Existing flat content + new 7-phase schema | Adding NOT NULL columns to the existing `content` table | Add all new phase columns as nullable; use a `content_version` discriminator; render old format for `version=1` nodes |
+| Quality gate automation + production deployment | Treating auto-approved content as equivalent to human-reviewed | Maintain a separate `review_status` field (`ai_approved` ≠ `human_approved`); production UI can flag `ai_approved` content |
+| AI agent pipeline + FSRS review data | Regenerating content without preserving user review history linkages | Content updates must preserve node IDs; never delete and re-insert when updating; use content versioning with a stable node key |
 
 ---
 
@@ -229,25 +271,11 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Force-directed layout on main thread | UI locks during layout convergence; jank on pan/zoom | Compute layout in Web Worker; pre-cache positions | 200+ nodes |
-| SVG node rendering for graph | Scroll/zoom becomes frame-rate limited; image nodes cause "slow motion" effect | Use Canvas or WebGL renderer | 100-300 nodes |
-| Per-frame JS↔WASM data marshalling | Animation stutter even with fast Rust simulation | Keep simulation state entirely in WASM; only push render data to JS once per frame | 60fps target with >100 simulation objects |
-| Loading all WASM simulation modules at startup | 3-8 second initial page load; Lighthouse score tanks | Lazy-load simulation WASM per concept page | At first deployment without lazy loading |
-| Uncompressed WASM in production | 5-15 MB transfer; mobile users bounce | Serve Brotli-compressed WASM; enable wasm-opt in CI | Every deployment without compression |
-| Rendering all graph edges even off-viewport | Constant per-frame cost proportional to total edge count | Viewport culling; hide edges on zoom/pan (Cytoscape `hideEdgesOnViewport`) | 500+ edges |
-| Eager loading full concept content per node | GraphQL/REST cost scales with graph size on load | Paginate: load node summaries on graph view, full content only on node click | 100+ concepts |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Trusting client-reported XP/progress values | XP farming via API manipulation; leaderboard corruption | All XP grants computed server-side based on server-verified quiz results; client sends answers, server computes score and awards XP |
-| Running user-submitted code (Python/JS snippets) without sandboxing | Code execution on server or XSS in browser | Run user code in an iframe sandbox with `sandbox` attribute + CSP; never eval in main context |
-| Storing streak/gamification state only in JWT claims | Clients can forge streak values in modified tokens | Streak state lives in database; JWT only carries user ID; server authoritative on all gamification state |
-| AI content pipeline with prompt injection | Malicious content in user-provided inputs could poison content generation prompts | Never use user inputs directly in content generation prompts; separate user-facing and content-generation paths entirely |
-| WASM module from CDN without subresource integrity | Malicious CDN serves modified simulation module | Host WASM files yourself or use SRI hashes; never load WASM from uncontrolled CDN |
+| Synchronous 4-agent pipeline per content request | 3-8 min blocking call; timeouts in web context | Run pipeline async/offline; content authoring is a background job, not a real-time API | First time a reviewer calls the pipeline from a UI button |
+| Full context (all previous agent outputs) passed to each reviewer | Token count grows quadratically with number of agents and revision cycles | Each reviewer sees Author output + their own rubric only; merge step sees all reviews | 3+ revision cycles on a single node |
+| Re-running all agents on every revision | 4x cost per revision cycle | Partial pipeline re-runs: cache passing agent results, re-run only failing agents | First revision cycle in development |
+| Loading all 7 phases of content simultaneously | Page load time increases with node length | Progressive phase loading: render Phase 0, lazy-load subsequent phases as user advances | Nodes with long derivations and multiple worked examples |
+| Running pilot nodes on production LLM API | Expensive iteration during prompt engineering | Use a local/cheaper model for prompt engineering; switch to production model for final pipeline validation | First prompt engineering sprint |
 
 ---
 
@@ -255,28 +283,27 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Showing full knowledge graph on first visit | Cognitive overload; beginners can't orient themselves in 300+ node graph | Default view: show user's current branch only (classical mechanics), starting from entry point; full graph is "explore" mode |
-| Streak punishment without grace periods | Anxiety, guilt, churn when users miss one day | Grant one free streak freeze per week; explain the mechanism upfront; frame streaks as positive not punitive |
-| Physics simulations with default "boring" parameters | Users don't discover interactivity | Default parameters should show interesting behavior immediately (not equilibrium); add "try this" prompts for surprising regimes |
-| Quiz questions that test memorization over understanding | Users memorize answers; mastery level becomes meaningless | Quiz on conceptual reasoning and transfer to new scenarios, not formula recitation; randomize numerical values |
-| Knowledge graph with no entry point guidance | Beginners don't know where to start; graph feels like a maze | Always show a "Start Here" path for new users; hide advanced nodes (leaves/frontier) until prerequisites are complete |
-| Mastery level that resets without warning | Loss aversion triggers churn | Never reset mastery; allow decay (partial dimming) that is recoverable; communicate the mechanic clearly before it happens |
-| Step-by-step derivations shown all at once | Eliminates the "aha" moment; reduces cognitive engagement | Progressive reveal: hide each step behind a "show next step" button; require prediction before reveal |
+| Showing users "AI-generated content" label | Undermines trust before content quality is evaluated | Label content by review status (Reviewed, Expert-checked) not by generation method |
+| Phase sequence that allows skipping | Learners skip struggle phase; Productive Failure mechanism never activates | Phase gates: Phase 1 must be submitted before Phase 2 is visible; cannot skip backward |
+| Wonder hook that spoils the answer | No motivation to continue; hook fails its purpose | Quality gate check: the wonder question must remain explicitly unanswered at end of Phase 0 |
+| Progress indicator showing "7 phases" upfront | Cognitive overload; learners feel the task is long before starting | Show current phase only; reveal next phase at completion; do not show total phase count |
+| Struggle problem with a right-answer submit button | Learners treat it as a test, not exploration; fear of failure overrides productive struggle | Phase 1 ends with "Show Solution" button, not "Submit Answer"; frame as exploration, not assessment |
+| Worked examples with all steps visible simultaneously | Eliminates the step-by-step learning mechanism | Progressive reveal per step; each step requires active "show next step" click before continuing |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Graph navigation:** Often missing keyboard accessibility (tab focus, arrow navigation) — verify with keyboard-only navigation test
-- [ ] **Spaced repetition:** Often missing handling of the "overdue by a long time" edge case — verify SM-2 overdue card scheduling produces sensible intervals (not 1 year from a 2-year gap)
-- [ ] **Physics simulations:** Often missing parameter reset button — verify every simulation has a "reset to defaults" action
-- [ ] **AI content pipeline:** Often missing the review workflow state machine — verify content cannot be served to users without an explicit Approved status
-- [ ] **Gamification XP:** Often missing server-side verification — verify XP grants are computed server-side; replaying API calls should not double-award XP
-- [ ] **Knowledge graph schema:** Often missing the second-branch validation — verify at least one non-mechanics branch stub can be added without schema migration
-- [ ] **WASM builds:** Often missing CI size check — verify WASM binary size is measured and reported in every CI run
-- [ ] **Streaks:** Often missing timezone handling — verify streak calculation uses user's local timezone, not server UTC
-- [ ] **Mastery levels:** Often missing decay visualization — verify that partially-decayed mastery shows clearly in the botanical metaphor without alarming users
-- [ ] **Content modules:** Often missing LaTeX rendering fallback — verify that if the LaTeX renderer fails to load, equations degrade gracefully (plain text, not broken markup)
+- [ ] **Content spec:** Template defined, but not yet validated end-to-end — verify that all 7 phase fields can be fully populated for at least one EQF 2 and one EQF 5 node without artificial padding
+- [ ] **Agent pipeline:** Four agents run, but not verified independently — verify Physics Reviewer and Pedagogy Reviewer can and do disagree; inject a known error and confirm it is caught
+- [ ] **Quality gate:** Checklist implemented, but calibration not done — verify the gate rejects at least one node with a known pedagogical error from a gold test set
+- [ ] **Database schema:** Phase columns added, but migration not tested on existing data — verify all 16 existing modules load correctly in the Learning Room after schema migration
+- [ ] **Content template:** YAML format defined, but Rust deserialisation not verified — verify `serde_yaml` round-trips all fields including LaTeX math blocks (backslashes are YAML escape hazards)
+- [ ] **Struggle problem:** Generated and included, but pedagogical property not verified — verify each struggle problem cannot be solved by a learner who has only completed the listed prerequisite nodes
+- [ ] **Concreteness fading:** Phases present, but order not enforced structurally — verify Phase 2 always presents concrete stage before abstract stage, detectable by opening-sentence check
+- [ ] **Student Simulator:** Agent runs, but simulates a high-performer — verify simulator sometimes fails Phase 1, sometimes requests clarification, not always succeeds on first attempt
+- [ ] **Review workflow state machine:** State field exists in schema, but transitions not guarded — verify content in `Draft` state cannot be served to learners via any API route
+- [ ] **LLM cost tracking:** Pipeline runs, but no per-node cost logging — verify token count and estimated cost are logged for each agent call from the first pilot run
 
 ---
 
@@ -284,13 +311,14 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| wasm-bindgen ownership crashes in production | MEDIUM | Audit all `#[wasm_bindgen]` consuming functions; add JS wrapper guards that null-check before use; targeted fix per crash site |
-| Graph visualization rewrite (SVG → WebGL) | HIGH | Plan for 2-3 week rewrite sprint; data layer is unaffected; only render layer changes if separation was clean |
-| AI content errors discovered post-launch | HIGH | Pull affected content immediately; publish correction notice; build automated consistency checks retroactively; conduct full audit of related nodes |
-| Gamification redesign (reward structure misaligned) | HIGH | Communicate changes as "improvements" to users; never take away earned XP; adjust earn rates going forward; expect temporary churn during transition |
-| WASM bundle too large (missed size budget) | MEDIUM | Audit crate features with `cargo bloat`; enable code splitting; implement lazy loading; 1-2 week effort if architecture supports it |
-| Physics simulation instability at extreme parameters | LOW | Add parameter clamping UI; add integration stability guards; fix is localized to simulation module |
-| Knowledge graph schema migration for second branch | HIGH (if deferred) | Full DB migration, code changes throughout; 2-4 weeks; prevention is 2 days upfront |
+| Bad struggle problems in produced content | HIGH per node | Rebuild struggle problems with human author; treat each rebuild as a full authoring task; do not patch with AI revision |
+| Physics errors discovered post-deployment | HIGH for trust | Remove content immediately; publish correction notice on affected node page; full audit of all nodes authored in same pipeline run |
+| Sycophantic reviewers approving bad content | MEDIUM | Re-run all agents with adversarial prompting; audit all previously auto-approved content; recalibrate gold set |
+| Concreteness fading order violations across content | MEDIUM | Automated scan: find all Phase 2 blocks where abstract stage precedes concrete stage; flag for human review; fix is authoring task |
+| Over-migrated existing content with regression | HIGH | Roll back migration; restore from pre-migration backup; re-plan migration as full authoring tasks |
+| Quality gate producing false assurance | HIGH | Conduct full human audit of all auto-approved content; publish correction notice; recalibrate gate against expanded gold set |
+| Template too rigid — all nodes sound identical | MEDIUM | Loosen non-functional constraints; re-author 20-30% of nodes with creative variation; treat as authoring effort, not bug fix |
+| Agent pipeline cost overrun | LOW | Switch non-critical agents to cheaper model tier; enable caching; pause production pipeline until budget reviewed |
 
 ---
 
@@ -298,38 +326,37 @@ Developers test with physically realistic parameters. Learners don't know what "
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| wasm-bindgen ownership crashes | Phase 1 (Foundation / WASM setup) | Test harness with consuming + async functions before any production code uses them |
-| Mutable reference aliasing across async | Phase 2 (Simulation engine) | Integration test: fire two rapid async calls while mutable ref is held; expect clean behavior |
-| Graph rendering performance collapse | Phase 1 (Graph foundation) | Benchmark with 500 nodes + 1000 edges before shipping any content |
-| AI content errors | Phase 3 (Content pipeline) | Review workflow gates: zero content in production without Approved status |
-| Gamification misalignment | Phase 4 (Gamification) | Validate that XP per concept requires quiz pass, not just page view |
-| WASM bundle size | Phase 1 (Build pipeline) | CI check: fail if WASM exceeds 1 MB compressed |
-| Rigid knowledge graph schema | Phase 1 (Data model) | Manually add 3 non-mechanics nodes; confirm no migration needed |
-| Simulation numerical instability | Phase 2 (Simulation engine) | Automated fuzz test: run all simulations with 10x max parameter values; assert no NaN/Inf |
-| Streak dark patterns | Phase 4 (Gamification design) | Design review checklist before implementation; add grace period + clear communication |
-| Cognitive overload on graph first view | Phase 5 (UX / Onboarding) | User test with 5 physics-naive users; verify they can identify their starting point within 60 seconds |
+| Productive struggle problems not meeting PF criteria | Content spec design (before authoring) | Gold-set test: 5 struggle problems rated by physics expert for PF compliance; pass ≥ 4/5 |
+| AI physics errors (wrong signs, missing assumptions) | Quality gate design + pilot node phase | Inject 3 known errors into pilot content; all 3 must be caught before pipeline is used for production |
+| Concreteness fading reversed | Content template design | Automated check: Phase 2 opener never begins with a LaTeX block; verified on all pilot nodes |
+| Sycophantic multi-agent review | Agent pipeline architecture | Conflict rate test: Physics and Pedagogy reviewers must disagree on ≥ 20% of draft nodes in pilot |
+| Content migration breaking existing modules | Database schema phase | All 16 existing modules render correctly in Learning Room after schema migration; zero quiz regressions |
+| Quality gate false positives | Quality gate calibration | Gold set TPR ≥ 0.90, TNR ≥ 0.85 against human-annotated test set before production use |
+| Template over-specification | Pilot node authoring phase | 5 pilot nodes reviewed side-by-side; must show structural variation; if identical, loosen constraints |
+| Agent pipeline cost/latency | Pipeline architecture phase | Per-node cost ceiling defined; first pilot run logs token counts; alert if > 2x expected |
+| Incomplete node metadata for agent prompts | Schema + agent design phase | Agent system prompts audited; every information reference maps to a queryable schema field |
+| Production serving of unreviewed content | Review workflow state machine | API integration test: content in `Draft` status returns 404 or appropriate error from content API route |
 
 ---
 
 ## Sources
 
-- [How to crash your software with Rust and wasm-bindgen (Ross Gardiner, 2025)](https://www.rossng.eu/posts/2025-01-20-wasm-bindgen-pitfalls/) — HIGH confidence: official post-mortem with specific error messages
-- [Rust + WebAssembly Performance: JavaScript vs. wasm-bindgen vs. Raw WASM](https://medium.com/@oemaxwell/rust-webassembly-performance-javascript-vs-wasm-bindgen-vs-raw-wasm-with-simd-687b1dc8127b) — MEDIUM confidence: benchmarks, corroborated by wasm-bindgen issue tracker
-- [wasm-bindgen Issue #1119: Very poor Rust/WASM performance vs JavaScript](https://github.com/rustwasm/wasm-bindgen/issues/1119) — HIGH confidence: official issue tracker
-- [Optimizing WASM Binary Size — Leptos Book](https://book.leptos.dev/deployment/binary_size.html) — HIGH confidence: official documentation
-- [Leptos vs Yew vs Dioxus: Rust Frontend Framework Comparison 2026](https://reintech.io/blog/leptos-vs-yew-vs-dioxus-rust-frontend-framework-comparison-2026) — MEDIUM confidence: community analysis
-- [The Best Libraries for Large Force-Directed Graphs on the Web](https://weber-stephen.medium.com/the-best-libraries-and-methods-to-render-large-network-graphs-on-the-web-d122ece2f4dc) — MEDIUM confidence: practical benchmarks with node counts
-- [Cytoscape.js Performance Optimization](https://deepwiki.com/cytoscape/cytoscape.js/8-performance-optimization) — HIGH confidence: library documentation
-- [Visualizing Large Knowledge Graphs: A Performance Analysis (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0167739X17323610) — HIGH confidence: peer-reviewed research
-- [Misconceptions in Physics Explainer Videos and the Illusion of Understanding (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8932681/) — HIGH confidence: peer-reviewed study
-- [It's 2026. Why Are LLMs Still Hallucinating? (Duke University Libraries)](https://blogs.library.duke.edu/blog/2026/01/05/its-2026-why-are-llms-still-hallucinating/) — HIGH confidence: recent institutional research
-- [A Better Spaced Repetition Algorithm: SM2+](https://www.blueraja.com/blog/477/a-better-spaced-repetition-learning-algorithm-sm2) — MEDIUM confidence: widely cited community analysis
-- [SM-2 Algorithm Too Aggressive on Overdue Cards](https://controlaltbackspace.org/overdue-handling/) — MEDIUM confidence: implementation post-mortem
-- [Duolingo Stinks: Gamification is a Double-Edged Sword](https://medium.com/@zag102/duolingo-stinks-gamification-is-a-double-edged-sword-2223d19142c0) — MEDIUM confidence: critical analysis of gamification outcomes
-- [The Psychology of Hot Streak Game Design (UX Magazine)](https://uxmag.com/articles/the-psychology-of-hot-streak-game-design-how-to-keep-players-coming-back-every-day-without-shame) — MEDIUM confidence: UX research
-- [Floating Point Determinism — Gaffer on Games](https://gafferongames.com/post/floating_point_determinism/) — HIGH confidence: canonical reference on physics simulation numerical issues
-- [Adaptive Learning is Hard: Challenges and Trade-offs (Springer)](https://link.springer.com/article/10.1007/s40593-024-00400-6) — HIGH confidence: peer-reviewed
+- [When Productive Failure Fails (Kapur, ResearchGate)](https://www.researchgate.net/publication/333005127_When_Productive_Failure_Fails) — HIGH confidence: peer-reviewed, directly relevant to PF design failure modes
+- [Productive Failure — Four Core Mechanisms (manukapur.com)](https://www.manukapur.com/productive-failure/) — HIGH confidence: primary researcher's own summary
+- [What Teachers Get Wrong About 'Productive Failure' (Education Week, 2024)](https://www.edweek.org/teaching-learning/what-teachers-get-wrong-about-productive-failure-and-how-to-get-it-right/2024/09) — MEDIUM confidence: secondary summary, corroborates primary research
+- [When Problem Solving Followed by Instruction Works: Evidence for Productive Failure (Sinha & Kapur, 2021)](https://journals.sagepub.com/doi/10.3102/00346543211019105) — HIGH confidence: 53-study meta-analysis
+- [Concreteness Fading in Mathematics and Science Instruction: A Systematic Review (Fyfe et al., 2014)](https://link.springer.com/article/10.1007/s10648-014-9249-3) — HIGH confidence: systematic review, foundational reference
+- [Learning with multiple external representations in physics: Concreteness fading versus simultaneous presentation (Lichtenberger et al., 2024)](https://onlinelibrary.wiley.com/doi/full/10.1002/tea.21947) — HIGH confidence: peer-reviewed physics-specific study
+- [Why Do Multi-Agent LLM Systems Fail? (Cemri et al., 2025, arXiv)](https://arxiv.org/html/2503.13657v1) — HIGH confidence: peer-reviewed, directly identifies sycophancy and information withholding as primary inter-agent failure modes
+- [Mitigating LLM Hallucinations Using a Multi-Agent Framework (MDPI, 2025)](https://www.mdpi.com/2078-2489/16/7/517) — MEDIUM confidence: confirms multi-agent debate reduces hallucination rate
+- [LLM-as-a-Judge: The Ultimate Guide for AI Developers (Comet.ml)](https://www.comet.com/site/blog/llm-as-a-judge/) — MEDIUM confidence: practitioner guide, verified against multiple independent sources
+- [LLM-as-a-judge: a complete guide to using LLMs for evaluations (EvidentlyAI)](https://www.evidentlyai.com/llm-guide/llm-as-a-judge) — MEDIUM confidence: practitioner guide with false-positive analysis
+- [Part 1: A Guide to Migrating to Structured Content (Paligo)](https://paligo.net/blog/part-one-a-guide-to-migrating-to-structured-content/) — MEDIUM confidence: content migration practitioner guide
+- [CMS migration: Step-by-step guide to incremental evolution (Uniform.dev)](https://www.uniform.dev/blogs/cms-migration-step-by-step-guide-to-incremental-evolution) — MEDIUM confidence: describes expand-and-contract migration pattern
+- [Common Challenges in Schema Migration (Medium, Furmanek)](https://medium.com/@adamf_64691/common-challenges-in-schema-migration-how-to-overcome-them-49ae26859c96) — MEDIUM confidence: practitioner analysis
+- [Student and AI responses to physics problems examined through the lenses of sensemaking and mechanistic reasoning (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S2666920X24001218) — HIGH confidence: peer-reviewed; confirms AI physics reasoning limitations
+- [Reducing Latency and Cost at Scale: LLM Performance (Tribe AI, 2025)](https://www.tribe.ai/applied-ai/reducing-latency-and-cost-at-scale-llm-performance) — MEDIUM confidence: practitioner analysis, corroborated by ZenML LLMOps report
 
 ---
-*Pitfalls research for: Interactive physics learning platform (PhysicsTree)*
-*Researched: 2026-03-17*
+*Pitfalls research for: AI-assisted content authoring pipeline + structured content specification (v1.1, PhysicsTree)*
+*Researched: 2026-03-27*

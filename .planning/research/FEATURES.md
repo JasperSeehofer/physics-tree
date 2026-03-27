@@ -1,8 +1,14 @@
 # Feature Research
 
-**Domain:** Interactive physics learning platform with gamification and knowledge graph
-**Researched:** 2026-03-17
-**Confidence:** HIGH (core gamification patterns), MEDIUM (knowledge-graph-specific), HIGH (physics education needs)
+**Domain:** Content architecture and AI authoring pipeline for educational physics platform
+**Researched:** 2026-03-27
+**Confidence:** HIGH (structured content patterns), HIGH (multi-agent review patterns), MEDIUM (pedagogy-to-schema mapping), MEDIUM (student simulator specifics)
+
+---
+
+## Scope Note
+
+This document covers the **v1.1 milestone**: content architecture, AI authoring pipeline, and Learning Room UI for the PhysicsTree platform. The v1.0 platform (graph, gamification, quizzes, FSRS) is already built. Features here address how to fill the skill tree with rigorously structured, pedagogically sound content at scale.
 
 ---
 
@@ -10,160 +16,155 @@
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = product feels incomplete.
+Features that any credible content architecture system must have. Missing these means the authoring pipeline is not production-ready.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| User accounts + auth | Every serious learning platform has persistent accounts; without accounts there is no progress to track | LOW | OAuth social login + email; password reset flow required |
-| Progress tracking dashboard | Users need to see what they've learned; invisible progress kills motivation | MEDIUM | Show concepts learned, mastery level per concept, time spent, XP earned |
-| Mastery levels per concept | Established by Khan Academy, Duolingo: "familiar → proficient → mastered" ladder is standard | MEDIUM | PhysicsTree uses bronze/silver/gold tied to plant growth — must communicate what each level means |
-| XP / points system | Standard since Duolingo normalised this in education; users expect a number that goes up | LOW | XP is the currency of engagement; must feel earned, not trivial |
-| Daily streaks | 10-day streak reduces drop-off significantly (Duolingo data); users expect the guilt loop | LOW | Include streak freeze mechanic to reduce rage-quit; Duolingo's freeze reduced churn 21% |
-| Quizzes / exercises per concept | Users cannot trust they've learned without testing; purely passive content feels insufficient | MEDIUM | Multiple question types: multiple choice, fill-in-formula, matching; adaptive difficulty |
-| Search / concept lookup | Users who know they want "Newton's second law" must be able to go directly there | LOW | Full-text search across concept names, descriptions, tags |
-| Responsive web design | Users expect to use on various screen sizes; mobile web is baseline | MEDIUM | Simulations are the hard part — touch interactions for parameter sliders need care |
-| Clear concept prerequisites shown | Physics is heavily prerequisite-dependent; users need to know "learn X before Y" | LOW | Show required prerequisites before unlocking a concept node |
-| Educational content per concept | Text explanation + at least one visualization; bare concept stubs feel incomplete | HIGH | Each node needs: motivation, definition, intuition, examples — this is content work at scale |
-| Interactive simulations | PhET has set the bar; physics education without interactable sims feels passive | HIGH | Parameter-tweakable, real-time response, visual feedback; WASM makes this feasible |
+| Machine-readable content template | Content must be parseable by tools and agents; hand-formatted prose does not scale | MEDIUM | YAML frontmatter + structured Markdown sections is the industry-standard pattern (Jekyll, Hugo, MDX, academic content systems all use this); gives both human readability and machine parseability |
+| Node metadata schema | Every content object in a structured system needs typed metadata for discovery, sequencing, and quality assessment | MEDIUM | Minimum fields: id, title, EQF level, Bloom minimum target, prerequisite node IDs, misconceptions list, domain of applicability, estimated active time; without this, nodes are opaque to the pipeline and the graph |
+| Content version / revision tracking | Authors and AI agents will iterate on content; without versioning, changes are destructive | LOW | Git-native versioning (files in repo) is sufficient and free; no custom CMS versioning layer needed for v1.1 |
+| Validation against schema on ingest | Content that does not conform to the template must be rejected before it reaches the database | MEDIUM | JSON Schema or a Rust serde deserializer can validate YAML frontmatter at ingest time; catches malformed content before it corrupts the graph |
+| Sequential phase rendering in Learning Room | If the 7-phase didactic sequence exists in the schema, the UI must render phases in order and not let users skip | HIGH | Phase gate logic: each phase must be marked complete before next unlocks; this is the UI implementation of Productive Failure (struggle before instruction is only valid if the learner cannot skip to the answer) |
+| Per-phase format type switching | Different phases use different content formats (problem prompt, simulation, explanation, worked example, quiz); a single renderer cannot handle all | HIGH | Requires a discriminated union of phase types; each type has its own Leptos component; the schema's phase_type field drives which renderer activates |
+| AI-assisted content draft generation | Any platform building content at scale in 2025+ uses LLM drafts; pure human authoring is too slow for hundreds of nodes | HIGH | The generator produces a draft conforming to the template; human or automated review then validates; this is the Author agent's role |
+| Automated scientific accuracy check | Physics content that contains factual errors is actively harmful; at least one review pass must check scientific accuracy | HIGH | Can be a separate LLM call with a physics domain prompt, but must be a distinct pass from the authoring step; hallucination in physics (wrong formulas, incorrect sign conventions) is a critical failure mode |
+| Content quality gate checklist | Automated review must produce a structured pass/fail result, not just prose feedback | MEDIUM | Checklist items: formula correctness, prerequisite consistency, Bloom level alignment, cognitive load estimate, misconception coverage; a machine-readable score (not just text) enables automated retry |
+| Pilot nodes to validate the spec | A spec that has never been used to produce real content is untested; 3-5 nodes across EQF levels must be authored end-to-end | HIGH | These serve as ground truth examples for the AI agent, validation for the schema, and real content for the UI renderer; the spec and the nodes co-evolve |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set the product apart. Not required, but valued.
+Features that make PhysicsTree's content architecture meaningfully better than ad-hoc content creation or simple templated authoring.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Knowledge graph with zoomable/pannable exploration | No major physics platform visualises the entire field as a navigable graph; creates a "wow" first impression and changes how users relate to physics structurally | HIGH | Graph must render thousands of nodes performantly; force-directed layout vs manual curation tradeoffs; this is the product's identity |
-| Botanical growth metaphor (roots → trunk → branches → leaves) | Makes abstract prerequisite hierarchy viscerally understandable; users feel they are growing something | MEDIUM | Visual design system: concepts literally bloom as mastered; plant fills in on user's personal tree; strong retention hook |
-| Animated step-by-step visual derivations (3Blue1Brown-style) | Research shows concept maps + animation outperform text for physics comprehension; no platform does this at depth for physics | HIGH | Most expensive content type to produce; AI-assisted generation is the only feasible path to scale; Manim-style tooling applies |
-| Spaced repetition for concept review | SM-2/FSRS algorithm proven to increase long-term retention vs cramming; most physics platforms lack this entirely | MEDIUM | Key: track per-concept recall quality (Again/Hard/Good/Easy), compute next review interval, surface via daily review queue |
-| Runnable code snippets (Python/JS/WASM) in-browser | Uniquely bridges physics theory and computational practice; appeals to STEM learners who want to simulate, not just understand | HIGH | Needs sandboxed execution environment; Python via Pyodide or WASM compilation; security surface needs care |
-| Guided learning paths through the graph | Free exploration is powerful but overwhelming without structure; curated "syllabus" paths give beginners a handrail | MEDIUM | Paths are ordered sequences of concept nodes; multiple paths possible (high school track, university track, self-learner track) |
-| Personal knowledge tree visual | Users see their own tree grow as they master concepts — personalised botanical visualisation of progress | HIGH | This is the emotional core; requires rendering user's mastery state overlaid on the global graph |
-| Leaderboards with social context | Friends leaderboard drives 40% more engagement than solo progress (Duolingo data); weekly league resets maintain competitiveness | MEDIUM | Weekly reset prevents hopelessness for new users; friends list + global top-N; async is sufficient (no real-time needed) |
-| Misconception-targeted content | Physics has well-documented persistent misconceptions (force = motion, mass affects fall speed); content that directly addresses and refutes these is more effective than rote explanation | MEDIUM | Requires identifying misconception entry points per concept; "Did you think X? Here's why that's wrong" interactive flow |
-| Kurzgesagt visual style | Proven for science engagement; bold, saturated, dark, flat vector — feels premium and approachable simultaneously; almost no edtech platform executes this well | HIGH | Pure design/art direction cost; no exotic tech required but needs a coherent design system and asset pipeline |
+| 7-phase evidence-based phase sequence baked into the schema | Most edtech platforms have no principled phase structure; PhysicsTree's schema enforces Productive Failure → Concreteness Fading → Worked Examples → Self-Explanation → Retrieval Check → Spaced Return as non-negotiable | HIGH | The schema's phase ordering is the pedagogical contract; the difficulty is that each phase has a distinct content type and the schema must accommodate all seven without becoming unwieldy; Brilliant.org uses a similar "struggle before instruction" principle but does not expose it as a formal schema |
+| Student Simulator agent in the review pipeline | Having an LLM simulate a student attempting the learning journey before content is published finds instructional gaps that domain experts miss (wrong assumption about prior knowledge, confusing ordering, cognitive overload) | HIGH | This is a genuinely novel pattern for edtech content pipelines; medical education research (JMIR 2025) shows seven-agent pipelines with educator checkpoints outperform single-expert review; the Student Simulator is the closest edtech analogue |
+| EQF level and Bloom minimum encoded as metadata | Enables the platform to auto-sequence nodes by difficulty, filter by learner persona, and eventually verify that the curriculum has no EQF gaps | MEDIUM | No major consumer physics platform (Khan Academy, Brilliant, PhET) exposes EQF or Bloom metadata; this positions PhysicsTree for later EDCI/Europass credential integration without a migration |
+| Pedagogy Reviewer as a distinct review agent | Separating physics accuracy review from pedagogical design review catches different failure modes; a content piece can be scientifically correct but pedagogically harmful (all explanation, no struggle) | HIGH | The writer-critic pattern from LLM research (CritiqueLLM, CrewAI review pipelines) shows that specialized critics outperform a single general reviewer; the Pedagogy Reviewer checks phase sequence integrity, cognitive load, self-explanation prompts |
+| Misconceptions list as first-class schema field | Most platforms treat misconceptions as an afterthought; encoding them in metadata enables targeted quiz design, misconception-targeted feedback in Learning Room, and future analytics on which misconceptions are most persistent | MEDIUM | Requires a misconception taxonomy per physics domain; classical mechanics has well-documented misconceptions (force=motion, heavier objects fall faster, circular motion requires centripetal force to keep object on path) that can seed the initial list |
+| Domain of applicability field | Students overextend physics models (applying Newtonian mechanics where relativistic corrections matter); encoding explicit validity bounds in the schema enables content that teaches students when NOT to apply a formula | LOW | This is unique to physics education platforms; no competitor does this; it is low complexity to add to the schema but high value for conceptual depth |
+| Machine-readable content files as source of truth | Storing content as YAML+Markdown files in the repository (not exclusively in the database) means content is diffable, reviewable in PRs, auditable, and AI-agent-friendly | LOW | The DB is the read model; the files are the write model; this is the same pattern used by documentation platforms (Docusaurus, GitBook) and is far more auditable than database-only content |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem good but create problems.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Community-contributed content | Scale content faster, user ownership | Physics accuracy is non-negotiable; user-submitted content degrades quality rapidly; moderation burden is enormous; a single wrong derivation is reputationally damaging | AI-assisted generation + human expert review pipeline; quality over quantity |
-| Real-time multiplayer / co-learning | Social learning feels engaging; "study together" is appealing | Adds substantial infrastructure (WebSockets, session management, conflict resolution) for marginal learning benefit; async social (leaderboards, achievements) delivers 80% of the motivation value at 10% of the cost | Async leaderboards, shared achievements, "learning alongside" indicators that don't require real-time sync |
-| Chat / discussion forums per concept | Users want to ask questions | Forum moderation is expensive; off-topic drift; spam; hallucinated physics answers from users compound misconceptions | AI tutor Q&A per concept (scoped to the concept, grounded in the content); defer community discussion to v2+ |
-| Flashcard creation by users | Power users want to make their own cards | Diverges from the curated knowledge graph model; user cards can encode misconceptions; spaced repetition already covers retention | Built-in spaced repetition queue automatically surfaces concepts due for review — no manual card creation needed |
-| Mobile native app | Better mobile UX, push notifications | Doubles maintenance burden; app store gatekeeping; web with PWA service worker gives push notifications and offline capability at far lower cost | PWA for installability + offline basics; responsive web for broad access |
-| Full course/certification system | Completion credentials are motivating | Certification requires exam security, identity verification, institutional partnerships — far beyond v1 scope | Mastery badges and personal knowledge tree visualisation are the credential; explicit certificates are a v3+ feature |
-| Comprehensive analytics for instructors/teachers | Classroom market is large | B2B sales cycle, LMS integrations, privacy compliance (FERPA), teacher dashboard design — entirely different product | B2C self-learner focus for v1; teacher features deferred until user base and revenue justify it |
-| Points-only gamification (badges + leaderboard without substance) | Easy to implement; looks like progress | "Shallow gamification" is the documented cause of gamification failure in edtech; the overjustification effect undermines intrinsic motivation when rewards are disconnected from actual learning | Gamification must be tied to genuine mastery progression; XP should reflect real learning milestones, not clicks |
+| Full CMS with web UI for content authoring | "Easier for non-developers to edit content" | Adds a complex web application (auth, WYSIWYG editor, preview rendering, publish workflow) that is out of scope for v1.1; the AI agent pipeline is the primary authoring surface, not humans clicking in a browser | YAML+Markdown files in the repository are the authoring format; the AI agent produces these files; human review is via PR diff; a lightweight CMS is a v2+ consideration after the pipeline is proven |
+| Real-time collaborative editing of content | Google Docs-style co-authoring sounds productive | Operational transformation or CRDT for document editing is a substantial engineering undertaking; the AI pipeline is sequential (Author → Reviewer → Reviewer → Simulator), not concurrent | Sequential handoff pipeline with PR review is the collaboration model; each agent produces a complete artifact that the next agent receives |
+| Automated deployment of AI-generated content without human review | Fully autonomous pipeline to production | LLM hallucination in physics is a critical failure mode; a wrong formula or sign convention mistake published to users is reputationally damaging and educationally harmful | The pipeline produces a draft + quality gate result; a human approves before merge to main; the gate can be automated, but a human checkpoint remains for v1.1 |
+| Per-student content personalization at authoring time | "Personalized learning paths" | Generating unique content per student is prohibitively expensive at LLM inference cost; the platform's FSRS spaced repetition already personalizes the review schedule | The content is fixed and well-structured; personalization comes from adaptive sequencing (which node next, when to review) not from rewriting content per student |
+| Version branching for different difficulty variants of the same node | "EQF 3 and EQF 5 versions of Newton's 2nd Law" | Two versions of a node that must be kept in sync doubles content maintenance burden; content drift between versions creates consistency problems | EQF level is metadata on a single node; the phase sequence's EQF-appropriate difficulty is controlled by the author at authoring time; branching versions is a v2+ consideration |
+| Importing existing content from other platforms (Khan Academy, Wikipedia) | "Save time by importing existing physics content" | Existing content does not conform to the 7-phase schema; importing it would require either massive reformatting (eliminating the time saving) or accepting non-conforming content that breaks the pedagogical contract | The AI Author agent uses external sources as reference material but produces new content conforming to the template; it does not import raw content |
+| LLM-generated simulations | "Have the AI write Rapier2D simulations" | LLM code generation for physics simulations produces subtly incorrect physics; wrong simulation physics is worse than no simulation because it creates misconceptions | Simulations are hand-authored by the platform developer; the content schema references existing simulation IDs from the simulation library; new simulations are built separately |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[User Accounts]
-    └──requires──> [Auth System]
-                       └──enables──> [Progress Persistence]
-                                         └──enables──> [XP + Streaks]
-                                         └──enables──> [Mastery Levels]
-                                         └──enables──> [Spaced Repetition Queue]
-                                         └──enables──> [Personal Knowledge Tree]
+[Node Metadata Schema]
+    └──required by──> [Content Template (YAML frontmatter)]
+    └──required by──> [Schema Validation on Ingest]
+    └──required by──> [AI Author Agent] (agent needs schema to produce conforming output)
+    └──enables──> [EQF-based sequencing] (future)
+    └──enables──> [Misconception analytics] (future)
 
-[Knowledge Graph Data Model]
-    └──requires──> [Concept Nodes + Edge Schema]
-                       └──enables──> [Graph Visualisation]
-                       └──enables──> [Guided Learning Paths]
-                       └──enables──> [Prerequisite Display]
-                       └──enables──> [Personal Knowledge Tree] (overlay on global graph)
+[Content Template (YAML + Structured Markdown)]
+    └──required by──> [AI Author Agent]
+    └──required by──> [Physics Reviewer Agent] (needs schema to check completeness)
+    └──required by──> [Pedagogy Reviewer Agent]
+    └──required by──> [Student Simulator Agent]
+    └──required by──> [Quality Gate Checklist]
+    └──required by──> [DB Schema for phase-based content]
 
-[Educational Content per Concept]
-    └──requires──> [Content Schema] (motivation, derivation, examples, quiz)
-                       └──enables──> [Quizzes / Exercises]
-                       └──enables──> [Spaced Repetition] (needs quiz performance data)
-                       └──enables──> [Mastery Level Advancement]
-                       └──enables──> [Misconception-Targeted Content]
+[DB Schema for Phase-Based Content]
+    └──required by──> [Learning Room UI]
+    └──depends on──> [Content Template] (DB schema mirrors the template structure)
+    └──extends──> existing [Node/Content DB schema from v1.0]
 
-[Interactive Simulations]
-    └──requires──> [WASM Runtime] (Rust compiled to WASM)
-    └──enhances──> [Educational Content per Concept]
+[AI Author Agent]
+    └──produces──> [Draft Content File]
+    └──requires──> [Content Template]
+    └──requires──> [Node Metadata Schema]
 
-[Animated Visual Derivations]
-    └──requires──> [Animation Asset Pipeline] (AI-generated + human-reviewed)
-    └──enhances──> [Educational Content per Concept]
+[Physics Reviewer Agent]
+    └──requires──> [Draft Content File] (from Author)
+    └──produces──> [Accuracy Review Result] (structured pass/fail + issues)
+    └──feeds into──> [Quality Gate Checklist]
 
-[Runnable Code Snippets]
-    └──requires──> [Sandboxed Execution Environment] (Pyodide/WASM)
-    └──enhances──> [Interactive Simulations] (code mirrors sim behaviour)
+[Pedagogy Reviewer Agent]
+    └──requires──> [Draft Content File] (from Author or after Physics Reviewer pass)
+    └──produces──> [Pedagogy Review Result] (phase integrity, cognitive load, self-explanation quality)
+    └──feeds into──> [Quality Gate Checklist]
 
-[Leaderboards]
-    └──requires──> [XP System]
-    └──requires──> [User Accounts]
+[Student Simulator Agent]
+    └──requires──> [Draft Content File]
+    └──requires──> [Physics Reviewer pass]
+    └──produces──> [Simulation Report] (confusion points, assumption violations, cognitive overload signals)
+    └──feeds into──> [Quality Gate Checklist]
 
-[Daily Streaks]
-    └──requires──> [User Accounts]
-    └──requires──> [Progress Persistence]
-    └──enhances──> [XP System] (streak bonuses)
+[Quality Gate Checklist]
+    └──requires──> [Physics Reviewer Result]
+    └──requires──> [Pedagogy Reviewer Result]
+    └──requires──> [Student Simulator Report]
+    └──produces──> [PASS/FAIL decision + required revisions]
+    └──gates──> [Content merge to main / DB ingest]
 
-[Spaced Repetition]
-    └──requires──> [Quiz Performance Data]
-    └──requires──> [Progress Persistence]
+[Learning Room UI]
+    └──requires──> [DB Schema for Phase-Based Content]
+    └──requires──> [Per-phase format type components] (new Leptos components per phase type)
+    └──extends──> existing [Learning Room from v1.0] (v1.0 has flat module format)
+    └──requires──> [Phase gate logic] (no skipping phases)
 
-[Botanical Visual Metaphor]
-    └──requires──> [Mastery Levels] (growth state = mastery state)
-    └──requires──> [Knowledge Graph Visualisation] (metaphor is rendered on the graph)
-    └──enhances──> [Personal Knowledge Tree]
+[Pilot Nodes (3-5 nodes)]
+    └──validates──> [Content Template]
+    └──validates──> [AI Author Agent pipeline]
+    └──validates──> [Learning Room UI rendering]
+    └──validates──> [Quality Gate Checklist thresholds]
 ```
 
 ### Dependency Notes
 
-- **User Accounts blocks almost everything:** Streaks, mastery, leaderboards, spaced repetition, and the personal knowledge tree are all impossible without persistent user identity. Auth must ship in Phase 1.
-- **Knowledge Graph Data Model is the foundation:** Everything visual and navigational builds on the graph schema. Concept nodes and edge types (prerequisite, derivation, application) must be defined before content can be authored.
-- **Content schema gates content work:** The per-concept educational module schema (sections, question types, media attachments) must be stable before content is authored at scale. Schema changes after bulk content authoring are painful.
-- **Spaced Repetition requires quiz data:** The SR algorithm cannot schedule reviews without a history of how users performed on each concept's exercises. Quizzes must exist and performance must be stored before SR surfaces value.
-- **Botanical metaphor enhances Personal Knowledge Tree:** The metaphor works only if mastery levels are visible on the graph. Without mastery state, the tree is just a graph.
-- **Simulations and Animations are independent:** Both enhance content but neither depends on the other. They can be phased independently. Simulations are higher priority (more interactive).
+- **Content Template is the linchpin:** Every other feature in this milestone depends on having a stable, validated content template. The template must be finalized before the AI agent pipeline can produce conforming content, and before the DB schema can be designed. Stabilizing the template is the first task.
+- **DB Schema mirrors the template:** The database representation of node content must reflect the 7-phase structure from the template. The existing v1.0 flat content format (motivation, derivation, intuition, examples, quizzes, misconceptions sections) must be migrated or extended. This is a potentially breaking change to the existing content schema.
+- **AI agent pipeline requires a complete template:** The Author agent needs the template as its target format. Giving it an incomplete or unstable template produces non-conforming output that cannot be validated. Template stability gates the pipeline.
+- **Learning Room UI extends v1.0:** The existing Learning Room renders flat-format modules. It must be extended (not rewritten) to support sequential phase rendering. The v1.0 modules (16 classical mechanics nodes) will need to be either migrated to the new format or treated as legacy content.
+- **Pilot nodes validate everything:** The 3-5 pilot nodes are not just content — they are the integration test for the entire pipeline. They must span different EQF levels (at least EQF 3 and EQF 5) and different content types to exercise all schema paths.
+- **Student Simulator is last in the pipeline:** It requires a content file that has already passed the Physics Reviewer; sending factually incorrect content to the simulator wastes inference and produces misleading results about pedagogical quality.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1)
+### Launch With (v1.1)
 
-Minimum viable product — what's needed to validate the concept.
+Minimum viable set for the content architecture milestone.
 
-- [ ] Knowledge graph with zoomable/pannable exploration — the core identity of the product; without it there is nothing differentiated
-- [ ] Classical mechanics branch fully populated — proof that the content + graph model works end-to-end
-- [ ] Per-concept educational content — motivation, derivation, examples, quizzes — learning must actually happen
-- [ ] Interactive simulations for key mechanics concepts — at least 5-10 parameter-tweakable sims (pendulum, projectile, harmonic oscillator, etc.)
-- [ ] User accounts + auth — required for any progress persistence
-- [ ] Mastery levels per concept (bronze/silver/gold) — gamification backbone; mastery tied to plant growth visual
-- [ ] XP + streaks — daily engagement loop; core retention mechanism
-- [ ] Spaced repetition review queue — long-term retention; differentiates from passive content
-- [ ] Personal knowledge tree visual — emotional payoff for progress; the "wow" moment
-- [ ] Botanical growth metaphor rendered on graph — the visual identity that makes the product memorable
-- [ ] Prerequisite dependency display — users must know what to learn first; prevents frustration
+- [ ] Content template spec (YAML frontmatter + 7-phase Markdown structure) — stabilized and documented; all other pipeline components depend on this
+- [ ] Node metadata schema (EQF, Bloom minimum, prerequisites, misconceptions, domain of applicability, estimated time) — encoded in the YAML frontmatter
+- [ ] DB schema and API types for phase-based node content — extends existing v1.0 schema; required for Learning Room to render new content
+- [ ] AI content authoring pipeline: Author + Physics Reviewer + Pedagogy Reviewer + Student Simulator agents — the core automation; enables scale
+- [ ] Quality gate checklist with structured PASS/FAIL output — gates content merge; prevents bad content reaching production
+- [ ] 3-5 pilot nodes fully authored end-to-end — validates spec, pipeline, and UI in combination
+- [ ] Learning Room UI rendering phases sequentially with phase gate enforcement — the learner-facing output of all the above
 
 ### Add After Validation (v1.x)
 
-Features to add once core is working.
+Features to add once the pipeline and schema are proven with pilot nodes.
 
-- [ ] Guided learning paths (curated syllabi) — add when user research shows free exploration is too overwhelming for beginners
-- [ ] Leaderboards (friends + global weekly) — add when enough users exist for competition to be meaningful
-- [ ] Animated step-by-step derivations — high production cost; add when content pipeline is proven and there is user demand signal
-- [ ] Runnable code snippets — add when simulation layer is solid; appeals to more advanced segment
-- [ ] Misconception-targeted content overlays — add after core content is in place; requires identifying misconception patterns from quiz data
+- [ ] Migration of existing 16 v1.0 content modules to the 7-phase schema — high effort; only worthwhile after the new format is validated; old format content continues to work under legacy renderer
+- [ ] Full classical mechanics node inventory authored via the pipeline — scale-up after format is proven; this is the content production phase, not the architecture phase
+- [ ] Misconception analytics from quiz performance data — requires enough users interacting with new-format content to produce meaningful signal
+- [ ] Content authoring CLI tooling — wrapper scripts to invoke the agent pipeline, validate output, and stage for review; quality-of-life for the content authoring workflow
 
 ### Future Consideration (v2+)
 
-Features to defer until product-market fit is established.
+Features to defer until the pipeline and content library are mature.
 
-- [ ] Additional physics branches (electromagnetism, quantum, thermodynamics) — framework supports it; content work is enormous; defer until v1 branch proves the model
-- [ ] AI tutor Q&A per concept — requires LLM integration with strong physics grounding; hallucination risk; defer until content corpus is large enough to ground RAG reliably
-- [ ] Teacher/classroom dashboard — B2B product complexity; different personas; defer
-- [ ] PWA / offline mode — nice to have; add once core web experience is stable
-- [ ] Certification / completion credentials — requires institutional trust-building; v3+ feature
+- [ ] Lightweight web CMS for non-developer content review — only needed when non-technical physics experts are contributing to the authoring workflow
+- [ ] EQF/EDCI credential integration — requires institutional partnerships and exam security infrastructure; the metadata is ready, the integration is not
+- [ ] Assessment item bank with randomization — WeBWorK-style parametric question generation; the current fixed quizzes are sufficient for v1.1
+- [ ] Automated misconception taxonomy expansion — ML-driven identification of new misconceptions from student quiz patterns; requires user base at scale
 
 ---
 
@@ -171,69 +172,76 @@ Features to defer until product-market fit is established.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Knowledge graph + botanical visualization | HIGH | HIGH | P1 — product identity |
-| Per-concept educational content (mechanics) | HIGH | HIGH | P1 — learning must work |
-| User accounts + auth | HIGH | LOW | P1 — everything depends on this |
-| Interactive simulations | HIGH | HIGH | P1 — key differentiator vs passive content |
-| Mastery levels (bronze/silver/gold) | HIGH | MEDIUM | P1 — gamification backbone |
-| XP + streaks | HIGH | LOW | P1 — daily engagement loop |
-| Spaced repetition queue | HIGH | MEDIUM | P1 — retention differentiator |
-| Prerequisite display | MEDIUM | LOW | P1 — usability necessity |
-| Progress dashboard | MEDIUM | MEDIUM | P1 — users need to see their state |
-| Search / concept lookup | MEDIUM | LOW | P1 — basic navigation |
-| Guided learning paths | HIGH | MEDIUM | P2 — add after free exploration is proven |
-| Leaderboards | MEDIUM | MEDIUM | P2 — needs user base to be meaningful |
-| Animated visual derivations | HIGH | HIGH | P2 — high value but expensive; needs pipeline |
-| Runnable code snippets | MEDIUM | HIGH | P2 — appeals to advanced users |
-| Misconception-targeted content | MEDIUM | MEDIUM | P2 — requires quiz data first |
-| AI tutor Q&A | HIGH | HIGH | P3 — hallucination risk; needs grounding corpus |
-| Teacher dashboard | MEDIUM | HIGH | P3 — different product scope |
-| Additional physics branches | HIGH | HIGH | P3 — content volume is the bottleneck |
+| Content template (YAML + 7-phase Markdown) | HIGH — enables everything else | LOW — it is a spec document | P1 — first deliverable |
+| Node metadata schema | HIGH — needed for sequencing, quality, credentials | LOW — YAML fields in the template | P1 — part of the template |
+| DB schema for phase-based content | HIGH — required for Learning Room | MEDIUM — extends existing schema | P1 — blocks UI work |
+| AI Author agent | HIGH — enables content at scale | HIGH — LLM integration, prompt engineering | P1 — core of the milestone |
+| Physics Reviewer agent | HIGH — prevents harmful content | MEDIUM — specialized LLM prompt + structured output | P1 — non-negotiable quality gate |
+| Pedagogy Reviewer agent | HIGH — enforces didactic contract | MEDIUM — requires Bloom/pedagogy domain prompt | P1 — needed for pilot nodes |
+| Student Simulator agent | HIGH — catches assumption violations | HIGH — simulating a learner is complex | P1 — but can be simplified for v1.1 |
+| Quality gate checklist (structured PASS/FAIL) | HIGH — gates content merge | MEDIUM — aggregates reviewer outputs | P1 — gates deployment |
+| 3-5 pilot nodes authored end-to-end | HIGH — validates entire stack | HIGH — content work + iteration | P1 — integration test |
+| Learning Room sequential phase rendering | HIGH — learner-facing output | HIGH — new Leptos components per phase type | P1 — required for pilot nodes to be usable |
+| Migration of 16 v1.0 modules to new format | MEDIUM — consistency in content model | HIGH — 16 nodes * 7 phases is substantial work | P2 — after format is proven |
+| Content authoring CLI tooling | MEDIUM — developer experience | LOW — shell scripts wrapping agent calls | P2 — quality-of-life |
+| Misconception analytics | MEDIUM — research value | HIGH — requires user data at scale | P3 — future milestone |
+| Web CMS for content review | LOW — developers can use PRs | HIGH — full web application | P3 — only when non-technical authors join |
 
 **Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
+- P1: Required to complete v1.1 milestone
+- P2: Add after pilot nodes validate the approach
+- P3: Future milestone consideration
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Khan Academy | PhET | Duolingo (ref model) | PhysicsTree Approach |
-|---------|--------------|------|----------------------|----------------------|
-| Knowledge graph navigation | Linear course structure, no graph | Topic grid, no graph | Skill tree (linear) | Full zoomable graph — differentiator |
-| Mastery levels | 4 levels: attempted/familiar/proficient/mastered | None | Crowns (5 levels) | Bronze/silver/gold tied to botanical growth |
-| Spaced repetition | Mastery challenges recycle old skills | None | Yes, core algorithm | SM-2/FSRS per concept |
-| Streaks | No | No | Yes, primary retention loop | Yes, with streak freeze |
-| Interactive simulations | Minimal (some embedded tools) | Yes, 150+ sims | None | Yes, WASM-powered, parameter-tweakable |
-| Visual style | Clean/educational, bland | Functional, dated | Colorful/gamey | Kurzgesagt: bold, dark, saturated, flat |
-| Animated derivations | Video lectures | None | None | AI-assisted step-by-step animations |
-| Runnable code | None | None | None | Python/WASM in-browser sandbox |
-| Leaderboards | None | None | Weekly leagues (competitive) | Async friends + global weekly |
-| Content scope | Broad (all subjects) | Science/math sims only | Language-only | Deep physics only (v1: classical mechanics) |
-| Prerequisite visualization | Implicit in course order | None | Locked nodes | Explicit graph edges with unlock state |
-| Personal progress visual | Progress bars, mastery badges | None | XP bar, streak count | Personal knowledge tree (botanical) |
+| Feature | Khan Academy | Brilliant.org | PhET | PhysicsTree v1.1 Approach |
+|---------|--------------|---------------|------|---------------------------|
+| Content authoring process | Human experts + video production pipeline | Human experts with interactive lesson builder | Physicists + Java/HTML5 sim development | AI Author agent producing YAML+Markdown conforming to 7-phase template; human-in-the-loop approval |
+| Phase/sequence structure | Intro video → practice problems (2-phase) | Pretest → instruction → problems (3-phase implicit) | Sim only — no instructional phases | 7-phase evidence-based sequence (Schema Activation → Productive Struggle → Concreteness Fading → Worked Examples → Self-Explanation → Retrieval Check → Spaced Return) |
+| Content schema / metadata | Proprietary CMS, metadata not exposed | Proprietary, not machine-readable | No schema — sims are standalone | YAML frontmatter + EQF + Bloom + prerequisites + misconceptions: machine-readable and version-controlled |
+| AI content generation | Khanmigo for tutoring; not for content authoring | Not disclosed | No | AI Author agent; pipeline is the primary authoring path not a supplement |
+| Multi-agent review | No | No | No | 4-agent pipeline: Author → Physics Reviewer → Pedagogy Reviewer → Student Simulator |
+| Quality gates | Human expert review | Human expert review | Physics faculty review | Automated structured quality gate checklist (machine-readable PASS/FAIL); human approval before merge |
+| Misconception handling | Hints that address common errors | Some misconception-targeting in problem design | None explicit | First-class schema field; misconceptions explicitly enumerated and addressable in phase content |
+| EQF / Bloom metadata | No | No | No | Yes — EQF level and Bloom minimum as required metadata fields |
+
+---
+
+## Existing Platform Dependencies
+
+The v1.1 features build on v1.0. Key integration points and constraints:
+
+| v1.1 Feature | Depends on v1.0 Component | Integration Notes |
+|--------------|--------------------------|-------------------|
+| DB schema for phase-based content | Existing node/content tables, SQLx | New tables for phases; existing flat-format content preserved in parallel for legacy rendering |
+| Learning Room UI (phase rendering) | Existing Learning Room Leptos component | Extend existing component; do not rewrite; old flat-format modules need a legacy render path |
+| AI Agent pipeline | None (offline pipeline) | Runs as a CLI process outside the Leptos/Axum application; outputs YAML+Markdown files; no runtime dependency on the web application |
+| Quality gate checklist | None (offline pipeline) | Part of the agent pipeline; produces structured output (JSON) that can be parsed and stored alongside the content file |
+| Pilot node content | Existing graph node IDs | Pilot nodes must reference real node IDs from the existing PostgreSQL graph; author must check prerequisites exist before writing the pilot |
+| Misconception metadata | Existing misconceptions section in v1.0 content | v1.0 had a free-text misconceptions section; v1.1 formalizes this as a typed list in the YAML frontmatter; migration needed for the 16 existing nodes |
 
 ---
 
 ## Sources
 
-- [Gamification in EdTech: Duolingo, Khan Academy, IXL, Kahoot — Prodwrks](https://prodwrks.com/gamification-in-edtech-lessons-from-duolingo-khan-academy-ixl-and-kahoot/)
-- [Duolingo Gamification Secrets: Streaks & XP — Orizon](https://www.orizon.co/blog/duolingos-gamification-secrets)
-- [Duolingo: $15B App Using Gaming Principles — Deconstructor of Fun](https://www.deconstructoroffun.com/blog/2025/4/14/duolingo-how-the-15b-app-uses-gaming-principles-to-supercharge-dau-growth)
-- [Khan Academy Mastery Learning Levels — Khan Academy Help Center](https://support.khanacademy.org/hc/en-us/articles/5548760867853--How-do-Khan-Academy-s-Mastery-levels-work)
-- [PhET Interactive Simulations — Wikipedia](https://en.wikipedia.org/wiki/PhET_Interactive_Simulations)
-- [PhET: Interactive Simulations for Teaching Physics — ADS](https://ui.adsabs.harvard.edu/abs/2006PhTea..44...18P/abstract)
-- [Negative Effects of Gamification in Education — ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0950584922002518)
-- [Gamification Has Ruined Education Technology — Mission.io](https://mission.io/blog/gamification-has-ruined-education-technology)
-- [Gamification is not Working: Why? — SAGE Journals 2025](https://journals.sagepub.com/doi/abs/10.1177/15554120241228125)
-- [SM-2 Spaced Repetition Algorithm — RemNote Help Center](https://help.remnote.com/en/articles/6026144-the-anki-sm-2-spaced-repetition-algorithm)
-- [3Blue1Brown: How I Animate — Grant Sanderson Substack](https://3blue1brown.substack.com/p/how-i-animate-3blue1brown)
-- [WebAssembly Physics Simulation Performance — ResearchGate](https://www.researchgate.net/publication/393423079_Enhancing_Browser_Physics_Simulations_WebAssembly_and_Multithreading_Strategies)
-- [Student Misconceptions in Newtonian Mechanics — BGSU ETD](https://etd.ohiolink.edu/acprod/odb_etd/ws/send_file/send?accession=bgsu1174931800&disposition=inline)
-- [Knowledge Graph in Education: Systematic Review — PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC10847940/)
+- [Brilliant.org — About: pedagogy principles](https://brilliant.org/about/) — learn by doing, struggle before instruction
+- [Brilliant.org x ustwo design case study](https://ustwo.com/work/brilliant/) — lesson structure, interactive problem design
+- [Productive Failure: Four Core Mechanisms — Manu Kapur](https://www.manukapur.com/productive-failure/) — canonical source for struggle-before-instruction sequence
+- [Concreteness Fading — Learning Scientists](https://www.learningscientists.org/blog/2018/2/1-1) — concrete to abstract progression
+- [Beyond Chatbots: Multi-Step Modular AI Agents in Medical Education — JMIR 2025](https://mededu.jmir.org/2025/1/e76661) — seven-agent pipeline with educator checkpoints
+- [LLM Agents for Education: Advances and Applications — ACL 2025](https://aclanthology.org/2025.findings-emnlp.743.pdf) — gap identifier, learner profiler, dynamic agents
+- [CritiqueLLM: Scaling LLM-as-Critic — arXiv](https://arxiv.org/abs/2311.18702) — writer-critic pattern, specialized critic outperforms general reviewer
+- [CrewAI vs AutoGen: Multi-Agent Framework Comparison 2025 — Latenode](https://latenode.com/blog/platform-comparisons-alternatives/automation-platform-comparisons/langgraph-vs-autogen-vs-crewai-complete-ai-agent-framework-comparison-architecture-analysis-2025) — sequential handoff pattern, YAML-driven agent configuration
+- [Automating Research + Critic + Writer Pipeline — Markaicode CrewAI](https://markaicode.com/crewai-workflow-automation/) — three-agent researcher/critic/writer pattern
+- [Quality Control in the Agent Age: Microslop Manifesto — SitePoint](https://www.sitepoint.com/the-microslop-manifesto-quality-control-in-the-agent-age/) — failure modes in agent pipelines: prompt ambiguity, missing validation, no feedback loops
+- [Misconception Detection in Science Education: Systematic Review — MDPI 2025](https://www.mdpi.com/2071-1050/17/7/3145) — tier diagnostic technologies, four-tier method most accurate
+- [Structured content authoring — RWS](https://www.rws.com/content-management/blog/what-is-structured-content-authoring/) — DITA/XML patterns for structured authoring
+- [SCORM vs xAPI content standards — Commlabindia](https://www.commlabindia.com/blog/scorm-vs-xapi-cmi5-elearning-standards) — metadata standards for learning objects
+- [AI Agents and Education: Simulated Practice at Scale — ResearchGate](https://www.researchgate.net/publication/381752492_AI_Agents_and_Education_Simulated_Practice_at_Scale) — student simulation agent pattern
 
 ---
 
-*Feature research for: Interactive physics learning platform (PhysicsTree)*
-*Researched: 2026-03-17*
+*Feature research for: Content architecture and AI authoring pipeline (PhysicsTree v1.1)*
+*Researched: 2026-03-27*
