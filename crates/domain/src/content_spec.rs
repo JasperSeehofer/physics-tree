@@ -258,15 +258,170 @@ pub fn extract_h2_headings(markdown: &str) -> Vec<String> {
     headings
 }
 
+/// The canonical phase type for each phase number (0–6).
+impl PhaseType {
+    /// Returns the expected `PhaseType` for a given phase number, or `None` if out of range.
+    pub fn expected_for_number(n: u8) -> Option<PhaseType> {
+        match n {
+            0 => Some(PhaseType::SchemaActivation),
+            1 => Some(PhaseType::ProductiveStruggle),
+            2 => Some(PhaseType::ConcretenesFading),
+            3 => Some(PhaseType::WorkedExamples),
+            4 => Some(PhaseType::SelfExplanation),
+            5 => Some(PhaseType::RetrievalCheck),
+            6 => Some(PhaseType::SpacedReturn),
+            _ => None,
+        }
+    }
+
+    /// Returns the human-readable name of this PhaseType.
+    pub fn name(&self) -> &'static str {
+        match self {
+            PhaseType::SchemaActivation => "schema_activation",
+            PhaseType::ProductiveStruggle => "productive_struggle",
+            PhaseType::ConcretenesFading => "concreteness_fading",
+            PhaseType::WorkedExamples => "worked_examples",
+            PhaseType::SelfExplanation => "self_explanation",
+            PhaseType::RetrievalCheck => "retrieval_check",
+            PhaseType::SpacedReturn => "spaced_return",
+        }
+    }
+}
+
+/// Check EQF-conditional rules and append errors to the provided Vec.
+fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
+    // EQF >= 4: derivation_required must be true AND phase 2 must contain "derivation"
+    if meta.eqf_level >= 4 {
+        if !meta.derivation_required {
+            errors.push(ValidationError::EqfConditionalViolation {
+                eqf_level: meta.eqf_level,
+                rule: "derivation_required must be true for EQF level 4+".to_string(),
+            });
+        }
+        // Check that phase 2 requires "derivation"
+        let phase2_has_derivation = meta
+            .phases
+            .iter()
+            .find(|p| p.number == 2)
+            .map(|p| p.requires.iter().any(|r| r == "derivation"))
+            .unwrap_or(false);
+        if !phase2_has_derivation {
+            errors.push(ValidationError::EqfConditionalViolation {
+                eqf_level: meta.eqf_level,
+                rule: "phase 2 requires list must contain 'derivation' for EQF level 4+".to_string(),
+            });
+        }
+    }
+
+    // EQF >= 3: phase 3 must contain "mostly_faded_example"
+    if meta.eqf_level >= 3 {
+        let phase3_has_faded = meta
+            .phases
+            .iter()
+            .find(|p| p.number == 3)
+            .map(|p| p.requires.iter().any(|r| r == "mostly_faded_example"))
+            .unwrap_or(false);
+        if !phase3_has_faded {
+            errors.push(ValidationError::EqfConditionalViolation {
+                eqf_level: meta.eqf_level,
+                rule: "phase 3 requires list must contain 'mostly_faded_example' for EQF level 3+".to_string(),
+            });
+        }
+    }
+}
+
 /// Validate a parsed node against the content spec.
 ///
 /// Returns an empty `Vec` if the node is valid, or a list of all violations found
 /// in a single pass. The caller is responsible for parsing files and building `ParsedNode`.
 ///
-/// Implementation note: validation logic is implemented in Plan 02.
-pub fn validate_node(_node: &ParsedNode) -> Vec<ValidationError> {
-    // Implementation in Plan 02
-    Vec::new()
+/// All checks run together — no short-circuit on first error (per D-10).
+pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
+    let mut errors = Vec::new();
+
+    // 1. Check eqf_level is in range 2-7
+    if node.meta.eqf_level < 2 || node.meta.eqf_level > 7 {
+        errors.push(ValidationError::InvalidEqfLevel { value: node.meta.eqf_level });
+    }
+
+    // 2. Check misconceptions count is 2 or 3
+    let misconception_count = node.meta.misconceptions.len();
+    if misconception_count < 2 || misconception_count > 3 {
+        errors.push(ValidationError::InvalidMisconceptionCount { count: misconception_count });
+    }
+
+    // 3. Check exactly 7 phases present (numbers 0-6), no gaps, no duplicates
+    let mut seen_numbers: Vec<u8> = Vec::new();
+    for phase in &node.meta.phases {
+        if phase.number > 6 {
+            errors.push(ValidationError::InvalidPhaseNumber { number: phase.number });
+        } else if seen_numbers.contains(&phase.number) {
+            errors.push(ValidationError::DuplicatePhase { number: phase.number });
+        } else {
+            seen_numbers.push(phase.number);
+        }
+    }
+    // Check for missing phases (0-6)
+    for expected in 0u8..=6 {
+        if !seen_numbers.contains(&expected) {
+            errors.push(ValidationError::MissingPhase { number: expected });
+        }
+    }
+
+    // 4. Check each phase's phase_type matches its number
+    for phase in &node.meta.phases {
+        if let Some(expected_type) = PhaseType::expected_for_number(phase.number) {
+            if phase.phase_type != expected_type {
+                errors.push(ValidationError::PhaseTypeMismatch {
+                    number: phase.number,
+                    expected: expected_type.name().to_string(),
+                    found: phase.phase_type.name().to_string(),
+                });
+            }
+        }
+    }
+
+    // 5. Check each phase file exists (number is in phase_files_found)
+    for phase in &node.meta.phases {
+        if !node.phase_files_found.contains(&phase.number) {
+            errors.push(ValidationError::MissingPhaseFile {
+                number: phase.number,
+                expected_path: format!("phase-{}.md", phase.number),
+            });
+        }
+    }
+    // Also check for missing phase files for expected phases
+    for expected in 0u8..=6 {
+        if !node.phase_files_found.contains(&expected) && !node.meta.phases.iter().any(|p| p.number == expected) {
+            errors.push(ValidationError::MissingPhaseFile {
+                number: expected,
+                expected_path: format!("phase-{expected}.md"),
+            });
+        }
+    }
+
+    // 6. For each phase, check that every requires entry has a matching H2 heading
+    for phase in &node.meta.phases {
+        if let Some(headings) = node.phase_headings.get(&phase.number) {
+            // Normalize headings to requires-key form for comparison
+            let heading_keys: Vec<String> = headings.iter().map(|h| heading_to_requires(h)).collect();
+            for req in &phase.requires {
+                if !heading_keys.contains(req) {
+                    errors.push(ValidationError::MissingRequiredBlock {
+                        phase: phase.number,
+                        block: req.clone(),
+                        file: format!("phase-{}.md", phase.number),
+                    });
+                }
+            }
+        }
+        // If no headings entry exists for the phase, missing blocks will be caught by MissingPhaseFile
+    }
+
+    // 7 & 8. EQF-conditional rules
+    check_eqf_rules(&node.meta, &mut errors);
+
+    errors
 }
 
 #[cfg(test)]
@@ -363,5 +518,391 @@ mod tests {
 
         let json = serde_json::to_string(&BloomLevel::Evaluate).unwrap();
         assert_eq!(json, r#""evaluate""#);
+    }
+
+    // ===== validate_node() tests =====
+
+    /// Build a fully valid EQF 4 ParsedNode with all 7 phases, all headings present.
+    fn make_valid_eqf4_node() -> ParsedNode {
+        let phases = vec![
+            PhaseEntry {
+                number: 0,
+                phase_type: PhaseType::SchemaActivation,
+                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+            },
+            PhaseEntry {
+                number: 1,
+                phase_type: PhaseType::ProductiveStruggle,
+                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+            },
+            PhaseEntry {
+                number: 2,
+                phase_type: PhaseType::ConcretenesFading,
+                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into(), "derivation".into()],
+            },
+            PhaseEntry {
+                number: 3,
+                phase_type: PhaseType::WorkedExamples,
+                requires: vec!["full_example".into(), "partially_faded_example".into(), "mostly_faded_example".into()],
+            },
+            PhaseEntry {
+                number: 4,
+                phase_type: PhaseType::SelfExplanation,
+                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+            },
+            PhaseEntry {
+                number: 5,
+                phase_type: PhaseType::RetrievalCheck,
+                requires: vec!["quiz".into()],
+            },
+            PhaseEntry {
+                number: 6,
+                phase_type: PhaseType::SpacedReturn,
+                requires: vec!["spaced_prompt".into(), "interleaving_problem".into()],
+            },
+        ];
+
+        let meta = NodeMeta {
+            concept_id: "kinematics".into(),
+            title: "Kinematics".into(),
+            eqf_level: 4,
+            bloom_minimum: BloomLevel::Apply,
+            prerequisites: vec![],
+            misconceptions: vec!["misconception 1".into(), "misconception 2".into()],
+            domain_of_applicability: vec!["Classical mechanics".into()],
+            esco_tags: vec![],
+            estimated_minutes: 40,
+            derivation_required: true,
+            phases,
+        };
+
+        // Build headings for each phase based on its requires
+        let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
+        for phase in &meta.phases {
+            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            phase_headings.insert(phase.number, headings);
+        }
+
+        let phase_files_found: Vec<u8> = (0u8..=6).collect();
+
+        ParsedNode { meta, phase_files_found, phase_headings }
+    }
+
+    /// Build a fully valid EQF 2 ParsedNode — no derivation, no mostly_faded_example required.
+    fn make_valid_eqf2_node() -> ParsedNode {
+        let phases = vec![
+            PhaseEntry {
+                number: 0,
+                phase_type: PhaseType::SchemaActivation,
+                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+            },
+            PhaseEntry {
+                number: 1,
+                phase_type: PhaseType::ProductiveStruggle,
+                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+            },
+            PhaseEntry {
+                number: 2,
+                phase_type: PhaseType::ConcretenesFading,
+                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into()],
+            },
+            PhaseEntry {
+                number: 3,
+                phase_type: PhaseType::WorkedExamples,
+                requires: vec!["full_example".into(), "partially_faded_example".into()],
+            },
+            PhaseEntry {
+                number: 4,
+                phase_type: PhaseType::SelfExplanation,
+                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+            },
+            PhaseEntry {
+                number: 5,
+                phase_type: PhaseType::RetrievalCheck,
+                requires: vec!["quiz".into()],
+            },
+            PhaseEntry {
+                number: 6,
+                phase_type: PhaseType::SpacedReturn,
+                requires: vec!["spaced_prompt".into(), "interleaving_problem".into()],
+            },
+        ];
+
+        let meta = NodeMeta {
+            concept_id: "intro-motion".into(),
+            title: "Introduction to Motion".into(),
+            eqf_level: 2,
+            bloom_minimum: BloomLevel::Understand,
+            prerequisites: vec![],
+            misconceptions: vec!["misconception 1".into(), "misconception 2".into()],
+            domain_of_applicability: vec!["Basic physics".into()],
+            esco_tags: vec![],
+            estimated_minutes: 25,
+            derivation_required: false,
+            phases,
+        };
+
+        let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
+        for phase in &meta.phases {
+            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            phase_headings.insert(phase.number, headings);
+        }
+
+        let phase_files_found: Vec<u8> = (0u8..=6).collect();
+
+        ParsedNode { meta, phase_files_found, phase_headings }
+    }
+
+    #[test]
+    fn test_valid_node_returns_no_errors() {
+        let node = make_valid_eqf4_node();
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "Expected no errors for a valid EQF 4 node, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_missing_phase_detected() {
+        let mut node = make_valid_eqf4_node();
+        // Remove phase 6 from phases list
+        node.meta.phases.retain(|p| p.number != 6);
+        node.phase_files_found.retain(|&n| n != 6);
+        node.phase_headings.remove(&6);
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::MissingPhase { number: 6 })),
+            "Expected MissingPhase {{ number: 6 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_duplicate_phase_detected() {
+        let mut node = make_valid_eqf4_node();
+        // Add a second phase 3 entry
+        let extra_phase3 = PhaseEntry {
+            number: 3,
+            phase_type: PhaseType::WorkedExamples,
+            requires: vec!["full_example".into()],
+        };
+        node.meta.phases.push(extra_phase3);
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::DuplicatePhase { number: 3 })),
+            "Expected DuplicatePhase {{ number: 3 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_invalid_eqf_level_too_low() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.eqf_level = 1;
+        // Also fix derivation_required so we test the eqf_level error specifically
+        // (EQF conditional won't trigger since eqf < 4 when validation runs with value 1)
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 1 })),
+            "Expected InvalidEqfLevel {{ value: 1 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_invalid_eqf_level_too_high() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.eqf_level = 8;
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 8 })),
+            "Expected InvalidEqfLevel {{ value: 8 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_eqf4_requires_derivation_true() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.derivation_required = false;
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::EqfConditionalViolation { eqf_level: 4, rule }
+                    if rule.contains("derivation_required must be true")
+            )),
+            "Expected EqfConditionalViolation mentioning 'derivation_required must be true', got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_eqf4_requires_derivation_block() {
+        let mut node = make_valid_eqf4_node();
+        // Remove "derivation" from phase 2 requires
+        if let Some(phase2) = node.meta.phases.iter_mut().find(|p| p.number == 2) {
+            phase2.requires.retain(|r| r != "derivation");
+        }
+        // Also update headings to match
+        if let Some(headings) = node.phase_headings.get_mut(&2) {
+            headings.retain(|h| h != "Derivation");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::EqfConditionalViolation { eqf_level: 4, .. }
+            )),
+            "Expected EqfConditionalViolation for missing derivation in phase 2, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_eqf3_requires_mostly_faded_example() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.eqf_level = 3;
+        // Remove "mostly_faded_example" from phase 3 requires
+        if let Some(phase3) = node.meta.phases.iter_mut().find(|p| p.number == 3) {
+            phase3.requires.retain(|r| r != "mostly_faded_example");
+        }
+        if let Some(headings) = node.phase_headings.get_mut(&3) {
+            headings.retain(|h| h != "Mostly Faded Example");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::EqfConditionalViolation { eqf_level: 3, rule }
+                    if rule.contains("mostly_faded_example")
+            )),
+            "Expected EqfConditionalViolation mentioning 'mostly_faded_example', got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_eqf2_no_derivation_no_faded_ok() {
+        let node = make_valid_eqf2_node();
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "Expected no errors for valid EQF 2 node without derivation or mostly_faded_example, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_misconception_count_too_few() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.misconceptions = vec!["only one".into()];
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 1 })),
+            "Expected InvalidMisconceptionCount {{ count: 1 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_misconception_count_too_many() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.misconceptions = vec![
+            "one".into(),
+            "two".into(),
+            "three".into(),
+            "four".into(),
+        ];
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 4 })),
+            "Expected InvalidMisconceptionCount {{ count: 4 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_missing_required_block() {
+        let mut node = make_valid_eqf4_node();
+        // Phase 0 requires ["recall_prompt", "linkage_map", "wonder_hook"]
+        // Remove "Wonder Hook" from phase 0 headings
+        if let Some(headings) = node.phase_headings.get_mut(&0) {
+            headings.retain(|h| h != "Wonder Hook");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::MissingRequiredBlock { phase: 0, block, .. }
+                    if block == "wonder_hook"
+            )),
+            "Expected MissingRequiredBlock for 'wonder_hook' in phase 0, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_missing_phase_file() {
+        let mut node = make_valid_eqf4_node();
+        // Remove phase 6 from files found
+        node.phase_files_found.retain(|&n| n != 6);
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::MissingPhaseFile { number: 6, .. })),
+            "Expected MissingPhaseFile {{ number: 6 }}, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_collects_multiple_errors() {
+        let mut node = make_valid_eqf4_node();
+        // Three violations: invalid eqf_level=0, missing phase 6, 5 misconceptions
+        node.meta.eqf_level = 0;
+        node.meta.phases.retain(|p| p.number != 6);
+        node.phase_files_found.retain(|&n| n != 6);
+        node.phase_headings.remove(&6);
+        node.meta.misconceptions = vec!["a".into(), "b".into(), "c".into(), "d".into(), "e".into()];
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.len() >= 3,
+            "Expected at least 3 errors (collect-all pattern), got {} errors: {:?}",
+            errors.len(),
+            errors
+        );
+    }
+
+    #[test]
+    fn test_phase_type_matches_number() {
+        let mut node = make_valid_eqf4_node();
+        // Change phase 0 to have phase_type WorkedExamples (should be SchemaActivation)
+        if let Some(phase0) = node.meta.phases.iter_mut().find(|p| p.number == 0) {
+            phase0.phase_type = PhaseType::WorkedExamples;
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::PhaseTypeMismatch { number: 0, .. }
+            )),
+            "Expected PhaseTypeMismatch for phase 0, got: {:?}",
+            errors
+        );
     }
 }
