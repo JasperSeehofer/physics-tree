@@ -8,7 +8,9 @@ serde = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 sqlx = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+pulldown-cmark = { workspace = true, optional = true }
 
 [features]
 default = []
-ssr = ["sqlx"]
+ssr = ["sqlx", "serde_json", "pulldown-cmark"]
