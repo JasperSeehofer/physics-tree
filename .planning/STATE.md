@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-28T19:43:40.479Z"
+stopped_at: Completed 09-database-ingest 09-01-PLAN.md
+last_updated: "2026-03-28T20:14:11.338Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 08-content-specification P02 | 4 | 2 tasks | 3 files |
+| Phase 09-database-ingest P01 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,9 @@ Recent decisions affecting current work:
 - [v1.1 research]: 16 v1.0 modules must NOT be migrated in this milestone
 - [Phase 08-02]: Heading comparison uses heading_to_requires() normalization (Title Case -> snake_case) for matching H2 headings to requires keys
 - [Phase 08-02]: gray_matter::Matter::parse() typed with serde_json::Value for CLI phase file parsing — only body content needed for H2 extraction
+- [Phase 09-database-ingest]: v1.0 node_phases rows store file_path in content_body as migration bridge; new 7-phase nodes store actual Markdown
+- [Phase 09-database-ingest]: NodeMeta node_type/depth_tier use serde(default) with deny_unknown_fields — backward compat for existing node.yaml files
+- [Phase 09-database-ingest]: content_repo get_by_slug hardcodes review_status='approved' for node_phases-served content — old review_status column dropped
 
 ### Pending Todos
 
@@ -73,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T19:43:40.477Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-database-ingest/09-CONTEXT.md
+Last session: 2026-03-28T20:14:11.336Z
+Stopped at: Completed 09-database-ingest 09-01-PLAN.md
+Resume file: None
