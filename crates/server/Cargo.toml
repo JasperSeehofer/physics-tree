@@ -29,6 +29,7 @@ time = "0.3"
 serde-saphyr = { workspace = true }
 gray_matter = { workspace = true }
 pulldown-cmark = { workspace = true }
+clap = { version = "4", features = ["derive"] }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
@@ -40,6 +41,10 @@ dotenvy = "0.15"
 [[bin]]
 name = "validate"
 path = "src/bin/validate.rs"
+
+[[bin]]
+name = "ingest"
+path = "src/bin/ingest.rs"
 
 [features]
 default = []
