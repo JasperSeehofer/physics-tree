@@ -25,7 +25,7 @@
 
 **Milestone Goal:** Codify the evidence-based 7-phase didactic framework into the platform and build an AI-assisted content authoring pipeline with multi-agent quality review, so the skill tree can be filled at scale with rigorously structured, pedagogically sound content.
 
-- [ ] **Phase 8: Content Specification** - Define the machine-readable 7-phase content template and node metadata schema
+- [x] **Phase 8: Content Specification** - Define the machine-readable 7-phase content template and node metadata schema (completed 2026-03-28)
 - [ ] **Phase 9: Database & Ingest** - Create DB schema for phase content and implement file-based ingest pipeline
 - [ ] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling
 - [ ] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage
@@ -47,8 +47,8 @@
   5. Each phase has documented typed requirements (e.g., Phase 0 needs recall prompt + linkage map + wonder hook) that a human author can follow without guessing
 **Plans**: 2 plans
 Plans:
-- [ ] 08-01-PLAN.md — Content spec document and Rust type definitions
-- [ ] 08-02-PLAN.md — Validation logic (TDD) and CLI binary
+- [x] 08-01-PLAN.md — Content spec document and Rust type definitions
+- [x] 08-02-PLAN.md — Validation logic (TDD) and CLI binary
 **UI hint**: no
 
 ### Phase 9: Database & Ingest
@@ -128,7 +128,7 @@ Plans:
 | 6. Spaced Repetition | v1.0 | 3/3 | Complete | 2026-03-24 |
 | 7. Sigma Bridge Exports & Mastery Fix | v1.0 | 1/1 | Complete | 2026-03-26 |
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
-| 8. Content Specification | v1.1 | 0/2 | Planning | - |
+| 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 0/? | Not started | - |
 | 10. Manual Pilot Node | v1.1 | 0/? | Not started | - |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |

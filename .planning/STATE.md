@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-27T23:47:30.836Z"
-last_activity: 2026-03-27 -- Phase 08 execution started
+stopped_at: Completed 08-02-PLAN.md — validate_node() and CLI binary
+last_updated: "2026-03-28T00:00:13.023Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 08 (content-specification) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 08
-Last activity: 2026-03-27 -- Phase 08 execution started
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 08-content-specification P02 | 4 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,8 @@ Recent decisions affecting current work:
 - [v1.1 research]: All new Rust crates must be gated behind `ssr` feature flag — never compiled into WASM bundle
 - [v1.1 research]: AI pipeline is offline Python tool in `tools/authoring/` — NOT a deployed service
 - [v1.1 research]: 16 v1.0 modules must NOT be migrated in this milestone
+- [Phase 08-02]: Heading comparison uses heading_to_requires() normalization (Title Case -> snake_case) for matching H2 headings to requires keys
+- [Phase 08-02]: gray_matter::Matter::parse() typed with serde_json::Value for CLI phase file parsing — only body content needed for H2 extraction
 
 ### Pending Todos
 
@@ -70,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T23:30:01.887Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-content-specification/08-CONTEXT.md
+Last session: 2026-03-28T00:00:13.021Z
+Stopped at: Completed 08-02-PLAN.md — validate_node() and CLI binary
+Resume file: None
