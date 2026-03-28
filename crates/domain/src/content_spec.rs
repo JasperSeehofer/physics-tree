@@ -28,6 +28,22 @@ pub struct NodeMeta {
     pub derivation_required: bool,
     /// Exactly 7 entries, numbers 0–6 in order
     pub phases: Vec<PhaseEntry>,
+    /// Node type for the graph (concept, formula, theorem, application, consequence).
+    /// Defaults to "concept" if not specified in node.yaml.
+    #[serde(default = "default_node_type")]
+    pub node_type: String,
+    /// Depth tier for the graph (trunk, branch, leaf).
+    /// Defaults to "trunk" if not specified in node.yaml.
+    #[serde(default = "default_depth_tier")]
+    pub depth_tier: String,
+}
+
+fn default_node_type() -> String {
+    "concept".to_string()
+}
+
+fn default_depth_tier() -> String {
+    "trunk".to_string()
 }
 
 /// Bloom's Taxonomy cognitive level.
