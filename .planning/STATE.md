@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-28T19:43:40.479Z"
+stopped_at: Completed 09-02-PLAN.md kinematics fixture node
+last_updated: "2026-03-28T20:15:02.559Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 08-content-specification P02 | 4 | 2 tasks | 3 files |
+| Phase 09-database-ingest P02 | 4 | 1 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,7 @@ Recent decisions affecting current work:
 - [v1.1 research]: 16 v1.0 modules must NOT be migrated in this milestone
 - [Phase 08-02]: Heading comparison uses heading_to_requires() normalization (Title Case -> snake_case) for matching H2 headings to requires keys
 - [Phase 08-02]: gray_matter::Matter::parse() typed with serde_json::Value for CLI phase file parsing — only body content needed for H2 extraction
+- [Phase 09-database-ingest]: node_type and depth_tier added to NodeMeta with serde(default) — allows node.yaml to specify graph metadata while deny_unknown_fields still catches typos
 
 ### Pending Todos
 
@@ -73,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T19:43:40.477Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-database-ingest/09-CONTEXT.md
+Last session: 2026-03-28T20:15:02.557Z
+Stopped at: Completed 09-02-PLAN.md kinematics fixture node
+Resume file: None
