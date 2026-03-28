@@ -73,6 +73,7 @@ fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
     // Step 3: Read each phase file
     let mut phase_files_found: Vec<u8> = Vec::new();
     let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
+    let mut phase_estimated_minutes: HashMap<u8, u16> = HashMap::new();
 
     for n in 0u8..=6 {
         let phase_path = dir.join(format!("phase-{n}.md"));
@@ -80,8 +81,21 @@ fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
             phase_files_found.push(n);
 
             let matter = gray_matter::Matter::<gray_matter::engine::YAML>::new();
-            let body = matter
-                .parse::<serde_json::Value>(&content)
+            let parsed = matter.parse::<serde_json::Value>(&content);
+
+            // Extract per-phase estimated_minutes from frontmatter if present
+            if let Ok(ref p) = parsed {
+                if let Some(mins) = p
+                    .data
+                    .as_ref()
+                    .and_then(|d| d.get("estimated_minutes"))
+                    .and_then(|v| v.as_u64())
+                {
+                    phase_estimated_minutes.insert(n, mins as u16);
+                }
+            }
+
+            let body = parsed
                 .map(|p| p.content)
                 .unwrap_or(content);
 
@@ -90,7 +104,7 @@ fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
         }
     }
 
-    Ok(ParsedNode { meta, phase_files_found, phase_headings })
+    Ok(ParsedNode { meta, phase_files_found, phase_headings, phase_estimated_minutes })
 }
 
 /// Read the raw content (including frontmatter) of a phase file.

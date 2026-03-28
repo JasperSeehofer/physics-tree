@@ -101,6 +101,9 @@ pub struct ParsedNode {
     pub phase_files_found: Vec<u8>,
     /// Phase number → H2 headings found in that phase file (in Title Case as written)
     pub phase_headings: HashMap<u8, Vec<String>>,
+    /// Phase number → estimated_minutes from phase frontmatter.
+    /// Empty map means per-phase minutes were not parsed (no mismatch check performed).
+    pub phase_estimated_minutes: HashMap<u8, u16>,
 }
 
 /// A structured validation error produced by `validate_node()`.
@@ -146,6 +149,19 @@ pub enum ValidationError {
         number: u8,
         expected: String,
         found: String,
+    },
+    /// Phase 5 (retrieval_check) requires list is missing a standard required block.
+    /// Introduced by Gap 1 in SPEC-GAPS.md: transfer_problem was not enforced by the validator.
+    MissingStandardRequires {
+        phase: u8,
+        block: String,
+    },
+    /// The node-level `estimated_minutes` does not match the sum of per-phase values.
+    /// Only emitted when per-phase minutes are provided (non-empty `phase_estimated_minutes` map).
+    /// Introduced by Gap 4 in SPEC-GAPS.md.
+    EstimatedMinutesMismatch {
+        node_total: u16,
+        phase_sum: u16,
     },
 }
 
@@ -204,6 +220,18 @@ impl fmt::Display for ValidationError {
                 write!(
                     f,
                     "node.yaml:phases[{number}]  Phase type mismatch: expected '{expected}', found '{found}'"
+                )
+            }
+            ValidationError::MissingStandardRequires { phase, block } => {
+                write!(
+                    f,
+                    "node.yaml:phases[{phase}]  Missing standard required block '{block}' for phase type retrieval_check"
+                )
+            }
+            ValidationError::EstimatedMinutesMismatch { node_total, phase_sum } => {
+                write!(
+                    f,
+                    "node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})"
                 )
             }
         }
@@ -439,6 +467,27 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     // 7 & 8. EQF-conditional rules
     check_eqf_rules(&node.meta, &mut errors);
 
+    // 9. Standard requires enforcement: phase 5 (retrieval_check) must include transfer_problem
+    if let Some(phase5) = node.meta.phases.iter().find(|p| p.number == 5) {
+        if !phase5.requires.iter().any(|r| r == "transfer_problem") {
+            errors.push(ValidationError::MissingStandardRequires {
+                phase: 5,
+                block: "transfer_problem".into(),
+            });
+        }
+    }
+
+    // 10. estimated_minutes consistency: if per-phase minutes are provided, check sum == node total
+    if !node.phase_estimated_minutes.is_empty() {
+        let phase_sum: u16 = node.phase_estimated_minutes.values().sum();
+        if phase_sum != node.meta.estimated_minutes {
+            errors.push(ValidationError::EstimatedMinutesMismatch {
+                node_total: node.meta.estimated_minutes,
+                phase_sum,
+            });
+        }
+    }
+
     errors
 }
 
@@ -571,7 +620,7 @@ mod tests {
             PhaseEntry {
                 number: 5,
                 phase_type: PhaseType::RetrievalCheck,
-                requires: vec!["quiz".into()],
+                requires: vec!["quiz".into(), "transfer_problem".into()],
             },
             PhaseEntry {
                 number: 6,
@@ -605,7 +654,12 @@ mod tests {
 
         let phase_files_found: Vec<u8> = (0u8..=6).collect();
 
-        ParsedNode { meta, phase_files_found, phase_headings }
+        ParsedNode {
+            meta,
+            phase_files_found,
+            phase_headings,
+            phase_estimated_minutes: HashMap::new(),
+        }
     }
 
     /// Build a fully valid EQF 2 ParsedNode — no derivation, no mostly_faded_example required.
@@ -639,7 +693,7 @@ mod tests {
             PhaseEntry {
                 number: 5,
                 phase_type: PhaseType::RetrievalCheck,
-                requires: vec!["quiz".into()],
+                requires: vec!["quiz".into(), "transfer_problem".into()],
             },
             PhaseEntry {
                 number: 6,
@@ -672,7 +726,12 @@ mod tests {
 
         let phase_files_found: Vec<u8> = (0u8..=6).collect();
 
-        ParsedNode { meta, phase_files_found, phase_headings }
+        ParsedNode {
+            meta,
+            phase_files_found,
+            phase_headings,
+            phase_estimated_minutes: HashMap::new(),
+        }
     }
 
     #[test]
@@ -925,6 +984,138 @@ mod tests {
             )),
             "Expected PhaseTypeMismatch for phase 0, got: {:?}",
             errors
+        );
+    }
+
+    // ===== Gap 1: transfer_problem enforcement tests =====
+
+    /// A phase 5 retrieval_check that omits transfer_problem should produce MissingStandardRequires.
+    #[test]
+    fn test_phase5_missing_transfer_problem_produces_error() {
+        let mut node = make_valid_eqf4_node();
+        // Remove "transfer_problem" from phase 5 requires
+        if let Some(phase5) = node.meta.phases.iter_mut().find(|p| p.number == 5) {
+            phase5.requires.retain(|r| r != "transfer_problem");
+        }
+        // Also remove from headings so it doesn't conflict
+        if let Some(headings) = node.phase_headings.get_mut(&5) {
+            headings.retain(|h| h != "Transfer Problem");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::MissingStandardRequires { phase: 5, block }
+                    if block == "transfer_problem"
+            )),
+            "Expected MissingStandardRequires for 'transfer_problem' in phase 5, got: {:?}",
+            errors
+        );
+    }
+
+    /// A phase 5 retrieval_check that includes transfer_problem should not produce MissingStandardRequires.
+    #[test]
+    fn test_phase5_with_transfer_problem_passes() {
+        let mut node = make_valid_eqf4_node();
+        // Ensure phase 5 has both quiz and transfer_problem
+        if let Some(phase5) = node.meta.phases.iter_mut().find(|p| p.number == 5) {
+            if !phase5.requires.contains(&"transfer_problem".to_string()) {
+                phase5.requires.push("transfer_problem".into());
+            }
+        }
+        // Update headings to match
+        if let Some(headings) = node.phase_headings.get_mut(&5) {
+            if !headings.contains(&"Transfer Problem".to_string()) {
+                headings.push("Transfer Problem".into());
+            }
+        }
+
+        let errors = validate_node(&node);
+        let transfer_errors: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ValidationError::MissingStandardRequires { phase: 5, .. }))
+            .collect();
+        assert!(
+            transfer_errors.is_empty(),
+            "Expected no MissingStandardRequires for phase 5 when transfer_problem is present, got: {:?}",
+            transfer_errors
+        );
+    }
+
+    /// The EQF 4 node fixture includes transfer_problem in phase 5 — it should pass all checks.
+    #[test]
+    fn test_valid_eqf4_node_with_transfer_problem_has_no_errors() {
+        // make_valid_eqf4_node already has transfer_problem in phase 5
+        let node = make_valid_eqf4_node();
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "Expected no errors for fully valid EQF 4 node with transfer_problem, got: {:?}",
+            errors
+        );
+    }
+
+    // ===== Gap 4: estimated_minutes divergence tests =====
+
+    /// A node where estimated_minutes doesn't match the sum of per-phase estimated_minutes
+    /// should produce an EstimatedMinutesMismatch warning.
+    /// Note: phase frontmatter estimated_minutes are stored separately from node-level; this
+    /// test uses the phase_estimated_minutes map on ParsedNode.
+    #[test]
+    fn test_estimated_minutes_mismatch_produces_error() {
+        let mut node = make_valid_eqf4_node();
+        // node.meta.estimated_minutes is 40 in the fixture
+        // Set phase estimated minutes that sum to 63 (mismatch)
+        let phase_minutes: HashMap<u8, u16> = [
+            (0, 5), (1, 10), (2, 12), (3, 10), (4, 6), (5, 12), (6, 8)
+        ].iter().cloned().collect();
+        node.phase_estimated_minutes = phase_minutes;
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(e, ValidationError::EstimatedMinutesMismatch { .. })),
+            "Expected EstimatedMinutesMismatch when node total (40) != sum of phases (63), got: {:?}",
+            errors
+        );
+    }
+
+    /// A node where estimated_minutes matches the sum of per-phase values should pass.
+    #[test]
+    fn test_estimated_minutes_match_passes() {
+        let mut node = make_valid_eqf4_node();
+        // node.meta.estimated_minutes is 40; set phases to sum to 40
+        let phase_minutes: HashMap<u8, u16> = [
+            (0, 5), (1, 8), (2, 8), (3, 7), (4, 4), (5, 5), (6, 3)
+        ].iter().cloned().collect(); // sum = 40
+        node.phase_estimated_minutes = phase_minutes;
+
+        let errors = validate_node(&node);
+        let mismatch_errors: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ValidationError::EstimatedMinutesMismatch { .. }))
+            .collect();
+        assert!(
+            mismatch_errors.is_empty(),
+            "Expected no EstimatedMinutesMismatch when totals match, got: {:?}",
+            mismatch_errors
+        );
+    }
+
+    /// When no per-phase estimated_minutes are provided (empty map), no mismatch error.
+    #[test]
+    fn test_no_phase_minutes_provided_no_mismatch_error() {
+        let node = make_valid_eqf4_node(); // phase_estimated_minutes is empty HashMap
+        let errors = validate_node(&node);
+        let mismatch_errors: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ValidationError::EstimatedMinutesMismatch { .. }))
+            .collect();
+        assert!(
+            mismatch_errors.is_empty(),
+            "Expected no mismatch error when no per-phase minutes provided, got: {:?}",
+            mismatch_errors
         );
     }
 }

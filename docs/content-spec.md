@@ -68,6 +68,9 @@ The `node.yaml` file contains all node-level metadata and the phase manifest dec
 | `misconceptions` | list[string] | yes | 2–3 common misconceptions, stated as student belief strings |
 | `domain_of_applicability` | list[string] | yes | Explicit validity bounds (when this model applies / does not apply) |
 | `esco_tags` | list[string] | yes | ESCO skill tag URIs |
+
+> **Note on `esco_tags`:** Empty list `[]` is valid during pilot authoring (Phase 10). ESCO tag population is deferred to Phase 14. From Phase 14 onward, `esco_tags` must be non-empty. The validator currently accepts `[]` without error; a non-empty enforcement rule will be added in Phase 14.
+
 | `estimated_minutes` | integer | yes | Estimated total active learning time across all phases |
 | `derivation_required` | boolean | yes | Must be `true` if `eqf_level >= 4` (see EQF-Conditional Rules) |
 | `phases` | list[PhaseEntry] | yes | Exactly 7 entries, numbers 0–6 in order |
@@ -227,6 +230,8 @@ Each phase has a canonical `phase_type` value (used in `node.yaml`) and a set of
 |------------------------|------------|-------------|
 | `full_example` | `## Full Example` | Complete worked solution, every step shown |
 | `partially_faded_example` | `## Partially Faded Example` | Solution with some steps removed for learner to complete |
+
+> **Blank marker convention:** Use `\boxed{?}` (KaTeX) to mark steps the learner should fill in. Each `\boxed{?}` replaces exactly one algebraic step or numerical substitution. This renders as a boxed question mark in KaTeX and is the standard notation for the AI content pipeline. Do not use placeholder text, underscores, or other conventions — `\boxed{?}` is the canonical form.
 
 **EQF conditional:** `mostly_faded_example` required at EQF 3+.
 
@@ -474,6 +479,8 @@ node.yaml:phases[2]  Unknown phase_type 'concreteness_fadig' (typo?)
 10. **EQF-conditional: `derivation` block** — if `eqf_level >= 4`, Phase 2 `requires` must include `derivation`
 11. **EQF-conditional: `mostly_faded_example`** — if `eqf_level >= 3`, Phase 3 `requires` must include `mostly_faded_example`
 12. **EQF 5+ derivation assumptions** — if `eqf_level >= 5`, the `derivation` block in `phase-2.md` must contain a `## Assumptions` subsection
+13. **Standard requires enforcement: `transfer_problem`** — Phase 5 `requires` must include `transfer_problem` for all nodes regardless of EQF level. A node that omits `transfer_problem` from Phase 5 `requires` will fail validation with `node.yaml:phases[5]  Missing standard required block 'transfer_problem' for phase type retrieval_check`. (Resolved: Gap 1 from Phase 10 SPEC-GAPS.md.)
+14. **`estimated_minutes` consistency** — when per-phase `estimated_minutes` are present in phase frontmatter, their sum must equal the node-level `estimated_minutes` in `node.yaml`. Mismatch produces `node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})`. (Resolved: Gap 4 from Phase 10 SPEC-GAPS.md.)
 
 ### Running the Validator
 
