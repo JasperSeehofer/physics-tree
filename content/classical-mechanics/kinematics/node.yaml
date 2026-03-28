@@ -13,7 +13,7 @@ domain_of_applicability:
   - 'Classical mechanics (v << c)'
   - 'Point particle approximation'
 esco_tags: []
-estimated_minutes: 45
+estimated_minutes: 63
 derivation_required: true
 node_type: concept
 depth_tier: trunk
