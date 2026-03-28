@@ -52,6 +52,7 @@ phases:
     phase_type: retrieval_check
     requires:
       - quiz
+      - transfer_problem
   - number: 6
     phase_type: spaced_return
     requires:

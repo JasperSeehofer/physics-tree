@@ -6,68 +6,74 @@ estimated_minutes: 10
 
 ## Full Example
 
-**Problem:** A cyclist moving at $v_0 = 4\,\text{m/s}$ begins accelerating uniformly at $a = 2\,\text{m/s}^2$. Find (a) the velocity after $t = 3\,\text{s}$, (b) the displacement in those 3 seconds, and (c) the velocity when the displacement is $\Delta x = 20\,\text{m}$.
+**Problem:** An airplane needs to reach a speed of $v = 80\,\text{m/s}$ to lift off. The runway is $\Delta x = 1600\,\text{m}$ long. Starting from rest ($v_0 = 0$), what minimum constant acceleration is required?
 
-**Solution:**
+**Step 1 — Identify knowns and unknown:**
 
-**(a) Velocity after 3 s**
+| Quantity | Value |
+|----------|-------|
+| $v_0$ | $0\,\text{m/s}$ (starts from rest) |
+| $v$ | $80\,\text{m/s}$ (liftoff speed) |
+| $\Delta x$ | $1600\,\text{m}$ (runway length) |
+| $t$ | unknown (not asked) |
+| $a$ | ? (what we want) |
 
-Use equation (1): $v = v_0 + at$
+**Step 2 — Choose the kinematic equation:**
 
-$$v = 4 + (2)(3) = 4 + 6 = 10\,\text{m/s}$$
+We know $v_0$, $v$, and $\Delta x$, and we do not know $t$ and do not need it. Equation (3) connects exactly these quantities:
 
-**(b) Displacement in 3 s**
+$$v^2 = v_0^2 + 2a\,\Delta x$$
 
-Use equation (2): $\Delta x = v_0 t + \frac{1}{2}at^2$
+**Step 3 — Solve algebraically for $a$:**
 
-$$\Delta x = (4)(3) + \frac{1}{2}(2)(3)^2 = 12 + 9 = 21\,\text{m}$$
+$$a = \frac{v^2 - v_0^2}{2\,\Delta x}$$
 
-**(c) Velocity at displacement 20 m**
+**Step 4 — Substitute numbers:**
 
-Use equation (3): $v^2 = v_0^2 + 2a\Delta x$
+$$a = \frac{(80)^2 - (0)^2}{2 \times 1600} = \frac{6400}{3200} = 2\,\text{m/s}^2$$
 
-$$v^2 = (4)^2 + 2(2)(20) = 16 + 80 = 96$$
+**Step 5 — Check units and reasonableness:**
 
-$$v = \sqrt{96} \approx 9.8\,\text{m/s}$$
+Units: $\dfrac{(\text{m/s})^2}{\text{m}} = \dfrac{\text{m}^2/\text{s}^2}{\text{m}} = \text{m/s}^2$ ✓
 
-**Check (self-consistency):** From part (b), $\Delta x = 21\,\text{m}$ at $t = 3\,\text{s}$. The displacement of 20 m should occur slightly before $t = 3\,\text{s}$, so $v \approx 9.8\,\text{m/s} < 10\,\text{m/s}$. Consistent.
+Reasonableness: A 2 m/s² acceleration means the plane gains 2 m/s of speed every second. Starting from rest, it reaches 80 m/s after 40 s. Does it use the full runway? $\Delta x = \frac{1}{2}(2)(40)^2 = 1600\,\text{m}$ ✓
+
+The minimum required acceleration is $\boxed{2\,\text{m/s}^2}$.
 
 ## Partially Faded Example
 
-**Problem:** A stone is dropped from rest off a cliff of height $h = 80\,\text{m}$. Taking downward as positive with $g = 10\,\text{m/s}^2$, find (a) the time to reach the ground and (b) the speed on impact.
+**Problem:** A cyclist starts from rest and accelerates uniformly along a straight path. After $t = 8\,\text{s}$ she has reached $v = 12\,\text{m/s}$. What was her acceleration, and how far did she travel during those 8 seconds?
 
-**Given:** $v_0 = 0$, $a = 10\,\text{m/s}^2$, $\Delta x = 80\,\text{m}$.
+**Given:** $v_0 = 0$, $v = 12\,\text{m/s}$, $t = 8\,\text{s}$. Find $a$ and $\Delta x$.
 
-**(a) Time to reach the ground**
+**Part (a) — Finding acceleration:**
 
-Choose the appropriate kinematic equation. We know $v_0$, $a$, and $\Delta x$; we want $t$.
-
-Use equation (2): $\Delta x = v_0 t + \frac{1}{2}at^2$
+Use equation (1): $v = v_0 + at$
 
 Since $v_0 = 0$:
 
-$$80 = \frac{1}{2}(10)t^2 = 5t^2$$
+$$12 = a \times 8$$
 
-$$t^2 = 16 \implies t = \boxed{?} \,\text{s}$$
+$$a = \boxed{?}\,\text{m/s}^2$$
 
-*[Complete this step: solve for $t$.]*
+*[Solve for $a$.]*
 
-**(b) Speed on impact**
+**Part (b) — Finding displacement:**
 
-Use the result from (a) in equation (1), or use equation (3) directly:
+Now use equation (2): $\Delta x = v_0 t + \dfrac{1}{2}at^2$
 
-$$v^2 = v_0^2 + 2g\Delta x = 0 + 2(10)(80) = \boxed{?}$$
+Since $v_0 = 0$:
 
-$$v = \boxed{?}\,\text{m/s}$$
+$$\Delta x = \frac{1}{2} \times \boxed{?} \times (8)^2$$
 
-*[Fill in the blanks and verify that both methods give the same final speed.]*
+$$\Delta x = \boxed{?}\,\text{m}$$
+
+*[Fill in the acceleration from part (a) and compute the displacement. Then verify your answer using equation (3): $v^2 = v_0^2 + 2a\,\Delta x$ with $v_0 = 0$ — does your $\Delta x$ satisfy this equation?]*
 
 ## Mostly Faded Example
 
-**Problem:** A car moving at $v_0 = 20\,\text{m/s}$ brakes with constant deceleration $a = -4\,\text{m/s}^2$. How far does it travel before stopping?
+**Problem:** A stone is dropped from rest from the edge of a 45 m cliff. How long does it take to reach the ground? (Use $g = 9.8\,\text{m/s}^2$, take downward as positive.)
 
-**Given:** $v_0 = 20\,\text{m/s}$, $v = 0\,\text{m/s}$ (stopped), $a = -4\,\text{m/s}^2$. Find $\Delta x$.
+*[Identify the knowns: $v_0 = 0$, $a = 9.8\,\text{m/s}^2$, $\Delta x = 45\,\text{m}$. Identify the unknown: $t$. Choose the appropriate kinematic equation, substitute the values, and solve for $t$. Show all algebraic steps.]*
 
-*[Identify which kinematic equation connects the known quantities to the unknown. Write the equation, substitute the values, and solve for $\Delta x$. Show all steps.]*
-
-Expected answer: $\Delta x = 50\,\text{m}$.
+**Expected answer:** $t \approx 3.03\,\text{s}$

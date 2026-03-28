@@ -6,96 +6,119 @@ estimated_minutes: 12
 
 ## Concrete Stage
 
-**A falling ball — motion you can feel**
+**A car accelerating from a traffic light**
 
-Imagine dropping a tennis ball from rest. Every second, gravity pulls it faster. After 1 second it is moving at roughly 10 m/s downward; after 2 seconds at 20 m/s; after 3 seconds at 30 m/s. The velocity increases by the same amount every second — that constant increase is what we mean by *constant acceleration*.
+A car is at rest at a red light. When the light turns green, it accelerates uniformly at $2\,\text{m/s}^2$ for 3 seconds.
 
-How far has it fallen after 3 seconds? We can estimate by taking the average velocity over each 1-second interval:
+*Finding the final velocity:* The car gains $2\,\text{m/s}$ of speed every second. After 3 seconds it has gained $2 \times 3 = 6\,\text{m/s}$ from its starting speed of $5\,\text{m/s}$:
 
-- Interval 1 (0 to 1 s): average velocity ≈ 5 m/s, distance ≈ 5 m
-- Interval 2 (1 to 2 s): average velocity ≈ 15 m/s, distance ≈ 15 m
-- Interval 3 (2 to 3 s): average velocity ≈ 25 m/s, distance ≈ 25 m
+$$v = 5 + 6 = 11\,\text{m/s}$$
 
-Total distance ≈ 45 m. Notice how the distances in successive intervals grow: 5, 15, 25 — increasing by 10 each time. This is a hallmark of constant acceleration.
+*Finding the displacement:* On a velocity-time graph, the car's speed rises linearly from $5\,\text{m/s}$ to $11\,\text{m/s}$ over 3 seconds. The area under that line is a trapezoid:
 
-With $g = 9.8\,\text{m/s}^2$ and the exact formula (which we will derive): $x = \frac{1}{2}(9.8)(3)^2 = 44.1\,\text{m}$. Our estimate of 45 m is close because we used 1-second intervals; smaller intervals would give a more accurate approximation.
+$$\Delta x = \frac{(5 + 11)}{2} \times 3 = 8 \times 3 = 24\,\text{m}$$
+
+We can also think of this area as a rectangle (base velocity $\times$ time) plus a triangle (the extra velocity gained due to acceleration):
+
+$$\Delta x = \underbrace{5 \times 3}_{\text{rectangle}} + \underbrace{\frac{1}{2} \times 6 \times 3}_{\text{triangle}} = 15 + 9 = 24\,\text{m}$$
+
+Both approaches agree. The triangle area of $\frac{1}{2} \times (at) \times t = \frac{1}{2}at^2$ is the kinematic term we will see shortly.
 
 ## Bridging Stage
 
-**From numbers to named quantities**
+**Replacing specific numbers with physical quantities**
 
-Call the initial velocity $v_0$, the constant acceleration $a$, and the time elapsed $t$.
+Let the initial velocity be $v_0$, the constant acceleration be $a$, and the elapsed time be $t$. Keep the velocity-time graph in mind.
 
 After time $t$, the velocity is:
 
-$$v = v_0 + a \cdot t$$
+$$v = v_0 + at$$
 
-This makes sense: start at $v_0$ and add the velocity gained from acceleration ($a$ per second, for $t$ seconds).
+The area under the velocity-time trapezoid (from $v_0$ to $v = v_0 + at$) gives displacement:
 
-For the displacement, we need the area under the velocity-time graph. The graph is a straight line from $v_0$ to $v_0 + at$. The area of this trapezoid is:
+$$\Delta x = \frac{v_0 + (v_0 + at)}{2} \cdot t = \frac{2v_0 + at}{2} \cdot t = v_0 t + \frac{1}{2}at^2$$
 
-$$\Delta x = \frac{v_0 + (v_0 + at)}{2} \cdot t = v_0 t + \frac{1}{2}a t^2$$
+Writing position explicitly (with $x_0$ for the starting position):
 
-So position as a function of time is:
+$$x = x_0 + v_0 t + \frac{1}{2}at^2$$
 
-$$x = x_0 + v_0 t + \frac{1}{2}a t^2$$
-
-For the falling ball: $x_0 = 0$, $v_0 = 0$, $a = 9.8\,\text{m/s}^2$, so $x = \frac{1}{2}(9.8)t^2$. At $t = 3\,\text{s}$: $x = 44.1\,\text{m}$.
+For our car example: $v_0 = 5\,\text{m/s}$, $a = 2\,\text{m/s}^2$, $t = 3\,\text{s}$:
+$$x = 0 + (5)(3) + \frac{1}{2}(2)(3)^2 = 15 + 9 = 24\,\text{m} \checkmark$$
 
 ## Abstract Stage
 
-**The three kinematic equations**
+**The three kinematic equations for constant acceleration**
 
-For any object with constant acceleration $a$, initial position $x_0$, and initial velocity $v_0$:
+For any object with constant acceleration $a$, starting at position $x_0$ with initial velocity $v_0$:
 
 $$v = v_0 + at \tag{1}$$
 
 $$x = x_0 + v_0 t + \tfrac{1}{2}a t^2 \tag{2}$$
 
-$$v^2 = v_0^2 + 2a(x - x_0) \tag{3}$$
+$$v^2 = v_0^2 + 2a\,(x - x_0) \tag{3}$$
 
-Equation (3) follows from eliminating $t$ between equations (1) and (2). It is useful when time is not given or not needed.
+Equation (3) is obtained by eliminating $t$ from equations (1) and (2). It relates velocity and displacement directly without needing time — extremely useful when the time is neither given nor asked for.
 
-These three equations are the complete toolkit for any constant-acceleration problem. Given any three of the five quantities ($x_0$, $x$, $v_0$, $v$, $a$, $t$) you can find the remaining two.
+Together these three equations form the complete toolkit for constant-acceleration problems. Given any three of the five kinematic quantities ($x_0$, $x$, $v_0$, $v$, $a$, $t$), you can solve for the remaining two.
 
 ## Derivation
 
-**Formal derivation from the definition of acceleration**
+**Rigorous derivation from the definitions of velocity and acceleration**
 
-We define velocity as the time derivative of position and acceleration as the time derivative of velocity:
+We assume that acceleration $a$ is constant over the entire time interval of interest. This is the only assumption. All three kinematic equations follow from it by integration alone — no empirical input required.
 
-$$v(t) = \frac{dx}{dt}, \qquad a(t) = \frac{dv}{dt}$$
+The definitions are:
 
-**Step 1: Velocity from constant acceleration**
+$$a = \frac{dv}{dt}, \qquad v = \frac{dx}{dt}$$
 
-If $a$ is constant, integrate $\frac{dv}{dt} = a$ from $t = 0$ to $t$:
+**Step 1: Velocity as a function of time**
 
-$$\int_0^t a \, dt' = \int_{v_0}^{v(t)} dv'$$
+Since $a$ is constant, we integrate $\dfrac{dv}{dt} = a$ with respect to time. Using definite integrals from $t = 0$ (where $v = v_0$) to an arbitrary time $t$ (where $v = v(t)$):
 
-$$at = v(t) - v_0$$
+$$\int_{v_0}^{v(t)} dv' = \int_0^t a\, dt'$$
+
+The left side integrates to $v(t) - v_0$. The right side integrates to $at$ (since $a$ is constant):
+
+$$v(t) - v_0 = at$$
 
 $$\boxed{v(t) = v_0 + at} \tag{1}$$
 
-**Step 2: Position from velocity**
+**Step 2: Position as a function of time**
 
-Integrate $\frac{dx}{dt} = v_0 + at$ from $t = 0$ to $t$:
+Substitute $v(t) = v_0 + at$ into $\dfrac{dx}{dt} = v(t)$ and integrate from $t = 0$ (where $x = x_0$) to time $t$:
 
-$$\int_0^t (v_0 + at') \, dt' = \int_{x_0}^{x(t)} dx'$$
+$$\int_{x_0}^{x(t)} dx' = \int_0^t (v_0 + at')\, dt'$$
 
-$$v_0 t + \frac{1}{2}at^2 = x(t) - x_0$$
+The left side integrates to $x(t) - x_0$. The right side:
+
+$$\int_0^t (v_0 + at')\, dt' = v_0 t + \frac{1}{2}at^2$$
+
+Therefore:
 
 $$\boxed{x(t) = x_0 + v_0 t + \tfrac{1}{2}at^2} \tag{2}$$
 
-**Step 3: Time-independent equation**
+**Step 3: The time-independent equation**
 
-From equation (1): $t = \frac{v - v_0}{a}$ (assuming $a \neq 0$). Substitute into equation (2):
+From equation (1), solve for $t$ (valid when $a \neq 0$):
+
+$$t = \frac{v - v_0}{a}$$
+
+Substitute into equation (2) and expand:
 
 $$x - x_0 = v_0 \cdot \frac{v - v_0}{a} + \frac{1}{2}a \left(\frac{v - v_0}{a}\right)^2$$
 
 $$x - x_0 = \frac{v_0(v - v_0)}{a} + \frac{(v - v_0)^2}{2a}$$
 
-$$2a(x - x_0) = 2v_0(v - v_0) + (v - v_0)^2 = (v - v_0)(2v_0 + v - v_0) = (v - v_0)(v + v_0)$$
+Multiply both sides by $2a$:
+
+$$2a(x - x_0) = 2v_0(v - v_0) + (v - v_0)^2$$
+
+Factor the right side:
+
+$$2a(x - x_0) = (v - v_0)\bigl[2v_0 + (v - v_0)\bigr] = (v - v_0)(v + v_0)$$
+
+Use the difference-of-squares identity $(v - v_0)(v + v_0) = v^2 - v_0^2$:
 
 $$\boxed{v^2 = v_0^2 + 2a(x - x_0)} \tag{3}$$
 
-All three equations are exact consequences of the definition of constant acceleration. They require no empirical input — only the assumption that $a$ is truly constant over the interval.
+All three equations are exact within the assumption of constant acceleration. They hold for any values of $v_0$, $a$, and $t$ — including negative values, which arise naturally when choosing sign conventions (e.g., upward positive means $a = -9.8\,\text{m/s}^2$ for a thrown ball).

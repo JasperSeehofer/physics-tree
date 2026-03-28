@@ -1,27 +1,27 @@
 ---
 phase: 4
 type: self_explanation
-estimated_minutes: 7
+estimated_minutes: 6
 ---
 
 ## Self Explanation Prompt
 
-Look back at the derivation in Phase 2. In Step 1, we integrated the constant acceleration $a$ from $t = 0$ to $t$ and obtained $v(t) = v_0 + at$.
+The three kinematic equations were derived in Phase 2 under a single assumption: that acceleration is constant throughout the motion.
 
-**Explain in your own words:**
+**Explain in your own words — write your answer before reading the reflection questions:**
 
-1. Why does the integral of a constant $a$ give $at$ and not something else? What does the area under a horizontal line on the acceleration-time graph represent physically?
+Why does the assumption of constant acceleration make it possible to write exact, closed-form equations for position and velocity? In your explanation, address:
 
-2. In Step 2, we integrated $v(t) = v_0 + at$ to get the position. The term $\frac{1}{2}at^2$ came from integrating $at$. Draw a velocity-time graph and explain why the area of the triangular portion equals $\frac{1}{2}at^2$.
+1. What specific mathematical operation became possible once $a$ was treated as a constant (not a function of time)?
+2. What would happen to the derivation in Phase 2 if $a$ varied with time — where exactly would the steps break down, and what would you need instead?
+3. The three equations use five quantities: $x_0$, $x$, $v_0$, $v$, $a$, $t$. Explain in physical terms why knowing any three of these five is always enough to determine the other two (for constant $a$).
 
-3. The third equation, $v^2 = v_0^2 + 2a\Delta x$, contains no time variable. What does this mean physically? In what kind of problem is this equation most useful?
-
-Write your explanation before reading the reflection questions below.
+Write several sentences — the goal is to demonstrate understanding, not just recall the formula.
 
 ## Reflection Questions
 
-1. **On assumptions:** The kinematic equations require *constant* acceleration. What would change if the acceleration varied with time? Could you still find the displacement from the velocity-time graph? What mathematical tool would you need?
+1. **Why equation (3) has no time:** The equation $v^2 = v_0^2 + 2a\,\Delta x$ was derived by eliminating $t$ from equations (1) and (2). What does it mean physically that time does not appear? Describe a specific type of problem where you would reach for equation (3) first, and explain why the other two equations would be less convenient there.
 
-2. **On sign conventions:** A ball is thrown straight upward with $v_0 = 15\,\text{m/s}$. Taking upward as positive, $a = -9.8\,\text{m/s}^2$. The ball reaches a maximum height at $v = 0$. Using $v = v_0 + at$, solve for $t$ at maximum height. Now flip the sign convention (downward positive): redo the problem with $v_0 = -15\,\text{m/s}$ and $a = +9.8\,\text{m/s}^2$. Do you get the same time? What does this tell you about sign conventions?
+2. **Sign conventions matter:** Suppose you define upward as positive and drop a ball from a height of 20 m. Write down the values of $v_0$, $a$, and $\Delta x$ for the ball's fall to the ground (be careful with signs). Now solve for the time of flight using equation (2). What happens if you accidentally use $a = +9.8\,\text{m/s}^2$ instead of $a = -9.8\,\text{m/s}^2$? Explain what the wrong sign would imply physically about the ball's motion, and why the equation gives a nonsensical result.
 
-3. **On the third equation:** The equation $v^2 = v_0^2 + 2a\Delta x$ was derived by algebraically eliminating $t$ from equations (1) and (2). What does it mean that $t$ does not appear? If you used this equation to find the speed at the bottom of a ramp (given $a$ and $\Delta x$), you are implicitly assuming something about the ramp. What is that assumption?
+3. **When the assumption fails:** The kinematic equations require constant $a$. Describe one real-world situation where this assumption clearly fails (the acceleration changes during the motion). Explain in physical terms why the kinematic equations would give the wrong answer for that situation, and name the mathematical concept that would give the correct answer.
