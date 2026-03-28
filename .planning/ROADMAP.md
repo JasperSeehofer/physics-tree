@@ -62,7 +62,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 09-01-PLAN.md — SQL migrations, content_repo update, NodeMeta extension
-- [ ] 09-02-PLAN.md — Kinematics fixture node directory
+- [x] 09-02-PLAN.md — Kinematics fixture node directory
 - [ ] 09-03-PLAN.md — Ingest CLI binary
 
 ### Phase 10: Manual Pilot Node

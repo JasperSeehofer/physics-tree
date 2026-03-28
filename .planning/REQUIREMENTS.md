@@ -18,7 +18,7 @@ Requirements for milestone v1.1: Content Architecture & Authoring Pipeline.
 ### Database & Storage
 
 - [x] **DB-01**: `node_phases` PostgreSQL table stores structured phase content as JSONB with one row per (node_id, phase_number, format)
-- [ ] **DB-02**: Content files organized on disk as per-node directories with per-phase Markdown files following a standard naming convention
+- [x] **DB-02**: Content files organized on disk as per-node directories with per-phase Markdown files following a standard naming convention
 - [x] **DB-03**: Content ingest pipeline reads files from disk, validates against schema, and populates database — rejecting invalid content with clear error messages
 
 ### Learning Room UI
@@ -107,8 +107,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SPEC-04 | Phase 8 | Pending (08-02) |
 | SPEC-05 | Phase 8 | Complete (08-01) |
 | DB-01 | Phase 9 | Complete |
-| DB-02 | Phase 9 | Pending |
-| DB-03 | Phase 9 | Complete |
+| DB-02 | Phase 9 | Complete |
+| DB-03 | Phase 9 | Pending |
 | PILOT-01 | Phase 10 | Pending |
 | UI-01 | Phase 11 | Pending |
 | UI-02 | Phase 11 | Pending |
