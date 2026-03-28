@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SPEC-05 | Phase 8 | Complete (08-01) |
 | DB-01 | Phase 9 | Complete |
 | DB-02 | Phase 9 | Complete |
-| DB-03 | Phase 9 | Pending |
+| DB-03 | Phase 9 | Complete |
 | PILOT-01 | Phase 10 | Pending |
 | UI-01 | Phase 11 | Pending |
 | UI-02 | Phase 11 | Pending |

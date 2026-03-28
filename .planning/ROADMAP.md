@@ -63,7 +63,7 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md — SQL migrations, content_repo update, NodeMeta extension
 - [x] 09-02-PLAN.md — Kinematics fixture node directory
-- [ ] 09-03-PLAN.md — Ingest CLI binary
+- [x] 09-03-PLAN.md — Ingest CLI binary
 
 ### Phase 10: Manual Pilot Node
 **Goal**: At least one node is fully authored by a human following the spec, proving the template is complete and usable before any AI tooling is built around it

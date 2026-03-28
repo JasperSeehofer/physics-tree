@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Completed Wave 1 (09-01, 09-02)
-last_updated: "2026-03-28T20:15:02.559Z"
+stopped_at: Completed 09-database-ingest 09-03-PLAN.md
+last_updated: "2026-03-28T20:22:37.298Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 5
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08-content-specification P02 | 4 | 2 tasks | 3 files |
 | Phase 09-database-ingest P01 | 4 | 2 tasks | 4 files |
 | Phase 09-database-ingest P02 | 4 | 1 tasks | 9 files |
+| Phase 09-database-ingest P03 | 25 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,9 @@ Recent decisions affecting current work:
 - [Phase 09-database-ingest]: v1.0 node_phases rows store file_path in content_body as migration bridge; new 7-phase nodes store actual Markdown
 - [Phase 09-database-ingest]: NodeMeta node_type/depth_tier use serde(default) with deny_unknown_fields — backward compat for existing node.yaml files
 - [Phase 09-database-ingest]: content_repo get_by_slug hardcodes review_status='approved' for node_phases-served content — old review_status column dropped
+- [Phase 09-database-ingest]: clap derive for ingest CLI -- multi-path positional args and --dry-run flag
+- [Phase 09-database-ingest]: ingest dry-run skips pool creation entirely -- no DATABASE_URL required for validate-only runs
+- [Phase 09-database-ingest]: bloom_to_str() helper in ingest.rs converts BloomLevel to lowercase string -- avoids modifying domain crate
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T20:15:02.557Z
-Stopped at: Completed Wave 1 (09-01, 09-02)
+Last session: 2026-03-28T20:22:37.297Z
+Stopped at: Completed 09-database-ingest 09-03-PLAN.md
 Resume file: None
