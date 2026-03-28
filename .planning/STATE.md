@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Completed 10-manual-pilot-node Plan 01 (kinematics rewrite)
-last_updated: "2026-03-28T21:08:26.300Z"
+stopped_at: Phase 10 Plan 02 Task 2 checkpoint — awaiting human review of kinematics pilot node
+last_updated: "2026-03-28T21:15:16.306Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-database-ingest P02 | 4 | 1 tasks | 9 files |
 | Phase 09-database-ingest P03 | 25 | 2 tasks | 2 files |
 | Phase 10-manual-pilot-node P01 | 4 | 2 tasks | 9 files |
+| Phase 10-manual-pilot-node P02 | 12 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 10-manual-pilot-node]: Phase 2 derivation explicitly states constant-a as the only assumption before integrating — required at EQF 4 but previously implicit in fixture
 - [Phase 10-manual-pilot-node]: Phase 5 Transfer Problem: diver jumps upward from 10m platform — sign-convention challenge in novel physical context not used in Phase 3
 - [Phase 10-manual-pilot-node]: SPEC-GAPS.md collects 5 spec gaps without modifying spec mid-authoring (per D-09): transfer_problem enforcement, boxed{?} convention, esco_tags min count, estimated_minutes divergence, solution_capture UI affordance
+- [Phase 10-manual-pilot-node]: MissingStandardRequires variant covers universal phase requires; could apply to phases beyond 5 in future
+- [Phase 10-manual-pilot-node]: EstimatedMinutesMismatch opt-in: only triggered when phase_estimated_minutes is non-empty — backward compatible enforcement
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:08:26.299Z
-Stopped at: Completed 10-manual-pilot-node Plan 01 (kinematics rewrite)
+Last session: 2026-03-28T21:15:02.869Z
+Stopped at: Phase 10 Plan 02 Task 2 checkpoint — awaiting human review of kinematics pilot node
 Resume file: None

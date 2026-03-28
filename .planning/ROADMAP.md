@@ -27,7 +27,7 @@
 
 - [x] **Phase 8: Content Specification** - Define the machine-readable 7-phase content template and node metadata schema (completed 2026-03-28)
 - [ ] **Phase 9: Database & Ingest** - Create DB schema for phase content and implement file-based ingest pipeline
-- [ ] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling
+- [x] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling (completed 2026-03-28)
 - [ ] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage
 - [ ] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
 - [ ] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set
@@ -76,7 +76,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 10-01-PLAN.md — Rewrite all 7 kinematics phases to pilot quality
-- [ ] 10-02-PLAN.md — Batch spec/validator updates and pipeline verification
+- [x] 10-02-PLAN.md — Batch spec/validator updates and pipeline verification
 
 ### Phase 11: Learning Room UI
 **Goal**: Users can open a node in the new Learning Room and progress through its 7 phases sequentially, with phase gates enforcing productive-failure ordering and format preferences persisting across sessions
@@ -137,7 +137,7 @@ Plans:
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
-| 10. Manual Pilot Node | v1.1 | 1/2 | In Progress|  |
+| 10. Manual Pilot Node | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |
