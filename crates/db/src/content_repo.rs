@@ -6,7 +6,10 @@
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
-/// Raw row returned by `get_by_slug` — includes content metadata joined with node info.
+/// Raw row returned by `get_by_slug` — includes node info joined with node_phases.
+///
+/// Keeps the same shape as the previous version so the content handler
+/// requires no changes after the table migration.
 #[derive(Debug, Clone)]
 pub struct ContentMetadataRow {
     pub id: Uuid,
@@ -28,11 +31,24 @@ pub struct PrereqRow {
     pub description: String,
 }
 
+/// A row from the `node_phases` table.
+#[derive(Debug, Clone)]
+pub struct NodePhaseRow {
+    pub id: Uuid,
+    pub node_id: Uuid,
+    pub phase_number: i16,
+    pub phase_type: String,
+    pub content_body: String,
+}
+
 /// Fetch content metadata for a concept by its URL slug.
 ///
-/// JOINs `content_metadata` with `nodes` so a single query returns everything
-/// the content handler needs. Returns `None` if no content entry exists for
-/// this slug.
+/// JOINs `nodes` with `node_phases` (phase_number = 0) so a single query returns
+/// everything the content handler needs. For v1.0 nodes, `content_body` holds the
+/// original `file_path` string (e.g. `content/classical-mechanics/kinematics.md`).
+/// For new 7-phase nodes, `content_body` holds the actual Markdown for phase 0.
+///
+/// Returns `None` if no matching node or phase-0 row exists for this slug.
 pub async fn get_by_slug(
     pool: &PgPool,
     slug: &str,
@@ -40,16 +56,14 @@ pub async fn get_by_slug(
     let row = sqlx::query(
         r#"
         SELECT
-            cm.id          AS cm_id,
-            cm.node_id,
-            cm.file_path,
-            cm.review_status::TEXT AS review_status,
+            n.id                       AS node_id,
             n.slug,
             n.title,
             COALESCE(n.description, '') AS description,
-            n.node_type::TEXT           AS node_type
-        FROM content_metadata cm
-        JOIN nodes n ON cm.node_id = n.id
+            n.node_type::TEXT           AS node_type,
+            np.content_body            AS file_path
+        FROM nodes n
+        JOIN node_phases np ON np.node_id = n.id AND np.phase_number = 0
         WHERE n.slug = $1
         LIMIT 1
         "#,
@@ -59,10 +73,10 @@ pub async fn get_by_slug(
     .await?;
 
     Ok(row.map(|r| ContentMetadataRow {
-        id: r.get("cm_id"),
+        id: r.get("node_id"),    // reuse node_id as id (no separate id column in node_phases join)
         node_id: r.get("node_id"),
         file_path: r.get("file_path"),
-        review_status: r.get("review_status"),
+        review_status: "approved".to_string(),  // all migrated content is approved
         slug: r.get("slug"),
         title: r.get("title"),
         description: r.get("description"),
@@ -143,6 +157,39 @@ pub async fn get_next_concepts(
             slug: r.get("slug"),
             title: r.get("title"),
             description: r.get("description"),
+        })
+        .collect())
+}
+
+/// Fetch all phase content for a node by its node_id, ordered by phase_number.
+///
+/// Returns all `node_phases` rows for the given node. For v1.0 nodes there is
+/// only one row (phase_number = 0, content_body = file_path). For new 7-phase
+/// nodes there will be up to 7 rows with actual Markdown in content_body.
+pub async fn get_phases_by_node_id(
+    pool: &PgPool,
+    node_id: Uuid,
+) -> Result<Vec<NodePhaseRow>, sqlx::Error> {
+    let rows = sqlx::query(
+        r#"
+        SELECT id, node_id, phase_number, phase_type, content_body, created_at, updated_at
+        FROM node_phases
+        WHERE node_id = $1
+        ORDER BY phase_number
+        "#,
+    )
+    .bind(node_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| NodePhaseRow {
+            id: r.get("id"),
+            node_id: r.get("node_id"),
+            phase_number: r.get::<i16, _>("phase_number"),
+            phase_type: r.get("phase_type"),
+            content_body: r.get("content_body"),
         })
         .collect())
 }

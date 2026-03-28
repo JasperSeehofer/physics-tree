@@ -28,6 +28,24 @@ pub struct NodeMeta {
     pub derivation_required: bool,
     /// Exactly 7 entries, numbers 0–6 in order
     pub phases: Vec<PhaseEntry>,
+
+    /// Node type for the graph (concept, formula, theorem, application, consequence).
+    /// Defaults to "concept" if not specified in node.yaml.
+    #[serde(default = "default_node_type")]
+    pub node_type: String,
+
+    /// Depth tier for the graph (trunk, branch, leaf).
+    /// Defaults to "trunk" if not specified in node.yaml.
+    #[serde(default = "default_depth_tier")]
+    pub depth_tier: String,
+}
+
+fn default_node_type() -> String {
+    "concept".to_string()
+}
+
+fn default_depth_tier() -> String {
+    "trunk".to_string()
 }
 
 /// Bloom's Taxonomy cognitive level.
@@ -574,6 +592,8 @@ mod tests {
             estimated_minutes: 40,
             derivation_required: true,
             phases,
+            node_type: "concept".into(),
+            depth_tier: "branch".into(),
         };
 
         // Build headings for each phase based on its requires
@@ -640,6 +660,8 @@ mod tests {
             estimated_minutes: 25,
             derivation_required: false,
             phases,
+            node_type: "concept".into(),
+            depth_tier: "trunk".into(),
         };
 
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
