@@ -59,7 +59,11 @@ Plans:
   1. A valid content directory can be ingested from the command line and its phases appear in the `node_phases` table
   2. A content file with schema violations is rejected at ingest with a clear error message — no partial data written
   3. Per-node directories with per-phase Markdown files follow a standard naming convention that both humans and tooling can navigate without documentation
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 09-01-PLAN.md — SQL migrations, content_repo update, NodeMeta extension
+- [ ] 09-02-PLAN.md — Kinematics fixture node directory
+- [ ] 09-03-PLAN.md — Ingest CLI binary
 
 ### Phase 10: Manual Pilot Node
 **Goal**: At least one node is fully authored by a human following the spec, proving the template is complete and usable before any AI tooling is built around it
@@ -129,7 +133,7 @@ Plans:
 | 7. Sigma Bridge Exports & Mastery Fix | v1.0 | 1/1 | Complete | 2026-03-26 |
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
-| 9. Database & Ingest | v1.1 | 0/? | Not started | - |
+| 9. Database & Ingest | v1.1 | 0/3 | Not started | - |
 | 10. Manual Pilot Node | v1.1 | 0/? | Not started | - |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
