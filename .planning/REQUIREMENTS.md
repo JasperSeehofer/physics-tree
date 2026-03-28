@@ -12,7 +12,7 @@ Requirements for milestone v1.1: Content Architecture & Authoring Pipeline.
 - [x] **SPEC-01**: Content template defines 7 sequential phases (Schema Activation, Productive Struggle, Concreteness Fading, Worked Examples, Self-Explanation, Retrieval Check, Spaced Return) as YAML frontmatter + structured Markdown
 - [x] **SPEC-02**: Node metadata schema captures EQF level, Bloom minimum, prerequisite node IDs, common misconceptions (2-3), domain of applicability, ESCO skill tags, estimated active time, and derivation requirement flag
 - [x] **SPEC-03**: Each phase has typed content requirements (e.g., Phase 0 requires recall prompt + linkage map + wonder hook; Phase 1 requires struggle problem + solution capture + gap reveal)
-- [ ] **SPEC-04**: Schema validation rejects content files that do not conform to the template on ingest (missing phases, invalid metadata, malformed YAML)
+- [x] **SPEC-04**: Schema validation rejects content files that do not conform to the template on ingest (missing phases, invalid metadata, malformed YAML)
 - [x] **SPEC-05**: Content template supports EQF-conditional requirements (e.g., derivation mandatory at EQF 4+, mostly-faded example mandatory at EQF 3+)
 
 ### Database & Storage
