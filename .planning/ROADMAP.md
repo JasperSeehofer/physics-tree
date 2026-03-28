@@ -75,7 +75,7 @@ Plans:
   3. Authoring the node reveals any ambiguities or gaps in the template — these are resolved and the spec updated before proceeding
 **Plans**: 2 plans
 Plans:
-- [ ] 10-01-PLAN.md — Rewrite all 7 kinematics phases to pilot quality
+- [x] 10-01-PLAN.md — Rewrite all 7 kinematics phases to pilot quality
 - [ ] 10-02-PLAN.md — Batch spec/validator updates and pipeline verification
 
 ### Phase 11: Learning Room UI
@@ -137,7 +137,7 @@ Plans:
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
-| 10. Manual Pilot Node | v1.1 | 0/2 | Not started | - |
+| 10. Manual Pilot Node | v1.1 | 1/2 | In Progress|  |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |

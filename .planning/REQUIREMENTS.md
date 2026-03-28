@@ -48,7 +48,7 @@ Requirements for milestone v1.1: Content Architecture & Authoring Pipeline.
 
 ### Pilot Nodes
 
-- [ ] **PILOT-01**: At least 1 node fully authored by hand (no AI pipeline) to validate the content template end-to-end before AI tooling is built
+- [x] **PILOT-01**: At least 1 node fully authored by hand (no AI pipeline) to validate the content template end-to-end before AI tooling is built
 - [ ] **PILOT-02**: 3-5 pilot nodes spanning at least EQF 2, EQF 3-4, and EQF 5, each implementing all 7 phases with metadata
 - [ ] **PILOT-03**: Pilot nodes render correctly in the Learning Room UI with phase gates, format switching, and progress tracking
 - [ ] **PILOT-04**: At least 2 pilot nodes produced via the AI authoring pipeline, reviewed by all 4 agents, and approved through human checkpoint
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DB-01 | Phase 9 | Complete |
 | DB-02 | Phase 9 | Complete |
 | DB-03 | Phase 9 | Complete |
-| PILOT-01 | Phase 10 | Pending |
+| PILOT-01 | Phase 10 | Complete |
 | UI-01 | Phase 11 | Pending |
 | UI-02 | Phase 11 | Pending |
 | UI-03 | Phase 11 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-03-28T20:44:31.409Z"
+stopped_at: Completed 10-manual-pilot-node Plan 01 (kinematics rewrite)
+last_updated: "2026-03-28T21:08:26.300Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 08 — content-specification
+**Current focus:** Phase 10 — manual-pilot-node
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
+Phase: 10 (manual-pilot-node) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
 Last activity: 2026-03-28
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-database-ingest P01 | 4 | 2 tasks | 4 files |
 | Phase 09-database-ingest P02 | 4 | 1 tasks | 9 files |
 | Phase 09-database-ingest P03 | 25 | 2 tasks | 2 files |
+| Phase 10-manual-pilot-node P01 | 4 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,10 @@ Recent decisions affecting current work:
 - [Phase 09-database-ingest]: clap derive for ingest CLI -- multi-path positional args and --dry-run flag
 - [Phase 09-database-ingest]: ingest dry-run skips pool creation entirely -- no DATABASE_URL required for validate-only runs
 - [Phase 09-database-ingest]: bloom_to_str() helper in ingest.rs converts BloomLevel to lowercase string -- avoids modifying domain crate
+- [Phase 10-manual-pilot-node]: Phase 1 productive failure uses non-constant-acceleration rocket data: Part C asks learner to 'Commit to their best estimate' — avoids telegraphing integration as the answer
+- [Phase 10-manual-pilot-node]: Phase 2 derivation explicitly states constant-a as the only assumption before integrating — required at EQF 4 but previously implicit in fixture
+- [Phase 10-manual-pilot-node]: Phase 5 Transfer Problem: diver jumps upward from 10m platform — sign-convention challenge in novel physical context not used in Phase 3
+- [Phase 10-manual-pilot-node]: SPEC-GAPS.md collects 5 spec gaps without modifying spec mid-authoring (per D-09): transfer_problem enforcement, boxed{?} convention, esco_tags min count, estimated_minutes divergence, solution_capture UI affordance
 
 ### Pending Todos
 
@@ -82,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T20:44:31.408Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-manual-pilot-node/10-CONTEXT.md
+Last session: 2026-03-28T21:08:26.299Z
+Stopped at: Completed 10-manual-pilot-node Plan 01 (kinematics rewrite)
+Resume file: None
