@@ -21,7 +21,7 @@ created: 2026-03-29
 | Preset | not applicable |
 | Component library | none — hand-crafted Leptos components with Tailwind utility classes |
 | Icon library | inline SVG (no third-party icon library used) |
-| Font | Nunito (self-hosted, weights 400 / 700 / 800) |
+| Font | Nunito (self-hosted, weights 400 / 700) |
 
 Source: `style/main.css` — `@theme` block defines all design tokens. No `components.json` detected. Stack is Rust/Leptos/WASM — shadcn gate not applicable.
 
@@ -52,21 +52,23 @@ Source: standard 8-point scale; exceptions follow WCAG 2.5.5 minimum touch targe
 
 ## Typography
 
+Primary focal point: node title (Display/28px) draws the eye on entry; tab bar is the primary navigation anchor.
+
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 (regular) | 1.5 |
 | Label | 14px | 700 (bold) | 1.4 |
 | Heading | 20px | 700 (bold) | 1.2 |
-| Display | 28px | 800 (extrabold) | 1.2 |
+| Display | 28px | 700 (bold) | 1.2 |
 
 Notes:
 - All sizes use Tailwind utility classes mapped to this scale: `text-sm` (14px), `text-base` (16px), `text-xl` (20px), `text-[28px]` (28px)
-- Font weights map to: `font-normal` (400), `font-bold` (700), extrabold reserved for page-level node title at `font-extrabold` (800)
+- Font weights map to: `font-normal` (400), `font-bold` (700)
 - Body text uses `text-petal-white` (`#f0f2f5`) on dark surfaces
 - Secondary/meta text uses `text-mist` (`#8892a4`)
 - Tab labels are 14px / 700 weight
 
-Source: `concept.rs` uses `text-[28px] font-bold leading-[1.2]` for h1, `text-base` for body, `text-sm` for meta — confirmed as established pattern.
+Source: `concept.rs` uses `text-[28px] font-bold leading-[1.2]` for h1, `text-base` for body, `text-sm` for meta — confirmed as established pattern. Display weight consolidated from 800 to 700 to stay within two-weight limit.
 
 ---
 
@@ -116,7 +118,7 @@ New components to build in this phase:
 
 ### LearningRoomShell
 - Breadcrumb bar at top (D-11): `Graph > Branch > Node Name` with back arrow
-- Node title (Display typography, 28px/800)
+- Node title (Display typography, 28px/700)
 - Phase progress bar (D-04): `N/7 phases` label + filled bar using active phase's accent color
 - Tab bar (D-01): horizontally scrollable on narrow screens (D-22), 640px minimum target
 
