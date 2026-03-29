@@ -33,9 +33,9 @@ Users can visually explore the interconnected landscape of physics and deeply le
 ### Active
 
 - ✓ 7-phase node content specification (Schema Activation → Productive Struggle → Concreteness Fading → Worked Examples → Self-Explanation → Retrieval Check → Spaced Return) as machine-readable template — v1.1 Phase 8
-- [ ] Database schema and API types for structured phase-based node content
+- ✓ Database schema and API types for structured phase-based node content — v1.1 Phase 9
 - [ ] Learning Room UI rendering each phase sequentially with format switching
-- [ ] 3-5 pilot nodes fully authored across different EQF levels validating the spec end-to-end
+- ✓ Manual pilot node (kinematics) fully authored with all 7 phases, passing validation and ingest — v1.1 Phase 10
 - [ ] AI content authoring agent pipeline (Author + Physics Reviewer + Pedagogy Reviewer + Student Simulator)
 - [ ] Automated quality gate checklist (scientific accuracy, pedagogical design, cognitive load)
 - ✓ Node metadata schema (EQF level, Bloom minimum, prerequisites, misconceptions, domain of applicability) — v1.1 Phase 8
@@ -142,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after Phase 9 (Database & Ingest) completed*
+*Last updated: 2026-03-29 after Phase 10 (Manual Pilot Node) completed*
