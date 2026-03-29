@@ -137,7 +137,7 @@ Plans:
 | 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
-| 10. Manual Pilot Node | v1.1 | 2/2 | Complete   | 2026-03-28 |
+| 10. Manual Pilot Node | v1.1 | 2/2 | Complete   | 2026-03-29 |
 | 11. Learning Room UI | v1.1 | 0/? | Not started | - |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |
