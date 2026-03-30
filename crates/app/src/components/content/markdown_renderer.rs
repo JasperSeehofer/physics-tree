@@ -438,4 +438,37 @@ mod tests {
             result
         );
     }
+
+    // ── Wave 0 stubs — implement in Plan 02 ──────────────────────────────────
+
+    #[test]
+    #[ignore = "Wave 0 stub — implement in Plan 02"]
+    fn test_math_events_inline() {
+        // VALIDATION ref: 11-01-07
+        // $E=mc^2$ -> <span data-latex="E=mc^2" data-display="false">
+        todo!("Implement math event test")
+    }
+
+    #[test]
+    #[ignore = "Wave 0 stub — implement in Plan 02"]
+    fn test_math_events_display() {
+        // VALIDATION ref: 11-01-07
+        // $$F=ma$$ -> <div data-latex="F=ma" data-display="true">
+        todo!("Implement display math event test")
+    }
+
+    #[test]
+    #[ignore = "Wave 0 stub — implement in Plan 02"]
+    fn test_gfm_alert_note() {
+        // VALIDATION ref: 11-01-08
+        // > [!NOTE]\n> text -> <div class="admonition admonition-note">
+        todo!("Implement GFM alert test")
+    }
+
+    #[test]
+    #[ignore = "Wave 0 stub — implement in Plan 02"]
+    fn test_gfm_alert_warning() {
+        // VALIDATION ref: 11-01-08
+        todo!("Implement GFM warning alert test")
+    }
 }
