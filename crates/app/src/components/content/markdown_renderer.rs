@@ -438,4 +438,198 @@ mod tests {
             result
         );
     }
+
+    // ── New custom event consumer tests (TDD — Wave 1) ──────────────────────
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_math_events_inline() {
+        let result = render_content_markdown("The force $E=mc^2$ holds.");
+        assert!(
+            result.html.contains(r#"data-latex="E=mc^2""#),
+            "Inline math should produce data-latex attribute, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains(r#"data-display="false""#),
+            "Inline math should have data-display=false, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<span"),
+            "Inline math should be wrapped in span, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_math_events_display() {
+        let result = render_content_markdown("$$F=ma$$");
+        assert!(
+            result.html.contains(r#"data-latex="F=ma""#),
+            "Display math should produce data-latex attribute, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains(r#"data-display="true""#),
+            "Display math should have data-display=true, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<div"),
+            "Display math should be wrapped in div, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_gfm_alert_note() {
+        let result = render_content_markdown("> [!NOTE]\n> This is a note.");
+        assert!(
+            result.html.contains("admonition admonition-note"),
+            "NOTE alert should have admonition-note class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("admonition-label"),
+            "NOTE alert should have admonition-label span, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("Note"),
+            "NOTE alert should contain 'Note' label, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_gfm_alert_warning() {
+        let result = render_content_markdown("> [!WARNING]\n> Be careful.");
+        assert!(
+            result.html.contains("admonition admonition-warning"),
+            "WARNING alert should have admonition-warning class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("Warning"),
+            "WARNING alert should contain 'Warning' label, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_code_block_syntect_highlight() {
+        let result = render_content_markdown("```python\nx = 1\n```");
+        assert!(
+            result.html.contains(r#"class="highlight""#),
+            "Code block should use pre.highlight class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<pre"),
+            "Code block should be wrapped in pre, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_heading_id_injected() {
+        let result = render_content_markdown("## My Section");
+        assert!(
+            result.html.contains(r#"id="my-section""#),
+            "H2 heading should have slugified id attribute, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_definition() {
+        let result = render_content_markdown(":::definition\nNewton's law\n:::");
+        assert!(
+            result.html.contains("definition-block"),
+            ":::definition should produce definition-block div, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_collapse() {
+        let result = render_content_markdown(":::collapse My Title\nContent here\n:::");
+        assert!(
+            result.html.contains("<details"),
+            ":::collapse should produce <details> element, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<summary>My Title</summary>"),
+            ":::collapse should have summary with title, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_figure() {
+        let result = render_content_markdown(":::figure\n![alt](img.png)\nCaption text\n:::");
+        assert!(
+            result.html.contains("figure-block"),
+            ":::figure should produce figure-block class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<figcaption>Caption text</figcaption>"),
+            ":::figure should have figcaption, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_simulation_directive_preserved() {
+        let result = render_content_markdown("::simulation[projectile]");
+        assert!(
+            result.html.contains(r#"data-simulation="projectile""#),
+            "simulation directive should produce data-simulation attr, got: {}",
+            result.html
+        );
+        assert!(
+            result.simulations.contains(&"projectile".to_string()),
+            "simulation name should be collected, got: {:?}",
+            result.simulations
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_quiz_code_block_placeholder() {
+        let result = render_content_markdown("```quiz\nquestion: What is F=ma?\n```");
+        assert!(
+            result.html.contains("data-quiz-block"),
+            "Quiz code block should emit data-quiz-block placeholder, got: {}",
+            result.html
+        );
+        assert!(
+            !result.html.contains(r#"class="highlight""#),
+            "Quiz code block should NOT be syntax-highlighted, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_extract_latex_placeholders_preserved() {
+        // Ensure extract_latex_placeholders still works for quiz endpoint
+        let result = extract_latex_placeholders("Energy $E=mc^2$ and momentum $$p=mv$$");
+        assert!(result.contains(r#"data-latex="E=mc^2""#));
+        assert!(result.contains(r#"data-display="false""#));
+        assert!(result.contains(r#"data-latex="p=mv""#));
+        assert!(result.contains(r#"data-display="true""#));
+    }
 }
