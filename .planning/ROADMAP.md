@@ -1,170 +1,150 @@
 # Roadmap: PhysicsTree
 
-## Overview
+## Milestones
 
-PhysicsTree is built in strict dependency order: the foundation (workspace, schema, design system) enables the graph explorer, which enables content modules, which enables accounts and progress tracking, which enables the gamification layer, which finally enables spaced repetition on top of the full learning history. Each phase delivers a coherent, verifiable capability that unblocks the next. The result is a fully functional physics learning platform with a botanical knowledge graph, interactive simulations, and an addictive gamification loop — all proven on classical mechanics before expanding further.
+- ✅ **v1.0 MVP** — Phases 1-7 + 999.1 (shipped 2026-03-27) — [archive](milestones/v1.0-ROADMAP.md)
+- 🚧 **v1.1 Content Architecture & Authoring Pipeline** — Phases 8-14 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+<details>
+<summary>✅ v1.0 MVP (Phases 1-7 + 999.1) — SHIPPED 2026-03-27</summary>
 
-Decimal phases appear between their surrounding integers in numeric order.
+- [x] Phase 1: Foundation (3/3 plans) — completed 2026-03-18
+- [x] Phase 2: Graph Explorer (3/3 plans) — completed 2026-03-22
+- [x] Phase 3: Content and Simulations (7/7 plans) — completed 2026-03-24
+- [x] Phase 4: Accounts and Progress (4/4 plans) — completed 2026-03-23
+- [x] Phase 5: Gamification and Personal Tree (3/3 plans) — completed 2026-03-25
+- [x] Phase 6: Spaced Repetition (3/3 plans) — completed 2026-03-24
+- [x] Phase 7: Sigma Bridge Exports & Mastery Fix (1/1 plan) — completed 2026-03-26
+- [x] Phase 999.1: Quiz UX Improvements (5/5 plans) — completed 2026-03-27
 
-- [x] **Phase 1: Foundation** - Rust workspace, database schema, design system, and CI pipeline (completed 2026-03-18)
-- [x] **Phase 2: Graph Explorer** - Zoomable botanical knowledge graph with WebGL rendering (completed 2026-03-22)
-- [ ] **Phase 3: Content and Simulations** - Per-concept learning modules, quizzes, and interactive simulations
-- [x] **Phase 4: Accounts and Progress** - Authentication, session persistence, and progress dashboard (completed 2026-03-23)
-- [ ] **Phase 5: Gamification and Personal Tree** - XP, streaks, mastery levels, and the growing personal knowledge tree
-- [x] **Phase 6: Spaced Repetition** - FSRS review queue for long-term retention (completed 2026-03-24)
-- [ ] **Phase 7: Sigma Bridge Exports & Mastery Fix** - Fix sigma_entry.js exports and MasteryBadge per-concept XP (gap closure)
+</details>
+
+### 🚧 v1.1 Content Architecture & Authoring Pipeline (In Progress)
+
+**Milestone Goal:** Codify the evidence-based 7-phase didactic framework into the platform and build an AI-assisted content authoring pipeline with multi-agent quality review, so the skill tree can be filled at scale with rigorously structured, pedagogically sound content.
+
+- [x] **Phase 8: Content Specification** - Define the machine-readable 7-phase content template and node metadata schema (completed 2026-03-28)
+- [ ] **Phase 9: Database & Ingest** - Create DB schema for phase content and implement file-based ingest pipeline
+- [x] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling (completed 2026-03-28)
+- [ ] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage
+- [ ] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
+- [ ] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set
+- [ ] **Phase 14: AI Pilot Nodes** - Produce 2+ nodes via AI pipeline through full review and human checkpoint
 
 ## Phase Details
 
-### Phase 1: Foundation
-**Goal**: The project infrastructure is production-ready: Rust workspace compiles, database schema accommodates all domain types, the design system governs all future UI, and CI enforces quality and WASM size budgets.
-**Depends on**: Nothing (first phase)
-**Requirements**: DSGN-01
+### Phase 8: Content Specification
+**Goal**: The 7-phase content template and node metadata schema exist as stable, machine-readable artifacts that can be used as a contract for both human authors and AI tooling
+**Depends on**: Nothing (first v1.1 phase)
+**Requirements**: SPEC-01, SPEC-02, SPEC-03, SPEC-04, SPEC-05
 **Success Criteria** (what must be TRUE):
-  1. The app builds and serves a health check endpoint with no warnings
-  2. The Kurzgesagt visual style (dark background, bold saturated colors, flat vector elements) is visible in the app shell and governs all future component styling
-  3. Database migrations run cleanly and the schema supports nodes, edges, users, progress, and content
-  4. CI pipeline passes: Rust compile, tests, and WASM bundle size check under 1 MB compressed
+  1. A content file following the template can be parsed into all 7 named phases without ambiguity
+  2. Node metadata fields (EQF level, Bloom minimum, prerequisites, misconceptions, ESCO tags, timing, derivation flag) are all present and typed
+  3. A content file with missing phases, invalid metadata, or malformed YAML is rejected at ingest with a clear error message naming the violation
+  4. An EQF 4+ node requires a derivation section; an EQF 2 node does not — both are validated correctly
+  5. Each phase has documented typed requirements (e.g., Phase 0 needs recall prompt + linkage map + wonder hook) that a human author can follow without guessing
+**Plans**: 2 plans
+Plans:
+- [x] 08-01-PLAN.md — Content spec document and Rust type definitions
+- [x] 08-02-PLAN.md — Validation logic (TDD) and CLI binary
+**UI hint**: no
+
+### Phase 9: Database & Ingest
+**Goal**: Phase content can be stored in PostgreSQL and loaded from structured files on disk, with a working ingest pipeline that enforces schema conformance
+**Depends on**: Phase 8
+**Requirements**: DB-01, DB-02, DB-03
+**Success Criteria** (what must be TRUE):
+  1. A valid content directory can be ingested from the command line and its phases appear in the `node_phases` table
+  2. A content file with schema violations is rejected at ingest with a clear error message — no partial data written
+  3. Per-node directories with per-phase Markdown files follow a standard naming convention that both humans and tooling can navigate without documentation
 **Plans**: 3 plans
 Plans:
-- [x] 01-01-PLAN.md — Workspace scaffold, domain types, database schema & migrations
-- [x] 01-02-PLAN.md — Tailwind v4 design system, Leptos app shell & landing page
-- [x] 01-03-PLAN.md — Server wiring, health check, CI pipeline & Docker
+- [x] 09-01-PLAN.md — SQL migrations, content_repo update, NodeMeta extension
+- [x] 09-02-PLAN.md — Kinematics fixture node directory
+- [x] 09-03-PLAN.md — Ingest CLI binary
 
-### Phase 2: Graph Explorer
-**Goal**: Users can visually explore the physics knowledge graph — zooming, panning, searching concepts, following prerequisite chains — rendered in the botanical metaphor at 60fps with hundreds of nodes.
-**Depends on**: Phase 1
-**Requirements**: GRAPH-01, GRAPH-02, GRAPH-03, GRAPH-04
+### Phase 10: Manual Pilot Node
+**Goal**: At least one node is fully authored by a human following the spec, proving the template is complete and usable before any AI tooling is built around it
+**Depends on**: Phase 9
+**Requirements**: PILOT-01
 **Success Criteria** (what must be TRUE):
-  1. User can zoom and pan a physics knowledge graph rendered with the botanical metaphor (roots/trunk/branches/leaves visual hierarchy) at 60fps with 500+ nodes
-  2. User can search for a concept by name and navigate directly to its node in the graph
-  3. User can click any concept node and see its prerequisite dependencies highlighted before engaging with content
-  4. Graph layout is computed in a Web Worker and does not block the UI during initial load
-**Plans**: 3 plans
+  1. One node exists on disk with all 7 phases authored, a complete metadata block, and no placeholder text
+  2. The node passes ingest validation and its phases are visible in the database
+  3. Authoring the node reveals any ambiguities or gaps in the template — these are resolved and the spec updated before proceeding
+**Plans**: 2 plans
 Plans:
-- [x] 02-01-PLAN.md — Graph repository, API endpoints, seed data expansion, Leptos router
-- [x] 02-02-PLAN.md — npm/Sigma.js setup, sigma_bridge.js, GraphCanvas component
-- [x] 02-03-PLAN.md — Search, detail panel, tooltip, prereq highlighting, full page wiring
+- [x] 10-01-PLAN.md — Rewrite all 7 kinematics phases to pilot quality
+- [x] 10-02-PLAN.md — Batch spec/validator updates and pipeline verification
 
-### Phase 3: Content and Simulations
-**Goal**: Each concept node has a full educational module — motivation, derivation with rendered math, examples, misconception-targeting, and quizzes — plus interactive physics simulations that students can control; classical mechanics is fully populated.
-**Depends on**: Phase 2
-**Requirements**: CONT-01, CONT-02, CONT-03, CONT-04, GAME-04
+### Phase 11: Learning Room UI
+**Goal**: Users can open a node in the new Learning Room and progress through its 7 phases sequentially, with phase gates enforcing productive-failure ordering and format preferences persisting across sessions
+**Depends on**: Phase 10
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05
 **Success Criteria** (what must be TRUE):
-  1. User can open any classical mechanics concept node and read a module with motivation, derivation (LaTeX rendered), intuition, and examples
-  2. User can interact with at least five physics simulations (e.g., pendulum, projectile, harmonic oscillator) by adjusting parameters and observing real-time results
-  3. The classical mechanics branch (Newton's laws, kinematics, energy, momentum, oscillations, gravity) is fully populated with content
-  4. User encounters misconception-targeted explanations ("Did you think X? Here's why...") within concept modules
-  5. User can take a quiz on any concept module, with multiple question types including multiple choice, fill-in-formula, and matching
-**Plans**: 7 plans
+  1. A node with phases renders in the Learning Room at `/learning-room/{slug}` as a sequence of distinct phase components
+  2. Attempting to access Phase 2 before completing Phase 1 is blocked — the gate is enforced server-side
+  3. A user who switches their preferred format (reading/video/interactive) for a phase sees their choice persisted on return visits
+  4. The existing ConceptPage at `/concept/{slug}` is unaffected — old nodes continue to render normally
+  5. Phase completion progress persists across browser sessions and devices logged into the same account
+**Plans**: 5 plans
 Plans:
-- [x] 03-01-PLAN.md — Content pipeline: markdown parser with tests, KaTeX bridge, content API, ConceptPage layout, TOC, and hydration components
-- [x] 03-02-PLAN.md — Simulation engine: Rapier2D setup, projectile motion prototype, canvas rendering
-- [x] 03-03-PLAN.md — Interactive components: simulation embed UI with URL state sync and numeric inputs, quiz system (3 types), mathjs formula validation
-- [x] 03-04-PLAN.md — Remaining simulations: pendulum, harmonic oscillator, inclined plane, orbital mechanics
-- [x] 03-05-PLAN.md — Content population: 15 concept modules (by topic group), quiz question pools, content metadata migration
-- [x] 03-06-PLAN.md — SVG illustrations: 10 custom flat vector diagrams for key concepts per D-07
-- [ ] 03-07-PLAN.md — Gap closure: gravitational-orbits content module, quiz, and metadata seed
+- [x] 11-01-PLAN.md — Database migration, progress repo, and API endpoints
+- [x] 11-02-PLAN.md — Markdown renderer upgrade (custom event consumer)
+- [ ] 11-03-PLAN.md — Learning Room page shell, tabs, and phase components
+- [ ] 11-04-PLAN.md — Quiz component, celebrations, and graph integration
+- [ ] 11-05-PLAN.md — Browser verification and human approval
+**UI hint**: yes
 
-### Phase 4: Accounts and Progress
-**Goal**: Users have persistent identities: they can create accounts, log in across sessions, and see a dashboard showing exactly what they have learned, their mastery levels, XP, and streaks.
-**Depends on**: Phase 3
-**Requirements**: ACCT-01, ACCT-02, ACCT-03, ACCT-04
+### Phase 12: AI Authoring Pipeline
+**Goal**: A developer can invoke the Python authoring pipeline with a node specification and receive a complete 7-phase content draft reviewed by 4 agents, ready for human checkpoint before merge
+**Depends on**: Phase 10
+**Requirements**: PIPE-01, PIPE-02, PIPE-03, PIPE-04, PIPE-05, PIPE-06, PIPE-07
 **Success Criteria** (what must be TRUE):
-  1. User can create an account with email and password and receive confirmation
-  2. User can log in, close the browser, reopen, and still be logged in (session persists)
-  3. User can log out from any page
-  4. User can view a progress dashboard showing concepts learned, mastery levels, XP totals, and current streak
-  5. The app layout is usable on desktop and tablet screen sizes without horizontal scrolling or broken layouts
-**Plans**: 4 plans
-Plans:
-- [x] 04-01-PLAN.md — Auth backend: migration, Argon2id hashing, user repository, session layer, auth API endpoints
-- [x] 04-02-PLAN.md — Frontend auth: login/register pages, auth context, avatar dropdown, navbar with hamburger menu
-- [x] 04-03-PLAN.md — Dashboard: progress repository, dashboard API, stats cards, mini knowledge tree SVG
-- [x] 04-04-PLAN.md — Responsive: graph explorer bottom sheet, content TOC overlay, 640px minimum width
+  1. Running the pipeline with a node spec (name, EQF level, prerequisites, central formula, misconceptions) produces a complete 7-phase Markdown file on disk
+  2. Physics Reviewer and Pedagogy Reviewer run in parallel — their reports show independent timestamps and cannot reference each other's output
+  3. The Student Simulator produces a report noting at least one unclear explanation or prerequisite gap in any draft (demonstrates it is not rubber-stamping)
+  4. The pipeline output includes a structured review report with PASS/FAIL per quality dimension and specific failure feedback
+  5. No AI-generated file is placed in the content directory without a developer running an explicit human-approval step
+**Plans**: TBD
 
-### Phase 5: Gamification and Personal Tree
-**Goal**: Learning earns tangible rewards: XP gates on demonstrated understanding, daily streaks motivate return visits, mastery levels grow the personal botanical knowledge tree, and the graph visually reflects the user's learning progress.
-**Depends on**: Phase 4
-**Requirements**: GAME-01, GAME-02, GAME-03, GRAPH-05
+### Phase 13: Quality Gates
+**Goal**: Automated quality checks cover mechanical and judgment dimensions, and their accuracy is calibrated against a gold test set before any content is trusted
+**Depends on**: Phase 12
+**Requirements**: QG-01, QG-02, QG-03, QG-04
 **Success Criteria** (what must be TRUE):
-  1. User earns XP only by passing a quiz above a threshold score — clicking through content without demonstrating understanding earns nothing
-  2. User's daily streak increments after a qualifying learning session and the streak freeze mechanic prevents streak loss for one missed day
-  3. Each concept node shows the user's mastery level (bronze, silver, gold) and the concept's visual representation in the graph changes to reflect that level
-  4. User can see their personal knowledge tree on the graph — mastered concepts visually "bloom" compared to concepts not yet learned
-**Plans**: 3 plans
-Plans:
-- [x] 05-01-PLAN.md — Database schema, XP/streak/mastery logic with TDD, award-xp API endpoint
-- [ ] 05-02-PLAN.md — Frontend gamification UI: XP toast, streak display, botanical MiniTree, mastery badge
-- [x] 05-03-PLAN.md — Sigma.js botanical growth stages, progressive reveal, canvas node overlay
+  1. Running structural validation on a valid node reports PASS; a node with a missing phase or empty required field reports FAIL with the violation named
+  2. The quality gate checklist distinguishes mechanical checks (file structure, field presence, formula syntax) from judgment checks (pedagogical quality, struggle problem design) — these are listed separately in the report
+  3. A gold test set of 20-30 nodes (including nodes with injected errors) exists, and gate TPR and TNR are measured and recorded before any AI-authored content is approved for merge
+**Plans**: TBD
 
-### Phase 6: Spaced Repetition
-**Goal**: Users never forget what they learned: the FSRS algorithm surfaces concepts due for review each day, and the review queue integrates with the streak system so daily engagement reinforces retention, not just new learning.
-**Depends on**: Phase 5
-**Requirements**: GAME-05
+### Phase 14: AI Pilot Nodes
+**Goal**: The full authoring pipeline is validated end-to-end with 3-5 pilot nodes spanning EQF 2, EQF 3-4, and EQF 5, with at least 2 produced via the AI pipeline and approved through human review
+**Depends on**: Phase 11, Phase 13
+**Requirements**: PILOT-02, PILOT-03, PILOT-04
 **Success Criteria** (what must be TRUE):
-  1. User sees a daily review queue surfacing concepts due for review, ranked by FSRS scheduling
-  2. User can rate each review (Again / Hard / Good / Easy) and the next review interval adjusts accordingly
-  3. Completing a spaced repetition review session counts toward the user's daily streak
-  4. Concepts overdue for review are visually distinguished from concepts that are current
-**Plans**: 3 plans
-Plans:
-- [x] 06-01-PLAN.md — FSRS logic module (TDD), migration, review repository, progress_repo FSRS init
-- [x] 06-02-PLAN.md — Review API endpoints, /review page, dashboard widget, navbar badge
-- [x] 06-03-PLAN.md — Botanical wilting visuals on graph and MiniTree, human verification
-
-### Phase 7: Sigma Bridge Exports & Mastery Fix
-**Goal**: The sigma_entry.js bundle correctly exports updateUserProgress and updateOverdueMap so authenticated graph loads no longer WASM-panic, botanical growth stages render, overdue wilting works, and the MasteryBadge on concept pages shows the correct per-concept mastery tier.
-**Depends on**: Phase 5, Phase 6
-**Requirements**: GRAPH-05, GAME-03
-**Gap Closure:** Closes gaps from v1.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. Authenticated user loads /graph without WASM panic — botanical growth stages render for mastered concepts
-  2. Overdue concepts show wilting overlay on the graph
-  3. MasteryBadge on concept page shows the correct tier for that specific concept, not aggregate XP
-  4. sigma_bundle.js exports both updateUserProgress and updateOverdueMap via window.__sigma_bridge
-**Plans**: 0 plans
-Plans:
-- (none yet)
+  1. At least 3 pilot nodes exist covering EQF 2, EQF 3-4, and EQF 5 — each with all 7 phases and complete metadata
+  2. At least 2 pilot nodes were produced by the AI pipeline, reviewed by all 4 agents, and approved via the human checkpoint step
+  3. All pilot nodes render correctly in the Learning Room with phase gates, format switching, and progress tracking working as expected
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Graph Explorer | 3/3 | Complete   | 2026-03-22 |
-| 3. Content and Simulations | 6/7 | In Progress|  |
-| 4. Accounts and Progress | 4/4 | Complete   | 2026-03-23 |
-| 5. Gamification and Personal Tree | 2/3 | In Progress|  |
-| 6. Spaced Repetition | 3/3 | Complete   | 2026-03-24 |
-| 7. Sigma Bridge Exports & Mastery Fix | 0/0 | Pending |  |
-
-## Backlog
-
-### Phase 999.1: Quiz UX Improvements (BACKLOG)
-
-**Goal:** Polish the quiz experience with better feedback, LaTeX rendering, and scoring fairness — green fill + checkmark on correct answers, server-side LaTeX for quiz text, formula preview fix, and 50% XP penalty for hint-assisted answers.
-**Requirements:** D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13
-**Plans:** 5/5 plans complete
-
-**Items:**
-1. **Correct answer positive feedback** — Multiple-choice quizzes should show green highlighting (or similar visual confirmation) when the selected answer is correct. Currently only wrong answers get feedback.
-2. **Formula input LaTeX preview** — The preview box below the formula input field should render LaTeX live. E.g., typing `a/b` should display a rendered fraction, `\sqrt{x}` should show the root symbol, etc.
-3. **Math rendering broken** — Dollar sign `$...$` environments are showing raw text instead of rendering as math. KaTeX/MathJax rendering is not being invoked on quiz question text and hint feedback.
-4. **Reduce XP for hint-assisted answers** — When a user gets a wrong answer and receives a hint, then answers correctly on retry, they should not receive full XP. Apply a penalty (e.g., 50% XP) for hint-assisted correct answers.
-
-Plans:
-- [x] 999.1-01-PLAN.md — TDD: compute_xp hint penalty + extract_latex_placeholders utility
-- [x] 999.1-02-PLAN.md — Green fill + checkmark on correct answers, formula preview fix
-- [x] 999.1-03-PLAN.md — Server-side LaTeX for quiz, hint tracking data flow, XP toast
-- [ ] 999.1-04-PLAN.md — Gap closure: KaTeX CSS loading + Effect timing fix for renderAllPlaceholders
-- [ ] 999.1-05-PLAN.md — Gap closure: Login nudge when XP award fails due to auth
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation | v1.0 | 3/3 | Complete | 2026-03-18 |
+| 2. Graph Explorer | v1.0 | 3/3 | Complete | 2026-03-22 |
+| 3. Content and Simulations | v1.0 | 7/7 | Complete | 2026-03-24 |
+| 4. Accounts and Progress | v1.0 | 4/4 | Complete | 2026-03-23 |
+| 5. Gamification and Personal Tree | v1.0 | 3/3 | Complete | 2026-03-25 |
+| 6. Spaced Repetition | v1.0 | 3/3 | Complete | 2026-03-24 |
+| 7. Sigma Bridge Exports & Mastery Fix | v1.0 | 1/1 | Complete | 2026-03-26 |
+| 999.1 Quiz UX Improvements | v1.0 | 5/5 | Complete | 2026-03-27 |
+| 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
+| 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
+| 10. Manual Pilot Node | v1.1 | 2/2 | Complete    | 2026-03-29 |
+| 11. Learning Room UI | v1.1 | 3/6 | In Progress|  |
+| 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
+| 13. Quality Gates | v1.1 | 0/? | Not started | - |
+| 14. AI Pilot Nodes | v1.1 | 0/? | Not started | - |

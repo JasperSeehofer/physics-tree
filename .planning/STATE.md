@@ -1,38 +1,44 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Milestone complete
-stopped_at: Phase 7 discuss-phase next
-last_updated: "2026-03-25T19:47:35.715Z"
+milestone: v1.1
+milestone_name: Content Architecture & Authoring Pipeline
+status: executing
+stopped_at: Completed 11-03 Learning Room UI Shell
+last_updated: "2026-03-30T10:56:47.017Z"
+last_activity: 2026-03-30
 progress:
-  total_phases: 8
-  completed_phases: 7
-  total_plans: 28
-  completed_plans: 28
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-17)
+See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Users can visually explore the interconnected landscape of physics and deeply learn any concept through interactive visualizations, derivations, quizzes, and runnable code — with gamification that makes sustained learning feel rewarding.
-**Current focus:** Phase 999.1 — quiz-ux-improvements
+**Current focus:** Phase 11 — learning-room-ui
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
+Phase: 11 (learning-room-ui) — EXECUTING
+Plan: 4 of 6
+Status: Ready to execute
+Last activity: 2026-03-30
+
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 0 (v1.1)
+- Average duration: — (no data yet)
+- Total execution time: — (no data yet)
 
 **By Phase:**
 
@@ -40,110 +46,51 @@ Plan: Not started
 |-------|-------|-------|----------|
 | - | - | - | - |
 
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
-
 *Updated after each plan completion*
-| Phase 01-foundation P01 | 4 | 3 tasks | 16 files |
-| Phase 01-foundation P02 | 5 | 2 tasks | 11 files |
-| Phase 01-foundation P03 | 45 | 5 tasks | 12 files |
-| Phase 02-graph-explorer P01 | 25 | 2 tasks | 11 files |
-| Phase 02-graph-explorer P03 | 6 | 1 tasks | 6 files |
-| Phase 03-content-and-simulations P01 | 60 | 3 tasks | 25 files |
-| Phase 03-content-and-simulations P02 | 5 | 2 tasks | 7 files |
-| Phase 03-content-and-simulations P04 | ~30 | 2 tasks | 6 files |
-| Phase 04-accounts-and-progress P01 | 8 | 4 tasks | 13 files |
-| Phase 04-accounts-and-progress P02 | 5 | 2 tasks | 11 files |
-| Phase 04-accounts-and-progress P03 | 253 | 2 tasks | 10 files |
-| Phase 04-accounts-and-progress P04 | 3 | 1 tasks | 4 files |
-| Phase 05-gamification-and-personal-tree P01 | 5 | 2 tasks | 8 files |
-| Phase 05-gamification-and-personal-tree P03 | 12 | 2 tasks | 3 files |
-| Phase 05-gamification-and-personal-tree P02 | 12 | 2 tasks | 14 files |
-| Phase 06-spaced-repetition P01 | 4 | 2 tasks | 6 files |
-| Phase 06-spaced-repetition P03 | 5 | 1 tasks | 6 files |
-| Phase 06-spaced-repetition P02 | 393 | 2 tasks | 10 files |
-| Phase 999.1 P02 | 135s | 2 tasks | 3 files |
-| Phase 999.1-quiz-ux-improvements P01 | 4 | 2 tasks | 4 files |
-| Phase 999.1 P04 | 15 | 2 tasks | 7 files |
-| Phase 999.1 P05 | 526147min | 1 tasks | 1 files |
+| Phase 08-content-specification P02 | 4 | 2 tasks | 3 files |
+| Phase 09-database-ingest P01 | 4 | 2 tasks | 4 files |
+| Phase 09-database-ingest P02 | 4 | 1 tasks | 9 files |
+| Phase 09-database-ingest P03 | 25 | 2 tasks | 2 files |
+| Phase 10-manual-pilot-node P01 | 4 | 2 tasks | 9 files |
+| Phase 10-manual-pilot-node P02 | 12 | 2 tasks | 4 files |
+| Phase 11-learning-room-ui P00 | 139 | 2 tasks | 4 files |
+| Phase 11-learning-room-ui P01 | 8 | 2 tasks | 8 files |
+| Phase 11-learning-room-ui P02 | 6min | 2 tasks | 4 files |
+| Phase 11-learning-room-ui P03 | 28 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Rust + WASM (Leptos 0.8 frontend, Axum 0.8 backend) — performance for interactive simulations
-- SurrealDB replaced by PostgreSQL + SQLx per research — native graph queries not needed at classical mechanics scale; recursive CTEs on PostgreSQL suffice
-- Sigma.js + Graphology for WebGL graph rendering — must be committed before content is added (switching later requires full visualization rewrite)
-- WASM bundle size budget: 1 MB compressed — CI fails if exceeded from first build
-- Content pipeline: AI draft → human review → Approved gate — no content reaches production without explicit approval
-- [Phase 01-foundation]: domain crate has optional sqlx behind ssr feature so types compile for both WASM client and server without carrying sqlx into the WASM bundle
-- [Phase 01-foundation]: NodeType enum uses pedagogical categories (Concept/Formula/Theorem/Application/Consequence) not physics-domain types — branch-agnostic by design
-- [Phase 01-foundation]: branch column stored as TEXT not ENUM to allow new physics domains without migrations
-- [Phase 01-foundation]: gloo-net scoped via cfg(target_arch = wasm32) to avoid pulling WASM HTTP into the SSR binary
-- [Phase 01-foundation]: Nunito font uses v32 API URL (v26 weight-700 URL returned HTML error page); all weights use same WOFF2 variable font
-- [Phase 01-foundation]: HashedStylesheet from leptos_meta used in SSR shell — generates correct /pkg/physics-tree.css link tag
-- [Phase 01-foundation]: Dev server on port 3001, live-reload WebSocket on port 3002 — permanent dev configuration
-- [Phase 02-graph-explorer P02]: wasm-bindgen extern block uses module = '/crates/app/src/js/sigma_bridge.js' — workspace-root-relative path for sigma_bridge.js
-- [Phase 02-graph-explorer P02]: Closure::forget() intentionally leaks JS callbacks for Sigma event handlers — bounded by killSigma() in on_cleanup
-- [Phase 02-graph-explorer P02]: Non-solid edges (dashed/dotted/double) implemented via canvas overlay on afterRender event; WebGL hides them via botanicalEdgeReducer hidden=true
-- [Phase 02-graph-explorer P02]: GraphState context struct groups selected_node/hovered_node/panel_open RwSignals for Plan 03 panel/tooltip components
-- [Phase 02-graph-explorer]: api_routes(pool) uses Router::merge pattern — PgPool state in API routes, LeptosOptions state in outer router, merged cleanly
-- [Phase 02-graph-explorer]: serde, sqlx, uuid added as direct server crate deps (handlers/graph.rs uses them directly in function signatures)
-- [Phase 02-graph-explorer]: GraphExplorerPage kept as placeholder — Plan 02 owns Sigma.js integration to reduce Plan 01 scope and merge risk
-- [Phase 02-graph-explorer]: filter_nodes extracted as pure fn outside SearchInput component — enables #[test] without leptos runtime
-- [Phase 02-graph-explorer]: StoredValue::new(nodes) in SearchInput to share node list across multiple closures without ownership conflict
-- [Phase 02-graph-explorer]: serde_json::Value used in graph_explorer.rs instead of domain types — avoids JSON double-parsing and works cleanly with gloo-net
-- [Phase 03-content-and-simulations]: rapier2d 0.32 has no wasm-bindgen feature; use f32 feature + getrandom js for WASM target
-- [Phase 03-content-and-simulations]: rapier2d 0.32 Vector is type alias Vec2 (not generic); vector![] macro needs .into() conversion; gravity in step() is by value not reference
-- [Phase 03-content-and-simulations]: Rebuild full Rapier2D pipeline on reset_sim() for clean state (no handle reuse issues)
-- [Phase 03-content-and-simulations P01]: Dynamic sqlx::query (non-macro) used for content_repo.rs — compiles without live DB at build time
-- [Phase 03-content-and-simulations P01]: pulldown-cmark and regex in cfg(not(target_arch = wasm32)) — SSR-only, excluded from WASM bundle
-- [Phase 03-content-and-simulations P01]: render_content_markdown behind cfg(feature = ssr) — called by server handler via app crate
-- [Phase 03-content-and-simulations P01]: KaTeX and TOC bridges bundled via esbuild with loader:.woff2=file; CSS is text-loaded
-- [Phase 03-content-and-simulations P04]: Pendulum and harmonic use analytical velocity Verlet (not Rapier) for clean physics models; orbital also uses custom Verlet since Rapier gravity is uniform not point-source
-- [Phase 03-content-and-simulations P04]: Incline uses Rapier2D for realistic block-surface friction collision; world rebuilt on slope angle change for clean state
-- [Phase 03-content-and-simulations P04]: g_constant field is pub in OrbitalSimulation to satisfy acceptance criteria checker
-- [Phase 04-accounts-and-progress]: tower-sessions pinned to 0.14 (sqlx-store 0.15 uses core 0.14 — version mismatch prevented PostgresStore from satisfying SessionStore trait)
-- [Phase 04-accounts-and-progress]: server crate gets lib.rs to expose handlers for integration tests (binary crates cannot be imported from test files)
-- [Phase 04-accounts-and-progress]: spawn_blocking wraps Argon2id operations in all async auth handlers to avoid blocking Tokio thread pool
-- [Phase 04-accounts-and-progress]: LocalResource (not Resource) used for auth fetch — gloo-net futures are not Send on WASM
-- [Phase 04-accounts-and-progress]: prop:value=move || signal.get() closure pattern required by Leptos 0.8 IntoProperty trait (not prop:value=signal directly)
-- [Phase 04-accounts-and-progress]: current_streak hardcoded 0 in DashboardSummary — Phase 5 implements streak logic per D-12/D-14
-- [Phase 04-accounts-and-progress]: into_any() required for divergent Leptos 0.8 view branches in if/else — arms must unify to same type
-- [Phase 04-accounts-and-progress]: MiniTree shows empty state when all nodes have mastery_level==0 — API returns all nodes with 0 for unlearned
-- [Phase 04-accounts-and-progress]: ConceptToc gains toc_open RwSignal prop — caller owns state so toggle button and overlay share same signal
-- [Phase 04-accounts-and-progress]: Bottom sheet uses single div with lg: responsive overrides (not two elements) to keep one code path for panel visibility logic
-- [Phase 05-gamification-and-personal-tree]: compute_xp applies 1.5x perfect bonus to base XP, not scaled score — trunk 100%=30, leaf 100%=60 per spec
-- [Phase 05-gamification-and-personal-tree]: mastery_level stores cumulative concept XP; tiers derived at query time via xp_to_mastery_tier thresholds (50=bronze, 150=silver, 300=gold)
-- [Phase 05-gamification-and-personal-tree]: streak freeze covers exactly one missed day (gap==2); larger gaps reset streak even with tokens — freeze only covers single missed day
-- [Phase 05-03]: userProgressMap stored as JS module-level state in sigma_bridge.js — avoids per-frame WASM boundary crossing
-- [Phase 05-03]: Progressive reveal: frontier = direct neighbors of learned nodes (XP > 0); non-frontier non-learned nodes hidden
-- [Phase 05-03]: Botanical canvas shapes drawn on edgeLabels overlay canvas after drawEdgeOverlay (correct z-order, no new canvas needed)
-- [Phase 05-gamification-and-personal-tree]: checkpoint_passed Vec<Option<bool>>: Some(true)=correct, Some(false)=skipped, None=unanswered — enables score_pct computation for XP award threshold (D-02: 70% minimum)
-- [Phase 05-gamification-and-personal-tree]: MasteryBadge shows mastery from award-xp response (not fetched on load) — no per-node mastery GET endpoint exists; badge is hidden until first quiz completion
-- [Phase 05-gamification-and-personal-tree]: node_id added to ConceptContent (server+client) — was missing from Phase 3 design; required for award-xp POST body
-- [Phase 06-01]: rs-fsrs added to crates/db only (not crates/app) to keep WASM bundle unaffected per Pitfall 7
-- [Phase 06-01]: review_repo.submit_review handles its own XP INSERT with is_review=TRUE; award_xp_to_user keeps is_review=FALSE — clean separation of initial quiz vs review XP
-- [Phase 06-01]: Skip does not modify FSRS state (stability/difficulty/reps/lapses) — only defers next_review +24h per Pitfall 6
-- [Phase 06-spaced-repetition]: Wilting applied AFTER growth-stage styling in botanicalNodeReducer — mastery tier shape preserved, only color/opacity/size degrade per D-09
-- [Phase 06-spaced-repetition]: overdueMap module-level state in sigma_bridge.js — same pattern as userProgressMap, O(1) per-node lookup with zero per-frame computation per Pitfall 3
-- [Phase 06-spaced-repetition]: MiniTree wilting uses wrapper <g> with opacity + filter attributes — single clean separation of wilting concern from shape rendering
-- [Phase 06-02]: StoredValue used for node_id in ConceptReviewCard to share across Leptos closures without move conflicts
-- [Phase 06-02]: ConceptReviewQuestion renders inline instead of QuizCheckpoint — review page needs standalone per-question flow without soft-block overlay
-- [Phase 999.1]: Removed prop:value two-way binding from formula input to fix LaTeX brace-stripping in live preview
-- [Phase 999.1]: Green fill (bg-leaf-green text-void) applied to correct answers across all 3 quiz types per D-01/D-03
-- [Phase 999.1-quiz-ux-improvements]: compute_xp callers progress.rs and review_repo.rs pass false for hints_used — Plan 03 will wire req.hints_used for the award-xp path
-- [Phase 999.1-quiz-ux-improvements]: extract_latex_placeholders is cfg(not(target_arch = wasm32)) — avoids WASM bundle, callable from non-ssr server contexts
-- [Phase 999.1]: D-07 fix: reactive Effect with slug() dependency for concept page data fetch — re-runs on client-side navigation; content/quiz/checkpoint state reset at start of each run
-- [Phase 999.1]: QuizCheckpoint on_answered: Callback<(bool, bool)> propagates (correct, hint_used) tuple; checkpoint_passed Vec<Option<(bool, bool)>> in concept.rs
-- [Phase 999.1]: KaTeX CSS loaded via CDN link tag in HTML shell — esbuild silently drops CSS imports without extraction config
-- [Phase 999.1]: renderAllPlaceholders deferred via requestAnimationFrame in quiz components and concept page — Leptos Effects fire before DOM commits inner_html
-- [Phase 999.1]: post_award_xp returns Result<AwardXpResponse, bool> — Err(true) = 401 (auth failure), Err(false) = other error — enables login nudge on unauthenticated quiz completion
+- [v1.1 research]: Use `serde-saphyr` (not archived `serde_yaml`) for YAML parsing; `gray_matter` for frontmatter splitting
+- [v1.1 research]: All new Rust crates must be gated behind `ssr` feature flag — never compiled into WASM bundle
+- [v1.1 research]: AI pipeline is offline Python tool in `tools/authoring/` — NOT a deployed service
+- [v1.1 research]: 16 v1.0 modules must NOT be migrated in this milestone
+- [Phase 08-02]: Heading comparison uses heading_to_requires() normalization (Title Case -> snake_case) for matching H2 headings to requires keys
+- [Phase 08-02]: gray_matter::Matter::parse() typed with serde_json::Value for CLI phase file parsing — only body content needed for H2 extraction
+- [Phase 09-database-ingest]: v1.0 node_phases rows store file_path in content_body as migration bridge; new 7-phase nodes store actual Markdown
+- [Phase 09-database-ingest]: NodeMeta node_type/depth_tier use serde(default) with deny_unknown_fields — backward compat for existing node.yaml files
+- [Phase 09-database-ingest]: content_repo get_by_slug hardcodes review_status='approved' for node_phases-served content — old review_status column dropped
+- [Phase 09-database-ingest]: clap derive for ingest CLI -- multi-path positional args and --dry-run flag
+- [Phase 09-database-ingest]: ingest dry-run skips pool creation entirely -- no DATABASE_URL required for validate-only runs
+- [Phase 09-database-ingest]: bloom_to_str() helper in ingest.rs converts BloomLevel to lowercase string -- avoids modifying domain crate
+- [Phase 10-manual-pilot-node]: Phase 1 productive failure uses non-constant-acceleration rocket data: Part C asks learner to 'Commit to their best estimate' — avoids telegraphing integration as the answer
+- [Phase 10-manual-pilot-node]: Phase 2 derivation explicitly states constant-a as the only assumption before integrating — required at EQF 4 but previously implicit in fixture
+- [Phase 10-manual-pilot-node]: Phase 5 Transfer Problem: diver jumps upward from 10m platform — sign-convention challenge in novel physical context not used in Phase 3
+- [Phase 10-manual-pilot-node]: SPEC-GAPS.md collects 5 spec gaps without modifying spec mid-authoring (per D-09): transfer_problem enforcement, boxed{?} convention, esco_tags min count, estimated_minutes divergence, solution_capture UI affordance
+- [Phase 10-manual-pilot-node]: MissingStandardRequires variant covers universal phase requires; could apply to phases beyond 5 in future
+- [Phase 10-manual-pilot-node]: EstimatedMinutesMismatch opt-in: only triggered when phase_estimated_minutes is non-empty — backward compatible enforcement
+- [Phase 10-manual-pilot-node]: Human approved kinematics pilot node: physics accuracy, productive failure design, and quiz quality confirmed
+- [Phase 11-learning-room-ui]: Wave 0 test skeletons use #[ignore] stubs so cargo test compiles all VALIDATION.md targets without blocking CI
+- [Phase 11-learning-room-ui]: graph_repo.rs switched to dynamic sqlx::query API: query_as! macro fails to compile when PhysicsNode gains a new field without DATABASE_URL at compile time
+- [Phase 11-learning-room-ui]: Routes registered in routes.rs (not lib.rs per plan description): actual API route registration is in api_routes() in routes.rs per Phase 02 pattern
+- [Phase 11-learning-room-ui]: syntect uses regex-fancy feature (not default-onig) — avoids onig C library, pure Rust
+- [Phase 11-learning-room-ui]: GFM alerts use ENABLE_GFM flag (not ENABLE_GFM_ALERTS which does not exist in pulldown-cmark 0.13)
+- [Phase 11-learning-room-ui]: Custom event consumer replaces push_html: single-pass handles math, alerts, code blocks, headings, quiz blocks
+- [Phase 11-learning-room-ui]: phases Vec wrapped in RwSignal to allow shared access across multiple reactive closures
+- [Phase 11-learning-room-ui]: fetch_learning_room takes owned String (not &str) to satisfy LocalResource move closure
 
 ### Pending Todos
 
@@ -151,11 +98,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 2] Sigma.js + Leptos integration via wasm-bindgen JS interop: RESOLVED in P02 — extern block with module path pattern works; full cargo leptos build validation pending Plan 03/04
-- [Phase 3] Rapier2D + HTML Canvas rendering pattern inside a Leptos component needs a working prototype — address in Phase 3 planning
+- Phase 8 (Content Spec) is the foundation contract — any ambiguity discovered during Phase 10 (Manual Pilot) must be resolved before Phase 12 (AI Pipeline) starts
+- Productive failure problem design is the highest-risk content step — LLMs routinely miss the "solvable but not optimally" criterion; human verification mandatory
 
 ## Session Continuity
 
-Last session: 2026-03-25T19:47:35.713Z
-Stopped at: Phase 7 discuss-phase next
-Resume file: .planning/phases/07-sigma-exports-mastery-fix/
+Last session: 2026-03-30T10:56:47.015Z
+Stopped at: Completed 11-03 Learning Room UI Shell
+Resume file: None
