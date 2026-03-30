@@ -10,6 +10,7 @@ use pages::concept::ConceptPage;
 use pages::dashboard::DashboardPage;
 use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
+use pages::learning_room::LearningRoomPage;
 use pages::login::LoginPage;
 use pages::register::RegisterPage;
 use pages::review::ReviewPage;
@@ -247,6 +248,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/") view=LandingPage />
                     <Route path=path!("/graph") view=GraphExplorerPage />
                     <Route path=path!("/graph/:slug/learn") view=ConceptPage />
+                    <Route path=path!("/learning-room/:slug") view=LearningRoomPage />
                     <Route path=path!("/login") view=LoginPage />
                     <Route path=path!("/register") view=RegisterPage />
                     <Route path=path!("/dashboard") view=DashboardPage />

@@ -1,3 +1,4 @@
+pub mod breadcrumb;
 pub mod derivation_stepper;
 pub mod inline_concept_link;
 pub mod markdown_renderer;
