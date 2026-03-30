@@ -31,6 +31,7 @@ pub struct PhysicsNode {
     pub branch: String,
     pub depth_tier: String,
     pub description: Option<String>,
+    pub has_phases: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
