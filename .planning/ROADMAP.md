@@ -90,7 +90,7 @@ Plans:
   5. Phase completion progress persists across browser sessions and devices logged into the same account
 **Plans**: 5 plans
 Plans:
-- [ ] 11-01-PLAN.md — Database migration, progress repo, and API endpoints
+- [x] 11-01-PLAN.md — Database migration, progress repo, and API endpoints
 - [ ] 11-02-PLAN.md — Markdown renderer upgrade (custom event consumer)
 - [ ] 11-03-PLAN.md — Learning Room page shell, tabs, and phase components
 - [ ] 11-04-PLAN.md — Quiz component, celebrations, and graph integration
@@ -144,7 +144,7 @@ Plans:
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
 | 10. Manual Pilot Node | v1.1 | 2/2 | Complete    | 2026-03-29 |
-| 11. Learning Room UI | v1.1 | 0/5 | Not started | - |
+| 11. Learning Room UI | v1.1 | 1/6 | In Progress|  |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |
 | 14. AI Pilot Nodes | v1.1 | 0/? | Not started | - |
