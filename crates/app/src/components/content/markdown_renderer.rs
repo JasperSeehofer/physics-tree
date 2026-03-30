@@ -8,24 +8,30 @@ pub struct RenderedContent {
     pub simulations: Vec<String>, // e.g. ["projectile"]
 }
 
+// ── Syntect singletons (ssr-only) ────────────────────────────────────────────
+
+#[cfg(feature = "ssr")]
+static SS: std::sync::OnceLock<syntect::parsing::SyntaxSet> = std::sync::OnceLock::new();
+#[cfg(feature = "ssr")]
+static TS: std::sync::OnceLock<syntect::highlighting::ThemeSet> = std::sync::OnceLock::new();
+
 /// Render PhysicsTree-flavored markdown to HTML.
 ///
 /// Processing pipeline:
-/// 1. Strip YAML frontmatter (split on first `---` pair)
-/// 2. Pre-pass: extract custom `::directive[...]` blocks → placeholder `<div>` tags
-/// 3. Extract `$...$` and `$$...$$` LaTeX blocks → `<span>`/`<div>` with `data-latex`
-/// 4. Parse remaining markdown with pulldown-cmark
-/// 5. Post-process HTML: inject `id` attributes on h2 elements
-/// 6. Collect section IDs from h2 headings
-/// 7. Collect simulation names from extracted directives
+/// 1. Strip YAML frontmatter
+/// 2. Pre-pass: replace custom `::directive[...]` blocks and `:::fenced-div` blocks
+/// 3. Parse with pulldown-cmark using ENABLE_MATH and ENABLE_GFM
+/// 4. Custom event consumer: math → KaTeX placeholders, GFM alerts → admonitions,
+///    CodeBlock → syntect highlighting, headings → ID injection
+/// 5. Collect section IDs from h2 headings and simulation names
 #[cfg(feature = "ssr")]
 pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
     use regex::Regex;
 
-    // ── 1. Strip YAML frontmatter ───────────────────────────────────────────
+    // ── 1. Strip YAML frontmatter ────────────────────────────────────────────
     let content = strip_yaml_frontmatter(markdown_source);
 
-    // ── 2. Pre-pass: replace custom directives ─────────────────────────────
+    // ── 2. Pre-pass: replace custom directives and fenced divs ──────────────
     let mut simulations: Vec<String> = Vec::new();
 
     // ::simulation[name]
@@ -36,6 +42,18 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
         format!(
             r#"<div data-simulation="{name}" class="simulation-embed-placeholder"></div>"#,
             name = name
+        )
+    });
+
+    // ::concept-link[slug]{title}
+    let concept_re = Regex::new(r"::concept-link\[([^\]]+)\]\{([^}]*)\}").unwrap();
+    let content = concept_re.replace_all(&content, |caps: &regex::Captures| {
+        let slug = html_attr_escape(&caps[1]);
+        let title = &caps[2];
+        format!(
+            r#"<a href="/graph/{slug}/learn" class="concept-link">{title}</a>"#,
+            slug = slug,
+            title = title
         )
     });
 
@@ -64,29 +82,294 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
         )
     });
 
-    // ── 3. Extract LaTeX blocks ─────────────────────────────────────────────
-    let content = extract_latex_placeholders(&content);
+    // :::fenced-div blocks pre-pass
+    // Handles: :::definition, :::collapse TITLE, :::figure
+    let fenced_re = Regex::new(
+        r"(?m)^:::(definition|collapse|figure)\s*(.*?)\n([\s\S]*?)\n:::\s*$",
+    ).unwrap();
+    let content = fenced_re.replace_all(&content, |caps: &regex::Captures| {
+        let kind = &caps[1];
+        let title = caps[2].trim();
+        let inner = caps[3].trim();
+        match kind {
+            "definition" => format!(
+                "<div class=\"definition-block\">\n{inner}\n</div>",
+                inner = inner
+            ),
+            "collapse" => format!(
+                "<details><summary>{title}</summary>\n{inner}\n</details>",
+                title = title,
+                inner = inner
+            ),
+            "figure" => {
+                // Last non-empty line is the figcaption
+                let lines: Vec<&str> = inner.lines().filter(|l| !l.trim().is_empty()).collect();
+                let caption = lines.last().copied().unwrap_or("");
+                let body_lines: Vec<&str> = if lines.len() > 1 {
+                    lines[..lines.len() - 1].to_vec()
+                } else {
+                    lines.clone()
+                };
+                let body = body_lines.join("\n");
+                format!(
+                    "<figure class=\"figure-block\">\n{body}\n<figcaption>{caption}</figcaption></figure>",
+                    body = body,
+                    caption = caption
+                )
+            }
+            _ => caps[0].to_string(),
+        }
+    });
 
-    // ── 4. Parse markdown with pulldown-cmark ──────────────────────────────
-    use pulldown_cmark::{html as cmark_html, Options, Parser};
+    // ── 3. Parse with pulldown-cmark ─────────────────────────────────────────
+    use pulldown_cmark::{
+        BlockQuoteKind, CodeBlockKind, Event, HeadingLevel, Options, Parser, Tag, TagEnd,
+    };
 
     let mut opts = Options::empty();
+    opts.insert(Options::ENABLE_MATH);
+    opts.insert(Options::ENABLE_GFM);               // GFM alerts + strikethrough + tasklists
+    opts.insert(Options::ENABLE_TABLES);             // NOT included in ENABLE_GFM per Pitfall 6
+    opts.insert(Options::ENABLE_FOOTNOTES);
     opts.insert(Options::ENABLE_HEADING_ATTRIBUTES);
-    opts.insert(Options::ENABLE_TABLES);
-    opts.insert(Options::ENABLE_STRIKETHROUGH);
+    opts.insert(Options::ENABLE_DEFINITION_LIST);
+    opts.insert(Options::ENABLE_SUPERSCRIPT);
+    opts.insert(Options::ENABLE_SMART_PUNCTUATION);
 
     let parser = Parser::new_ext(&content, opts);
-    let mut raw_html = String::new();
-    cmark_html::push_html(&mut raw_html, parser);
 
-    // ── 5 & 6. Post-process: inject id attrs on h2, collect section IDs ───
-    let (processed_html, sections) = process_headings(&raw_html);
+    // ── 4. Custom event consumer ─────────────────────────────────────────────
+    let mut html = String::new();
+    let mut sections: Vec<String> = Vec::new();
+
+    // State
+    let mut in_admonition = false;
+    let mut in_code_block = false;
+    let mut in_quiz_block = false;
+    let mut code_lang = String::new();
+    let mut code_buf = String::new();
+    let mut quiz_buf = String::new();
+    // Heading accumulation: when inside a heading, buffer text to compute ID
+    let mut in_heading: Option<(HeadingLevel, Option<String>)> = None;
+    let mut heading_text_buf = String::new();
+    let mut heading_html_buf = String::new();
+
+    for event in parser {
+        // If inside a heading, handle specially
+        if in_heading.is_some() {
+            match &event {
+                Event::End(TagEnd::Heading(_)) => {
+                    let (level, explicit_id) = in_heading.take().unwrap();
+                    let section_id = explicit_id.unwrap_or_else(|| slugify(&heading_text_buf));
+                    let level_num = heading_level_to_num(level);
+                    html.push_str(&format!(
+                        "<h{level} id=\"{id}\">{content}</h{level}>",
+                        level = level_num,
+                        id = section_id,
+                        content = heading_html_buf.trim()
+                    ));
+                    if level == HeadingLevel::H2 {
+                        sections.push(section_id);
+                    }
+                    heading_text_buf.clear();
+                    heading_html_buf.clear();
+                }
+                Event::Text(text) => {
+                    heading_text_buf.push_str(text);
+                    heading_html_buf.push_str(&html_escape(text));
+                }
+                Event::InlineMath(latex) => {
+                    let escaped = html_attr_escape(latex);
+                    heading_html_buf.push_str(&format!(
+                        r#"<span data-latex="{escaped}" data-display="false"></span>"#,
+                        escaped = escaped
+                    ));
+                }
+                Event::Code(code) => {
+                    heading_html_buf.push_str(&format!("<code>{}</code>", html_escape(code)));
+                    heading_text_buf.push_str(code);
+                }
+                _ => {
+                    // Emit other events into heading_html_buf via push_html
+                    let mut tmp = String::new();
+                    pulldown_cmark::html::push_html(&mut tmp, std::iter::once(event));
+                    heading_html_buf.push_str(&tmp);
+                }
+            }
+            continue;
+        }
+
+        match event {
+            // Math events
+            Event::InlineMath(latex) => {
+                let escaped = html_attr_escape(&latex);
+                html.push_str(&format!(
+                    r#"<span data-latex="{escaped}" data-display="false"></span>"#,
+                    escaped = escaped
+                ));
+            }
+            Event::DisplayMath(latex) => {
+                let escaped = html_attr_escape(latex.trim());
+                html.push_str(&format!(
+                    r#"<div data-latex="{escaped}" data-display="true"></div>"#,
+                    escaped = escaped
+                ));
+            }
+
+            // GFM alerts
+            Event::Start(Tag::BlockQuote(Some(kind))) => {
+                in_admonition = true;
+                let (css_class, label) = blockquote_kind_to_admonition(kind);
+                html.push_str(&format!(
+                    r#"<div class="admonition {css_class}"><span class="admonition-label">{label}</span>"#,
+                    css_class = css_class,
+                    label = label
+                ));
+            }
+            Event::End(TagEnd::BlockQuote(_)) => {
+                if in_admonition {
+                    html.push_str("</div>");
+                    in_admonition = false;
+                } else {
+                    html.push_str("</blockquote>");
+                }
+            }
+            Event::Start(Tag::BlockQuote(None)) => {
+                html.push_str("<blockquote>");
+            }
+
+            // Code blocks
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(lang))) => {
+                let lang_str = lang.to_string();
+                if lang_str == "quiz" {
+                    in_quiz_block = true;
+                    quiz_buf.clear();
+                } else {
+                    in_code_block = true;
+                    code_lang = lang_str;
+                    code_buf.clear();
+                }
+            }
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Indented)) => {
+                in_code_block = true;
+                code_lang = String::new();
+                code_buf.clear();
+            }
+            Event::Text(text) if in_quiz_block => {
+                quiz_buf.push_str(&text);
+            }
+            Event::Text(text) if in_code_block => {
+                code_buf.push_str(&text);
+            }
+            Event::End(TagEnd::CodeBlock) if in_quiz_block => {
+                let escaped = html_attr_escape(quiz_buf.trim());
+                html.push_str(&format!(
+                    r#"<div data-quiz-block="{escaped}"></div>"#,
+                    escaped = escaped
+                ));
+                in_quiz_block = false;
+                quiz_buf.clear();
+            }
+            Event::End(TagEnd::CodeBlock) if in_code_block => {
+                let highlighted = highlight_code_block(&code_buf, &code_lang);
+                html.push_str(&highlighted);
+                in_code_block = false;
+                code_buf.clear();
+                code_lang.clear();
+            }
+
+            // Headings — buffer content to compute ID
+            Event::Start(Tag::Heading { level, id, .. }) => {
+                let explicit_id = id.map(|s| s.to_string());
+                in_heading = Some((level, explicit_id));
+                heading_text_buf.clear();
+                heading_html_buf.clear();
+            }
+
+            // All other events — delegate to push_html
+            other => {
+                pulldown_cmark::html::push_html(&mut html, std::iter::once(other));
+            }
+        }
+    }
 
     RenderedContent {
-        html: processed_html,
+        html,
         sections,
         simulations,
     }
+}
+
+#[cfg(feature = "ssr")]
+fn blockquote_kind_to_admonition(kind: pulldown_cmark::BlockQuoteKind) -> (&'static str, &'static str) {
+    use pulldown_cmark::BlockQuoteKind;
+    match kind {
+        BlockQuoteKind::Note => ("admonition-note", "Note"),
+        BlockQuoteKind::Tip => ("admonition-tip", "Tip"),
+        BlockQuoteKind::Important => ("admonition-important", "Important"),
+        BlockQuoteKind::Warning => ("admonition-warning", "Warning"),
+        BlockQuoteKind::Caution => ("admonition-caution", "Caution"),
+    }
+}
+
+#[cfg(feature = "ssr")]
+fn heading_level_to_num(level: pulldown_cmark::HeadingLevel) -> u8 {
+    use pulldown_cmark::HeadingLevel;
+    match level {
+        HeadingLevel::H1 => 1,
+        HeadingLevel::H2 => 2,
+        HeadingLevel::H3 => 3,
+        HeadingLevel::H4 => 4,
+        HeadingLevel::H5 => 5,
+        HeadingLevel::H6 => 6,
+    }
+}
+
+/// Syntax-highlight a code block using syntect.
+/// Returns a `<pre class="highlight"><code>...</code></pre>` HTML string.
+#[cfg(feature = "ssr")]
+fn highlight_code_block(code: &str, lang: &str) -> String {
+    use syntect::easy::HighlightLines;
+    use syntect::html::{styled_line_to_highlighted_html, IncludeBackground};
+
+    let ss = SS.get_or_init(|| syntect::parsing::SyntaxSet::load_defaults_newlines());
+    let ts = TS.get_or_init(|| syntect::highlighting::ThemeSet::load_defaults());
+
+    let syntax = if lang.is_empty() {
+        ss.find_syntax_plain_text()
+    } else {
+        ss.find_syntax_by_token(lang)
+            .unwrap_or_else(|| ss.find_syntax_plain_text())
+    };
+
+    let theme = &ts.themes["base16-ocean.dark"];
+    let mut highlighter = HighlightLines::new(syntax, theme);
+
+    let mut highlighted_html = String::new();
+    for line in syntect::util::LinesWithEndings::from(code) {
+        match highlighter.highlight_line(line, ss) {
+            Ok(ranges) => {
+                match styled_line_to_highlighted_html(&ranges, IncludeBackground::No) {
+                    Ok(html) => highlighted_html.push_str(&html),
+                    Err(_) => highlighted_html.push_str(&html_escape(line)),
+                }
+            }
+            Err(_) => highlighted_html.push_str(&html_escape(line)),
+        }
+    }
+
+    format!(
+        r#"<pre class="highlight"><code>{}</code></pre>"#,
+        highlighted_html
+    )
+}
+
+/// Escape HTML special characters in text content.
+#[cfg(not(target_arch = "wasm32"))]
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 /// Strip YAML frontmatter delimited by `---` pairs at the start of the document.
@@ -113,6 +396,8 @@ pub fn strip_yaml_frontmatter(src: &str) -> String {
 /// inline math (`$...$`) with `<span data-latex="..." data-display="false"></span>`.
 /// Display pass runs first to avoid `$$` being matched by the inline `$` pattern.
 /// LaTeX content is HTML-attribute-escaped.
+///
+/// Kept for the quiz endpoint which calls it separately (not used in render path).
 pub fn extract_latex_placeholders(input: &str) -> String {
     use regex::Regex;
     let display_re = Regex::new(r"\$\$([\s\S]*?)\$\$").unwrap();
@@ -129,98 +414,11 @@ pub fn extract_latex_placeholders(input: &str) -> String {
 
 #[cfg(not(target_arch = "wasm32"))]
 /// Escape HTML attribute special characters.
-fn html_attr_escape(s: &str) -> String {
+pub fn html_attr_escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('"', "&quot;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-/// Post-process HTML: for each `<h2>` element, inject an `id` attribute
-/// derived either from an explicit `{#anchor}` fragment or from slugified
-/// heading text. Return (processed_html, sections_vec).
-fn process_headings(html: &str) -> (String, Vec<String>) {
-    let mut sections = Vec::new();
-    let mut result = String::with_capacity(html.len());
-
-    // Simple line-by-line scan for <h2> tags
-    let mut remaining = html;
-    while let Some(h2_start) = remaining.find("<h2") {
-        // Copy everything before this h2 tag
-        result.push_str(&remaining[..h2_start]);
-        remaining = &remaining[h2_start..];
-
-        // Find end of opening tag (could be `<h2>` or `<h2 id="...">`)
-        if let Some(tag_end) = remaining.find('>') {
-            let opening_tag = &remaining[..=tag_end];
-            let inner_start = tag_end + 1;
-
-            // Find closing </h2>
-            if let Some(close_offset) = remaining[inner_start..].find("</h2>") {
-                let inner_html = &remaining[inner_start..inner_start + close_offset];
-
-                // Determine section ID:
-                // - If the heading already has id="..." in the tag, reuse it
-                // - If heading text ends with ` {#anchor}`, extract anchor
-                // - Else slugify the plain text
-                let section_id = extract_or_compute_id(opening_tag, inner_html);
-
-                sections.push(section_id.clone());
-
-                // Emit the heading with id
-                let plain_text = strip_html_tags(inner_html);
-                let clean_text = plain_text.replace(&format!(" {{#{}}}", section_id), "");
-                result.push_str(&format!(
-                    r#"<h2 id="{id}">{content}</h2>"#,
-                    id = section_id,
-                    content = clean_text.trim()
-                ));
-
-                remaining = &remaining[inner_start + close_offset + 5..]; // skip </h2>
-            } else {
-                // Malformed — emit as-is
-                result.push_str(opening_tag);
-                remaining = &remaining[inner_start..];
-            }
-        } else {
-            // No closing > found — emit rest as-is
-            result.push_str(remaining);
-            remaining = "";
-        }
-    }
-
-    result.push_str(remaining);
-    (result, sections)
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-/// Extract an explicit `id` attribute from the tag, or compute one from heading text.
-fn extract_or_compute_id(opening_tag: &str, inner_html: &str) -> String {
-    // Check for existing id="..." in the tag (pulldown-cmark emits these for {#id} syntax)
-    let id_re_str = r#"id="([^"]+)""#;
-    if let Ok(re) = regex::Regex::new(id_re_str) {
-        if let Some(caps) = re.captures(opening_tag) {
-            return caps[1].to_string();
-        }
-    }
-
-    // Check for {#anchor} at end of heading text
-    let text = strip_html_tags(inner_html);
-    let anchor_re = regex::Regex::new(r"\{#([^}]+)\}").unwrap();
-    if let Some(caps) = anchor_re.captures(&text) {
-        return caps[1].to_string();
-    }
-
-    // Slugify heading text
-    slugify(&text)
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-/// Strip HTML tags from a string, leaving only text content.
-fn strip_html_tags(s: &str) -> String {
-    let re = regex::Regex::new(r"<[^>]+>").unwrap();
-    re.replace_all(s, "").to_string()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -237,7 +435,7 @@ pub fn slugify(s: &str) -> String {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tests (TDD Wave 0 — must pass before implementing handler)
+// Tests
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -439,36 +637,197 @@ mod tests {
         );
     }
 
-    // ── Wave 0 stubs — implement in Plan 02 ──────────────────────────────────
+    // ── New custom event consumer tests (TDD — Wave 1) ──────────────────────
 
+    #[cfg(feature = "ssr")]
     #[test]
-    #[ignore = "Wave 0 stub — implement in Plan 02"]
     fn test_math_events_inline() {
-        // VALIDATION ref: 11-01-07
-        // $E=mc^2$ -> <span data-latex="E=mc^2" data-display="false">
-        todo!("Implement math event test")
+        let result = render_content_markdown("The force $E=mc^2$ holds.");
+        assert!(
+            result.html.contains(r#"data-latex="E=mc^2""#),
+            "Inline math should produce data-latex attribute, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains(r#"data-display="false""#),
+            "Inline math should have data-display=false, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<span"),
+            "Inline math should be wrapped in span, got: {}",
+            result.html
+        );
     }
 
+    #[cfg(feature = "ssr")]
     #[test]
-    #[ignore = "Wave 0 stub — implement in Plan 02"]
     fn test_math_events_display() {
-        // VALIDATION ref: 11-01-07
-        // $$F=ma$$ -> <div data-latex="F=ma" data-display="true">
-        todo!("Implement display math event test")
+        let result = render_content_markdown("$$F=ma$$");
+        assert!(
+            result.html.contains(r#"data-latex="F=ma""#),
+            "Display math should produce data-latex attribute, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains(r#"data-display="true""#),
+            "Display math should have data-display=true, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<div"),
+            "Display math should be wrapped in div, got: {}",
+            result.html
+        );
     }
 
+    #[cfg(feature = "ssr")]
     #[test]
-    #[ignore = "Wave 0 stub — implement in Plan 02"]
     fn test_gfm_alert_note() {
-        // VALIDATION ref: 11-01-08
-        // > [!NOTE]\n> text -> <div class="admonition admonition-note">
-        todo!("Implement GFM alert test")
+        let result = render_content_markdown("> [!NOTE]\n> This is a note.");
+        assert!(
+            result.html.contains("admonition admonition-note"),
+            "NOTE alert should have admonition-note class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("admonition-label"),
+            "NOTE alert should have admonition-label span, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("Note"),
+            "NOTE alert should contain 'Note' label, got: {}",
+            result.html
+        );
     }
 
+    #[cfg(feature = "ssr")]
     #[test]
-    #[ignore = "Wave 0 stub — implement in Plan 02"]
     fn test_gfm_alert_warning() {
-        // VALIDATION ref: 11-01-08
-        todo!("Implement GFM warning alert test")
+        let result = render_content_markdown("> [!WARNING]\n> Be careful.");
+        assert!(
+            result.html.contains("admonition admonition-warning"),
+            "WARNING alert should have admonition-warning class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("Warning"),
+            "WARNING alert should contain 'Warning' label, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_code_block_syntect_highlight() {
+        let result = render_content_markdown("```python\nx = 1\n```");
+        assert!(
+            result.html.contains(r#"class="highlight""#),
+            "Code block should use pre.highlight class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<pre"),
+            "Code block should be wrapped in pre, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_heading_id_injected() {
+        let result = render_content_markdown("## My Section");
+        assert!(
+            result.html.contains(r#"id="my-section""#),
+            "H2 heading should have slugified id attribute, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_definition() {
+        let result = render_content_markdown(":::definition\nNewton's law\n:::");
+        assert!(
+            result.html.contains("definition-block"),
+            ":::definition should produce definition-block div, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_collapse() {
+        let result = render_content_markdown(":::collapse My Title\nContent here\n:::");
+        assert!(
+            result.html.contains("<details"),
+            ":::collapse should produce <details> element, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<summary>My Title</summary>"),
+            ":::collapse should have summary with title, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_fenced_div_figure() {
+        let result = render_content_markdown(":::figure\n![alt](img.png)\nCaption text\n:::");
+        assert!(
+            result.html.contains("figure-block"),
+            ":::figure should produce figure-block class, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<figcaption>Caption text</figcaption>"),
+            ":::figure should have figcaption, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_simulation_directive_preserved() {
+        let result = render_content_markdown("::simulation[projectile]");
+        assert!(
+            result.html.contains(r#"data-simulation="projectile""#),
+            "simulation directive should produce data-simulation attr, got: {}",
+            result.html
+        );
+        assert!(
+            result.simulations.contains(&"projectile".to_string()),
+            "simulation name should be collected, got: {:?}",
+            result.simulations
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_quiz_code_block_placeholder() {
+        let result = render_content_markdown("```quiz\nquestion: What is F=ma?\n```");
+        assert!(
+            result.html.contains("data-quiz-block"),
+            "Quiz code block should emit data-quiz-block placeholder, got: {}",
+            result.html
+        );
+        assert!(
+            !result.html.contains(r#"class="highlight""#),
+            "Quiz code block should NOT be syntax-highlighted, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn test_extract_latex_placeholders_preserved() {
+        // Ensure extract_latex_placeholders still works for quiz endpoint
+        let result = extract_latex_placeholders("Energy $E=mc^2$ and momentum $$p=mv$$");
+        assert!(result.contains(r#"data-latex="E=mc^2""#));
+        assert!(result.contains(r#"data-display="false""#));
+        assert!(result.contains(r#"data-latex="p=mv""#));
+        assert!(result.contains(r#"data-display="true""#));
     }
 }
