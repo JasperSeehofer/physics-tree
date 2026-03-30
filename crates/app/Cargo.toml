@@ -44,7 +44,11 @@ web-sys = { version = "0.3", features = [
 pulldown-cmark = { workspace = true }
 regex = { workspace = true }
 
+[dependencies.syntect]
+workspace = true
+optional = true
+
 [features]
 default = []
 hydrate = ["leptos/hydrate"]
-ssr = ["leptos/ssr", "domain/ssr"]
+ssr = ["leptos/ssr", "domain/ssr", "syntect"]
