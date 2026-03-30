@@ -161,6 +161,28 @@ pub async fn get_next_concepts(
         .collect())
 }
 
+/// Fetch the node_id, title, and branch for a node by its URL slug.
+///
+/// Returns `None` if no node exists for this slug.
+pub async fn get_node_by_slug(
+    pool: &PgPool,
+    slug: &str,
+) -> Result<Option<(Uuid, String, String)>, sqlx::Error> {
+    let row = sqlx::query(
+        r#"SELECT id, title, branch FROM nodes WHERE slug = $1 LIMIT 1"#,
+    )
+    .bind(slug)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(|r| {
+        let id: Uuid = r.get("id");
+        let title: String = r.get("title");
+        let branch: String = r.get("branch");
+        (id, title, branch)
+    }))
+}
+
 /// Fetch all phase content for a node by its node_id, ordered by phase_number.
 ///
 /// Returns all `node_phases` rows for the given node. For v1.0 nodes there is
