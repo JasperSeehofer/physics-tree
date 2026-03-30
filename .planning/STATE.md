@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Content Architecture & Authoring Pipeline
 status: executing
-stopped_at: Completed 11-learning-room-ui 11-02-PLAN.md
-last_updated: "2026-03-30T10:37:49.538Z"
+stopped_at: Completed 11-learning-room-ui Wave 1 (11-00, 11-01, 11-02)
+last_updated: "2026-03-30T10:39:48.095Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 100
 ---
 
@@ -54,6 +54,7 @@ Progress: [██████████] 100%
 | Phase 10-manual-pilot-node P01 | 4 | 2 tasks | 9 files |
 | Phase 10-manual-pilot-node P02 | 12 | 2 tasks | 4 files |
 | Phase 11-learning-room-ui P00 | 139 | 2 tasks | 4 files |
+| Phase 11-learning-room-ui P01 | 8 | 2 tasks | 8 files |
 | Phase 11-learning-room-ui P02 | 6min | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 10-manual-pilot-node]: EstimatedMinutesMismatch opt-in: only triggered when phase_estimated_minutes is non-empty — backward compatible enforcement
 - [Phase 10-manual-pilot-node]: Human approved kinematics pilot node: physics accuracy, productive failure design, and quiz quality confirmed
 - [Phase 11-learning-room-ui]: Wave 0 test skeletons use #[ignore] stubs so cargo test compiles all VALIDATION.md targets without blocking CI
+- [Phase 11-learning-room-ui]: graph_repo.rs switched to dynamic sqlx::query API: query_as! macro fails to compile when PhysicsNode gains a new field without DATABASE_URL at compile time
+- [Phase 11-learning-room-ui]: Routes registered in routes.rs (not lib.rs per plan description): actual API route registration is in api_routes() in routes.rs per Phase 02 pattern
 - [Phase 11-learning-room-ui]: syntect uses regex-fancy feature (not default-onig) — avoids onig C library, pure Rust
 - [Phase 11-learning-room-ui]: GFM alerts use ENABLE_GFM flag (not ENABLE_GFM_ALERTS which does not exist in pulldown-cmark 0.13)
 - [Phase 11-learning-room-ui]: Custom event consumer replaces push_html: single-pass handles math, alerts, code blocks, headings, quiz blocks
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T10:37:49.537Z
-Stopped at: Completed 11-learning-room-ui 11-02-PLAN.md
+Last session: 2026-03-30T10:39:48.094Z
+Stopped at: Completed 11-learning-room-ui Wave 1 (11-00, 11-01, 11-02)
 Resume file: None

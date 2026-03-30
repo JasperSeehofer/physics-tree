@@ -1,34 +1,89 @@
 //! Graph repository — node/edge CRUD and traversal queries.
+//!
+//! Uses the dynamic `sqlx::query` API (not the `query!` macro) to avoid
+//! requiring a live database connection at compile time — consistent with
+//! content_repo.rs pattern.
 
 use domain::{EdgeType, NodeType, PhysicsEdge, PhysicsNode};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
+
+/// Parse a node row from a dynamic sqlx query result.
+fn parse_node_row(r: &sqlx::postgres::PgRow) -> Result<PhysicsNode, sqlx::Error> {
+    let node_type_str: String = r.try_get("node_type")?;
+    let node_type = match node_type_str.as_str() {
+        "concept" => NodeType::Concept,
+        "formula" => NodeType::Formula,
+        "theorem" => NodeType::Theorem,
+        "application" => NodeType::Application,
+        "consequence" => NodeType::Consequence,
+        other => {
+            return Err(sqlx::Error::Decode(
+                format!("Unknown node_type: {}", other).into(),
+            ))
+        }
+    };
+    Ok(PhysicsNode {
+        id: r.try_get("id")?,
+        slug: r.try_get("slug")?,
+        title: r.try_get("title")?,
+        node_type,
+        branch: r.try_get("branch")?,
+        depth_tier: r.try_get("depth_tier")?,
+        description: r.try_get("description")?,
+        has_phases: r.try_get("has_phases")?,
+    })
+}
 
 /// Fetch all physics nodes ordered by branch then depth_tier.
 pub async fn get_all_nodes(pool: &PgPool) -> Result<Vec<PhysicsNode>, sqlx::Error> {
-    sqlx::query_as!(
-        PhysicsNode,
+    let rows = sqlx::query(
         r#"SELECT id, slug, title,
-                  node_type AS "node_type: NodeType",
-                  branch, depth_tier, description
+                  node_type::TEXT AS node_type,
+                  branch, depth_tier, description,
+                  COALESCE(has_phases, FALSE) AS has_phases
            FROM nodes
-           ORDER BY branch, depth_tier"#
+           ORDER BY branch, depth_tier"#,
     )
     .fetch_all(pool)
-    .await
+    .await?;
+
+    rows.iter().map(parse_node_row).collect()
 }
 
 /// Fetch all edges in the graph.
 pub async fn get_all_edges(pool: &PgPool) -> Result<Vec<PhysicsEdge>, sqlx::Error> {
-    sqlx::query_as!(
-        PhysicsEdge,
+    let rows = sqlx::query(
         r#"SELECT from_node, to_node,
-                  edge_type AS "edge_type: EdgeType",
+                  edge_type::TEXT AS edge_type,
                   weight
-           FROM edges"#
+           FROM edges"#,
     )
     .fetch_all(pool)
-    .await
+    .await?;
+
+    rows.iter()
+        .map(|r| {
+            let edge_type_str: String = r.try_get("edge_type")?;
+            let edge_type = match edge_type_str.as_str() {
+                "prerequisite" => EdgeType::Prerequisite,
+                "derives_from" => EdgeType::DerivesFrom,
+                "applies_to" => EdgeType::AppliesTo,
+                "mathematical_foundation" => EdgeType::MathematicalFoundation,
+                other => {
+                    return Err(sqlx::Error::Decode(
+                        format!("Unknown edge_type: {}", other).into(),
+                    ))
+                }
+            };
+            Ok(PhysicsEdge {
+                from_node: r.try_get("from_node")?,
+                to_node: r.try_get("to_node")?,
+                edge_type,
+                weight: r.try_get("weight")?,
+            })
+        })
+        .collect()
 }
 
 /// Recursively fetch all prerequisite nodes for the given node_id.
@@ -38,8 +93,7 @@ pub async fn get_prereq_chain(
     pool: &PgPool,
     node_id: Uuid,
 ) -> Result<Vec<PhysicsNode>, sqlx::Error> {
-    sqlx::query_as!(
-        PhysicsNode,
+    let rows = sqlx::query(
         r#"WITH RECURSIVE prereqs AS (
                SELECT from_node FROM edges
                WHERE to_node = $1 AND edge_type = 'prerequisite'
@@ -49,13 +103,16 @@ pub async fn get_prereq_chain(
                WHERE e.edge_type = 'prerequisite'
            )
            SELECT id, slug, title,
-                  node_type AS "node_type: NodeType",
-                  branch, depth_tier, description
+                  node_type::TEXT AS node_type,
+                  branch, depth_tier, description,
+                  COALESCE(has_phases, FALSE) AS has_phases
            FROM nodes WHERE id IN (SELECT from_node FROM prereqs)"#,
-        node_id
     )
+    .bind(node_id)
     .fetch_all(pool)
-    .await
+    .await?;
+
+    rows.iter().map(parse_node_row).collect()
 }
 
 #[cfg(test)]
