@@ -28,14 +28,14 @@ fn celebration_message(phase_type: &str) -> &'static str {
 fn fire_confetti() {
     use wasm_bindgen::JsValue;
 
-    // Respect prefers-reduced-motion
     if let Some(window) = web_sys::window() {
-        if let Ok(mq) = window.match_media("(prefers-reduced-motion: reduce)") {
-            if let Some(mq) = mq {
-                if mq.matches() {
-                    return; // Skip confetti for reduced-motion preference
-                }
-            }
+        // Respect prefers-reduced-motion via JS eval (avoids web_sys feature gate for matchMedia)
+        let reduced = js_sys::eval("window.matchMedia('(prefers-reduced-motion: reduce)').matches")
+            .ok()
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        if reduced {
+            return;
         }
 
         if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__confetti_bridge"))

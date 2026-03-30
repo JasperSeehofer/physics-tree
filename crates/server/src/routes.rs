@@ -74,11 +74,11 @@ pub fn api_routes(pool: PgPool) -> Router {
             axum::routing::get(handlers::review::get_suggestions),
         )
         .route(
-            "/api/learning-room/:slug",
+            "/api/learning-room/{slug}",
             axum::routing::get(handlers::learning_room::get_learning_room_content),
         )
         .route(
-            "/api/learning-room/:slug/progress",
+            "/api/learning-room/{slug}/progress",
             axum::routing::get(handlers::learning_room::get_phase_progress)
                 .post(handlers::learning_room::post_phase_progress),
         )
