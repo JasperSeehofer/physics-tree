@@ -23,7 +23,7 @@ Requirements for milestone v1.1: Content Architecture & Authoring Pipeline.
 
 ### Learning Room UI
 
-- [ ] **UI-01**: Learning Room renders node content phase-by-phase in sequential order, with distinct Leptos components per phase type
+- [x] **UI-01**: Learning Room renders node content phase-by-phase in sequential order, with distinct Leptos components per phase type
 - [x] **UI-02**: Phase gate logic prevents users from accessing later phases until earlier ones are completed (enforcing productive failure before instruction)
 - [ ] **UI-03**: Format switcher allows users to choose between available content formats per phase (reading, video, interactive) with preference persistence
 - [x] **UI-04**: Learning Room exists as a parallel route alongside existing ConceptPage, with `has_phases` flag driving route selection
@@ -110,7 +110,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DB-02 | Phase 9 | Complete |
 | DB-03 | Phase 9 | Complete |
 | PILOT-01 | Phase 10 | Complete |
-| UI-01 | Phase 11 | Pending |
+| UI-01 | Phase 11 | Complete |
 | UI-02 | Phase 11 | Complete |
 | UI-03 | Phase 11 | Pending |
 | UI-04 | Phase 11 | Complete |
