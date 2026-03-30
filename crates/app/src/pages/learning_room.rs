@@ -10,9 +10,11 @@ use leptos_router::hooks::use_params_map;
 use serde::Deserialize;
 
 use crate::components::content::breadcrumb::Breadcrumb;
+use crate::components::learning_room::celebration::PhaseCompletionCelebration;
 use crate::components::learning_room::format_switcher::FormatSwitcher;
 use crate::components::learning_room::mark_complete::MarkCompleteButton;
 use crate::components::learning_room::phase_content::PhaseContentArea;
+use crate::components::learning_room::phase_quiz::{extract_quiz_yaml_from_html, PhaseQuiz};
 use crate::components::learning_room::phase_tab::PhaseTab;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -195,6 +197,11 @@ pub fn LearningRoomPage() -> impl IntoView {
     let completed_phases: RwSignal<Vec<i16>> = RwSignal::new(vec![]);
     let mark_complete_visible: RwSignal<bool> = RwSignal::new(false);
     let login_nudge: RwSignal<bool> = RwSignal::new(false);
+
+    // ── Celebration state (D-23) ─────────────────────────────────────────────
+    let show_celebration: RwSignal<bool> = RwSignal::new(false);
+    let celebration_phase_type: RwSignal<String> = RwSignal::new(String::new());
+    let celebration_accent: RwSignal<String> = RwSignal::new(String::new());
 
     // ── Fetch content via LocalResource ─────────────────────────────────────
     let content: LocalResource<Option<LearningRoomData>> =
@@ -456,7 +463,7 @@ pub fn LearningRoomPage() -> impl IntoView {
                                     }
                                 }}
 
-                                // ── Mark Complete button (reading phases) ─────
+                                // ── Mark Complete / Phase Quiz ────────────────
                                 {move || {
                                     let active_idx = active_phase.get();
                                     let completed = completed_phases.get();
@@ -468,50 +475,108 @@ pub fn LearningRoomPage() -> impl IntoView {
                                         let phase_display_name = phase_name(&phase.phase_type).to_string();
                                         let slug_val = slug();
                                         let phase_num = phase.phase_number;
+                                        let phase_type = phase.phase_type.clone();
+                                        let accent = phase_accent_class(phase_num).to_string();
+                                        let html_for_quiz = phase.html.clone();
 
-                                        view! {
-                                            <div class="mt-6">
-                                                <MarkCompleteButton
-                                                    phase_name=phase_display_name
-                                                    accent_color=phase_accent_class(phase_num).to_string()
-                                                    is_completed=is_completed
-                                                    visible=visible_signal
-                                                    on_complete=Callback::new(move |_| {
-                                                        let slug_clone = slug_val.clone();
-                                                        leptos::task::spawn_local(async move {
-                                                            let ok = post_phase_complete(&slug_clone, phase_num, "reading").await;
-                                                            if ok {
+                                        // Phase 5 (retrieval_check) renders PhaseQuiz instead of MarkCompleteButton
+                                        if phase_type == "retrieval_check" && !is_completed {
+                                            // Extract quiz YAML from phase HTML data-quiz-block attributes
+                                            let quiz_yamls = extract_quiz_yaml_from_html(&html_for_quiz);
+                                            let first_yaml = quiz_yamls.into_iter().next().unwrap_or_default();
+
+                                            let accent_clone = accent.clone();
+                                            let phase_type_clone = phase_type.clone();
+                                            let slug_clone2 = slug_val.clone();
+
+                                            view! {
+                                                <div class="mt-6">
+                                                    <PhaseQuiz
+                                                        quiz_yaml=first_yaml
+                                                        accent_color=accent_clone.clone()
+                                                        on_pass=Callback::new(move |_| {
+                                                            let slug_clone = slug_clone2.clone();
+                                                            let pt = phase_type_clone.clone();
+                                                            let acc = accent_clone.clone();
+                                                            leptos::task::spawn_local(async move {
+                                                                let ok = post_phase_complete(&slug_clone, phase_num, "reading").await;
+                                                                if !ok {
+                                                                    login_nudge.set(true);
+                                                                }
                                                                 completed_phases.update(|v| {
                                                                     if !v.contains(&phase_num) {
                                                                         v.push(phase_num);
                                                                     }
                                                                 });
-                                                            } else {
-                                                                // Save locally and show nudge for anonymous users
-                                                                login_nudge.set(true);
-                                                                completed_phases.update(|v| {
-                                                                    if !v.contains(&phase_num) {
-                                                                        v.push(phase_num);
-                                                                    }
-                                                                });
-                                                            }
-                                                            // Advance to next phase
-                                                            let next = phase_num as usize + 1;
-                                                            if next < total {
-                                                                active_phase.set(next);
-                                                                mark_complete_visible.set(false);
-                                                            }
-                                                        });
-                                                    })
-                                                />
-                                            </div>
-                                        }.into_any()
+                                                                // Trigger celebration (D-23)
+                                                                celebration_phase_type.set(pt);
+                                                                celebration_accent.set(acc);
+                                                                show_celebration.set(true);
+                                                                // Advance to next phase
+                                                                let next = phase_num as usize + 1;
+                                                                if next < total {
+                                                                    active_phase.set(next);
+                                                                    mark_complete_visible.set(false);
+                                                                }
+                                                            });
+                                                        })
+                                                    />
+                                                </div>
+                                            }.into_any()
+                                        } else {
+                                            let phase_type_for_complete = phase_type.clone();
+                                            let accent_for_complete = accent.clone();
+                                            view! {
+                                                <div class="mt-6">
+                                                    <MarkCompleteButton
+                                                        phase_name=phase_display_name
+                                                        accent_color=accent.clone()
+                                                        is_completed=is_completed
+                                                        visible=visible_signal
+                                                        on_complete=Callback::new(move |_| {
+                                                            let slug_clone = slug_val.clone();
+                                                            let pt = phase_type_for_complete.clone();
+                                                            let acc = accent_for_complete.clone();
+                                                            leptos::task::spawn_local(async move {
+                                                                let ok = post_phase_complete(&slug_clone, phase_num, "reading").await;
+                                                                if ok {
+                                                                    completed_phases.update(|v| {
+                                                                        if !v.contains(&phase_num) {
+                                                                            v.push(phase_num);
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    // Save locally and show nudge for anonymous users
+                                                                    login_nudge.set(true);
+                                                                    completed_phases.update(|v| {
+                                                                        if !v.contains(&phase_num) {
+                                                                            v.push(phase_num);
+                                                                        }
+                                                                    });
+                                                                }
+                                                                // Trigger celebration (D-23)
+                                                                celebration_phase_type.set(pt);
+                                                                celebration_accent.set(acc);
+                                                                show_celebration.set(true);
+                                                                // Advance to next phase
+                                                                let next = phase_num as usize + 1;
+                                                                if next < total {
+                                                                    active_phase.set(next);
+                                                                    mark_complete_visible.set(false);
+                                                                }
+                                                            });
+                                                        })
+                                                    />
+                                                </div>
+                                            }.into_any()
+                                        }
                                     } else {
                                         view! { <div /> }.into_any()
                                     }
                                 }}
 
                                 // ── Login nudge (D-08) ────────────────────────
+                                // "Log in to save your progress across devices."
                                 {move || login_nudge.get().then(|| view! {
                                     <div class="mt-4 px-4 py-3 bg-bark-mid border border-bark-light rounded-lg flex items-center gap-3">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="text-sky-teal shrink-0" aria-hidden="true">
@@ -523,6 +588,13 @@ pub fn LearningRoomPage() -> impl IntoView {
                                         </p>
                                     </div>
                                 })}
+
+                                // ── Phase completion celebration (D-23) ────────
+                                <PhaseCompletionCelebration
+                                    phase_type=Signal::derive(move || celebration_phase_type.get())
+                                    accent_color=Signal::derive(move || celebration_accent.get())
+                                    show=show_celebration.read_only()
+                                />
 
                                 // ── Format switcher (D-12) ─────────────────────
                                 <div class="mt-6">
