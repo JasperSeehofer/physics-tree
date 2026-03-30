@@ -12,6 +12,8 @@ pub struct NodePanelData {
     pub branch: String,
     pub depth_tier: String,
     pub description: String,
+    /// Whether this node has 7-phase learning room content (D-10)
+    pub has_phases: bool,
 }
 
 /// A prerequisite concept shown in the panel list.
@@ -175,14 +177,33 @@ pub fn RightPanel(
                         }}
                     </div>
 
-                    // Footer
+                    // Footer CTA — per D-10:
+                    // has_phases nodes -> "Start Learning" -> /learning-room/:slug
+                    // other nodes -> "Learn this concept" -> /graph/:slug/learn
                     <div class="p-6 border-t border-bark-light mt-auto">
-                        <a
-                            href=format!("/graph/{}/learn", n.slug)
-                            class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void cursor-pointer hover:brightness-110 text-sm font-bold block text-center"
-                        >
-                            "Learn this concept"
-                        </a>
+                        {if n.has_phases {
+                            view! {
+                                <a
+                                    href=format!("/learning-room/{}", n.slug)
+                                    class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void \
+                                           cursor-pointer hover:brightness-110 text-sm font-bold \
+                                           block text-center"
+                                >
+                                    "Start Learning"
+                                </a>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <a
+                                    href=format!("/graph/{}/learn", n.slug)
+                                    class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void \
+                                           cursor-pointer hover:brightness-110 text-sm font-bold \
+                                           block text-center"
+                                >
+                                    "Learn this concept"
+                                </a>
+                            }.into_any()
+                        }}
                     </div>
                 }
             })}

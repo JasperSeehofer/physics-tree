@@ -497,6 +497,7 @@ export function loadGraphData(nodesJson, edgesJson) {
         depthTier: node.depth_tier,
         slug: node.slug,
         description: node.description || "",
+        has_phases: node.has_phases || false,
       });
     });
     branchX += branchSpacing;

@@ -264,6 +264,9 @@ pub fn GraphExplorerPage() -> impl IntoView {
                             .as_str()
                             .unwrap_or("")
                             .to_string(),
+                        has_phases: node_val["has_phases"]
+                            .as_bool()
+                            .unwrap_or(false),
                     }));
                 }
 
