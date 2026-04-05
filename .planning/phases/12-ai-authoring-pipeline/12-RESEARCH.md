@@ -633,22 +633,13 @@ Security enforcement applies (config does not set `security_enforcement: false`)
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Pipeline config file location and format**
-   - What we know: D-04 requires per-agent model config; D-03 requires configurable max revision rounds
-   - What's unclear: Should config live at `tools/authoring/config.yaml` (project-level) or be passed as a CLI arg pointing to an arbitrary path?
-   - Recommendation: `tools/authoring/config.yaml` as default; `--config PATH` CLI override. Planner's discretion.
+1. **Pipeline config file location and format** — RESOLVED: `tools/authoring/pipeline_config.yaml` as default with `--config PATH` CLI override (Plan 12-01, Task 1)
 
-2. **Where does the dev server start / how does `preview` open the browser?**
-   - What we know: D-14 requires human reviews the Learning Room at `/learning-room/{slug}`
-   - What's unclear: Does `preview` subcommand start the dev server, or assume it's running? Does it open the browser automatically?
-   - Recommendation: Assume dev server already running; `preview` step validates + ingests, then prints the URL for the human to visit. Optionally: `python -m webbrowser` to open the URL.
+2. **Where does the dev server start / how does `preview` open the browser?** — RESOLVED: `preview` assumes dev server already running; validates + ingests to local DB, then prints Learning Room URL for human to visit (Plan 12-03, Task 2)
 
-3. **Revision loop: does Author receive only reviewer feedback, or full reviewer report?**
-   - What we know: D-03 says Author revises based on reviewer feedback; D-06 defines what reviewers receive from the spec
-   - What's unclear: In the revision loop, does Author receive the full PASS/FAIL report with all dimensions, or just the FAIL items?
-   - Recommendation: Author receives only FAIL items with specific feedback — sending PASS items adds noise. Planner's discretion.
+3. **Revision loop: does Author receive only reviewer feedback, or full reviewer report?** — RESOLVED: Author receives full reviewer text for revision context (Plan 12-03, Task 1)
 
 ---
 
