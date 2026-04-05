@@ -29,7 +29,7 @@
 - [ ] **Phase 9: Database & Ingest** - Create DB schema for phase content and implement file-based ingest pipeline
 - [x] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling (completed 2026-03-28)
 - [x] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage (completed 2026-04-04)
-- [ ] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
+- [x] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator) (completed 2026-04-05)
 - [ ] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set
 - [ ] **Phase 14: AI Pilot Nodes** - Produce 2+ nodes via AI pipeline through full review and human checkpoint
 
@@ -109,9 +109,9 @@ Plans:
   5. No AI-generated file is placed in the content directory without a developer running an explicit human-approval step
 **Plans**: 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — Python package scaffold, data models, config, subprocess wrappers, CLI entry point
-- [ ] 12-02-PLAN.md — Agent modules and system prompts (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
-- [ ] 12-03-PLAN.md — Pipeline orchestration, review report renderer, preview/approve commands
+- [x] 12-01-PLAN.md — Python package scaffold, data models, config, subprocess wrappers, CLI entry point
+- [x] 12-02-PLAN.md — Agent modules and system prompts (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
+- [x] 12-03-PLAN.md — Pipeline orchestration, review report renderer, preview/approve commands
 **UI hint**: no
 
 ### Phase 13: Quality Gates
@@ -150,6 +150,6 @@ Plans:
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
 | 10. Manual Pilot Node | v1.1 | 2/2 | Complete    | 2026-03-29 |
 | 11. Learning Room UI | v1.1 | 6/6 | Complete   | 2026-04-04 |
-| 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
+| 12. AI Authoring Pipeline | v1.1 | 3/3 | Complete    | 2026-04-05 |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |
 | 14. AI Pilot Nodes | v1.1 | 0/? | Not started | - |
