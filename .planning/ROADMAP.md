@@ -28,7 +28,7 @@
 - [x] **Phase 8: Content Specification** - Define the machine-readable 7-phase content template and node metadata schema (completed 2026-03-28)
 - [ ] **Phase 9: Database & Ingest** - Create DB schema for phase content and implement file-based ingest pipeline
 - [x] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling (completed 2026-03-28)
-- [ ] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage
+- [x] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage (completed 2026-04-04)
 - [ ] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
 - [ ] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set
 - [ ] **Phase 14: AI Pilot Nodes** - Produce 2+ nodes via AI pipeline through full review and human checkpoint
@@ -94,7 +94,7 @@ Plans:
 - [x] 11-02-PLAN.md — Markdown renderer upgrade (custom event consumer)
 - [x] 11-03-PLAN.md — Learning Room page shell, tabs, and phase components
 - [x] 11-04-PLAN.md — Quiz component, celebrations, and graph integration
-- [ ] 11-05-PLAN.md — Browser verification and human approval
+- [x] 11-05-PLAN.md — Browser verification and human approval
 **UI hint**: yes
 
 ### Phase 12: AI Authoring Pipeline
@@ -107,7 +107,12 @@ Plans:
   3. The Student Simulator produces a report noting at least one unclear explanation or prerequisite gap in any draft (demonstrates it is not rubber-stamping)
   4. The pipeline output includes a structured review report with PASS/FAIL per quality dimension and specific failure feedback
   5. No AI-generated file is placed in the content directory without a developer running an explicit human-approval step
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Python package scaffold, data models, config, subprocess wrappers, CLI entry point
+- [ ] 12-02-PLAN.md — Agent modules and system prompts (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator)
+- [ ] 12-03-PLAN.md — Pipeline orchestration, review report renderer, preview/approve commands
+**UI hint**: no
 
 ### Phase 13: Quality Gates
 **Goal**: Automated quality checks cover mechanical and judgment dimensions, and their accuracy is calibrated against a gold test set before any content is trusted
@@ -144,7 +149,7 @@ Plans:
 | 8. Content Specification | v1.1 | 2/2 | Complete   | 2026-03-28 |
 | 9. Database & Ingest | v1.1 | 1/3 | In Progress|  |
 | 10. Manual Pilot Node | v1.1 | 2/2 | Complete    | 2026-03-29 |
-| 11. Learning Room UI | v1.1 | 5/6 | In Progress|  |
+| 11. Learning Room UI | v1.1 | 6/6 | Complete   | 2026-04-04 |
 | 12. AI Authoring Pipeline | v1.1 | 0/? | Not started | - |
 | 13. Quality Gates | v1.1 | 0/? | Not started | - |
 | 14. AI Pilot Nodes | v1.1 | 0/? | Not started | - |
