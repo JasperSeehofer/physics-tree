@@ -4,3 +4,6 @@
 !public/fonts/*.woff2
 .sqlx/
 node_modules/
+tools/authoring/output/*/
+__pycache__/
+*.pyc
