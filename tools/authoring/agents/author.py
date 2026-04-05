@@ -60,7 +60,7 @@ Follow the content specification in your system prompt exactly. Match the qualit
     async for message in query(
         prompt=prompt,
         options=ClaudeAgentOptions(
-            system_prompt=system_prompt,
+            system_prompt={"type": "file", "path": str(Path(__file__).parent.parent / "prompts" / "author_system.md")},
             allowed_tools=["Write", "Read"],
             permission_mode="acceptEdits",
             cwd=str(staging_dir),
