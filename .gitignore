@@ -4,3 +4,4 @@
 !public/fonts/*.woff2
 .sqlx/
 node_modules/
+tools/authoring/output/*/

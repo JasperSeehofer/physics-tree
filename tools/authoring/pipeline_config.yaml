@@ -1,0 +1,19 @@
+# Pipeline configuration — per D-04, model is configurable per agent
+author:
+  model: "claude-sonnet-4-20250514"
+
+physics_reviewer:
+  model: "claude-sonnet-4-20250514"
+
+pedagogy_reviewer:
+  model: "claude-sonnet-4-20250514"
+
+student_simulator:
+  model: "claude-sonnet-4-20250514"
+
+# Per D-03: max revision rounds before escalating to human
+max_revision_rounds: 1
+
+# Absolute path to physics-tree repo root (for Rust CLI subprocess calls)
+# Override if tools/authoring is run from a different working directory
+project_root: ""
