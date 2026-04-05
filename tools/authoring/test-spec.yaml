@@ -1,0 +1,19 @@
+# Newton's Second Law - test node spec for pipeline verification
+name: Newton's Second Law
+slug: newtons-second-law
+branch: classical-mechanics
+eqf_level: 4
+prerequisites:
+  - kinematics
+  - newtons-first-law
+central_formula: "F = ma"
+misconceptions:
+  - "Force causes motion (rather than force causes change in motion)"
+  - "Heavier objects fall faster due to greater gravitational force"
+  - "A moving object has a force acting on it in the direction of motion"
+  - "Newton's second law applies equally in relativistic (high-speed) contexts"
+domain_of_applicability:
+  - "Classical mechanics: speeds much less than c (non-relativistic)"
+  - "Inertial reference frames only (non-accelerating observers)"
+  - "Macroscopic objects (not quantum-scale particles)"
+  - "Point masses or rigid bodies where internal structure is irrelevant"
