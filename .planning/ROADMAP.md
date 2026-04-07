@@ -122,7 +122,10 @@ Plans:
   1. Running structural validation on a valid node reports PASS; a node with a missing phase or empty required field reports FAIL with the violation named
   2. The quality gate checklist distinguishes mechanical checks (file structure, field presence, formula syntax) from judgment checks (pedagogical quality, struggle problem design) — these are listed separately in the report
   3. A gold test set of 20-30 nodes (including nodes with injected errors) exists, and gate TPR and TNR are measured and recorded before any AI-authored content is approved for merge
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 13-01-PLAN.md — Gate module, mechanical checks, judgment checks, gate report (QG-01, QG-02, QG-04)
+- [ ] 13-02-PLAN.md — Gold test set (20+ nodes) and calibrate CLI with TPR/TNR (QG-03)
 
 ### Phase 14: AI Pilot Nodes
 **Goal**: The full authoring pipeline is validated end-to-end with 3-5 pilot nodes spanning EQF 2, EQF 3-4, and EQF 5, with at least 2 produced via the AI pipeline and approved through human review
