@@ -633,22 +633,25 @@ nodes:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `python -m authoring gate <slug>` be a standalone subcommand, or is the gate only invoked via calibration?**
    - What we know: CONTEXT.md defines `calibrate` as the CLI subcommand (D-09). The gate module `run_gate()` function is called by calibrate.
    - What's unclear: Does a human ever want to run `gate` on a specific staged node manually (outside the pipeline)?
    - Recommendation: Add `gate` as a `__main__.py` subcommand alongside `generate`, `preview`, `approve`. It takes a `<slug>` and writes `quality-gate-report.md` to staging. This makes it easy to run after `generate` without going through the full approve flow. Low cost to add.
+   - **RESOLVED:** Plan 13-01 adds `gate` as a standalone CLI subcommand in `__main__.py`. Both `gate <slug>` (manual inspection) and `calibrate` (automated batch run) call `run_gate()`. The subcommand is independent from calibration so authors can inspect any staged node on demand.
 
 2. **Formula presence check: use node-spec.yaml central_formula or derive from node.yaml?**
    - What we know: `central_formula` lives in the pipeline spec file (`test-spec.yaml`), not in `node.yaml`. The gold test nodes in `test-fixtures/gold/` are node directories (node.yaml + phase files), not spec files.
    - What's unclear: Should the gate module require a spec file to run formula-presence check, or should it infer the formula from `node.yaml` title/content?
    - Recommendation: Make formula-presence check optional. If a spec path is passed, use its `central_formula`. If only a node directory is passed (as in calibration), skip formula-presence and note it as NOT CHECKED in the checklist. This avoids requiring spec files to exist alongside gold nodes.
+   - **RESOLVED:** Plan 13-01 reads `central_formula` from `node.yaml` directly (the field is present in the kinematics pilot node). Gold test nodes in `test-fixtures/gold/` copy `node.yaml` from the pilot, so the formula field is always available. No separate spec file is required; the check reads from `node.yaml` using `yaml.safe_load()`.
 
 3. **Should the calibration output record which specific checks produced false positives/negatives?**
    - What we know: D-09 specifies TPR/TNR and per-check confusion matrix.
    - What's unclear: Per-check confusion matrix means tracking which `CheckResult.name` values disagree with `expected_failing_checks` in the manifest.
    - Recommendation: Yes — implement per-check confusion matrix. This is the most actionable output for tuning thresholds. Track each `CheckResult.name` independently against `expected_failing_checks`.
+   - **RESOLVED:** Plan 13-02 Task 2 implements `run_calibrate()` with a per-check confusion matrix. Each `CheckResult.name` is compared against the manifest `expected_failing_checks` list; discrepancies are printed per-node and summarised in the TPR/TNR table. `CalibrationResult` dataclass carries `tp`, `tn`, `fp`, `fn` counts with `tpr`/`tnr` properties.
 
 ---
 
