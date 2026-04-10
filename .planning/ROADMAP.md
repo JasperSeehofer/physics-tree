@@ -30,7 +30,7 @@
 - [x] **Phase 10: Manual Pilot Node** - Hand-author one node end-to-end to validate the template before AI tooling (completed 2026-03-28)
 - [x] **Phase 11: Learning Room UI** - Build the phase-sequenced Learning Room renderer alongside the existing ConceptPage (completed 2026-04-04)
 - [x] **Phase 12: AI Authoring Pipeline** - Build the 4-agent Python pipeline (Author, Physics Reviewer, Pedagogy Reviewer, Student Simulator) (completed 2026-04-05)
-- [ ] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set
+- [x] **Phase 13: Quality Gates** - Implement automated quality gate checklist and calibrate with gold test set (completed 2026-04-10)
 - [ ] **Phase 14: AI Pilot Nodes** - Produce 2+ nodes via AI pipeline through full review and human checkpoint
 
 ## Phase Details
@@ -124,8 +124,8 @@ Plans:
   3. A gold test set of 20-30 nodes (including nodes with injected errors) exists, and gate TPR and TNR are measured and recorded before any AI-authored content is approved for merge
 **Plans**: 2 plans
 Plans:
-- [ ] 13-01-PLAN.md — Gate module, mechanical checks, judgment checks, gate report (QG-01, QG-02, QG-04)
-- [ ] 13-02-PLAN.md — Gold test set (20+ nodes) and calibrate CLI with TPR/TNR (QG-03)
+- [x] 13-01-PLAN.md — Gate module, mechanical checks, judgment checks, gate report (QG-01, QG-02, QG-04)
+- [x] 13-02-PLAN.md — Gold test set (20+ nodes) and calibrate CLI with TPR/TNR (QG-03)
 
 ### Phase 14: AI Pilot Nodes
 **Goal**: The full authoring pipeline is validated end-to-end with 3-5 pilot nodes spanning EQF 2, EQF 3-4, and EQF 5, with at least 2 produced via the AI pipeline and approved through human review
@@ -154,5 +154,5 @@ Plans:
 | 10. Manual Pilot Node | v1.1 | 2/2 | Complete    | 2026-03-29 |
 | 11. Learning Room UI | v1.1 | 6/6 | Complete   | 2026-04-04 |
 | 12. AI Authoring Pipeline | v1.1 | 3/3 | Complete    | 2026-04-05 |
-| 13. Quality Gates | v1.1 | 0/? | Not started | - |
+| 13. Quality Gates | v1.1 | 2/2 | Complete   | 2026-04-10 |
 | 14. AI Pilot Nodes | v1.1 | 0/? | Not started | - |
