@@ -1,0 +1,33 @@
+[project]
+name = "authoring"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Flat layout: the "authoring" package lives in this directory. Point setuptools
+# at the current directory so `import authoring` resolves to these source files
+# after `uv pip install -e .`.
+package-dir = {"authoring" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["authoring*"]
+exclude = ["tests*", "output*", "agents*", "prompts*", "test-fixtures*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Add the parent of this directory (tools/) to sys.path so `import authoring`
+# works when running pytest directly without an editable install.
+pythonpath = [".."]

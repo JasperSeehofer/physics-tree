@@ -5,5 +5,8 @@
 .sqlx/
 node_modules/
 tools/authoring/output/*/
+tools/authoring/.venv/
+tools/authoring/*.egg-info/
+tools/authoring/uv.lock
 __pycache__/
 *.pyc
