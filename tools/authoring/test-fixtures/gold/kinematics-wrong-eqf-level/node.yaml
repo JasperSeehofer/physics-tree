@@ -2,9 +2,7 @@ concept_id: kinematics
 title: Kinematics
 eqf_level: 0
 bloom_minimum: apply
-prerequisites:
-- vectors
-- calculus
+prerequisites: []
 misconceptions:
 - Velocity and speed are the same thing
 - Acceleration always means speeding up

@@ -2,59 +2,57 @@ concept_id: kinematics
 title: Kinematics
 eqf_level: 4
 bloom_minimum: apply
-prerequisites:
-  - vectors
-  - calculus
+prerequisites: []
 misconceptions:
-  - 'Velocity and speed are the same thing'
-  - 'Acceleration always means speeding up'
-  - 'An object at rest has no acceleration possible'
+- Velocity and speed are the same thing
+- Acceleration always means speeding up
+- An object at rest has no acceleration possible
 domain_of_applicability:
-  - 'Classical mechanics (v << c)'
-  - 'Point particle approximation'
+- Classical mechanics (v << c)
+- Point particle approximation
 esco_tags: []
 estimated_minutes: 63
 derivation_required: true
 node_type: concept
 depth_tier: trunk
 phases:
-  - number: 0
-    phase_type: schema_activation
-    requires:
-      - recall_prompt
-      - linkage_map
-      - wonder_hook
-  - number: 1
-    phase_type: productive_struggle
-    requires:
-      - struggle_problem
-      - solution_capture
-      - gap_reveal
-  - number: 2
-    phase_type: concreteness_fading
-    requires:
-      - concrete_stage
-      - bridging_stage
-      - abstract_stage
-      - derivation
-  - number: 3
-    phase_type: worked_examples
-    requires:
-      - full_example
-      - partially_faded_example
-      - mostly_faded_example
-  - number: 4
-    phase_type: self_explanation
-    requires:
-      - self_explanation_prompt
-      - reflection_questions
-  - number: 5
-    phase_type: retrieval_check
-    requires:
-      - quiz
-      - transfer_problem
-  - number: 6
-    phase_type: spaced_return
-    requires:
-      - spaced_prompt
-      - interleaving_problem
+- number: 0
+  phase_type: schema_activation
+  requires:
+  - recall_prompt
+  - linkage_map
+  - wonder_hook
+- number: 1
+  phase_type: productive_struggle
+  requires:
+  - struggle_problem
+  - solution_capture
+  - gap_reveal
+- number: 2
+  phase_type: concreteness_fading
+  requires:
+  - concrete_stage
+  - bridging_stage
+  - abstract_stage
+  - derivation
+- number: 3
+  phase_type: worked_examples
+  requires:
+  - full_example
+  - partially_faded_example
+  - mostly_faded_example
+- number: 4
+  phase_type: self_explanation
+  requires:
+  - self_explanation_prompt
+  - reflection_questions
+- number: 5
+  phase_type: retrieval_check
+  requires:
+  - quiz
+  - transfer_problem
+- number: 6
+  phase_type: spaced_return
+  requires:
+  - spaced_prompt
+  - interleaving_problem

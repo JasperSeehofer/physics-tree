@@ -5,6 +5,7 @@ Usage:
     python -m authoring preview <slug> [--config <config.yaml>]
     python -m authoring approve <slug> --branch <branch> [--config <config.yaml>]
     python -m authoring gate <slug> [--config <config.yaml>]
+    python -m authoring calibrate [--manifest <path>] [--config <config.yaml>]
 
 Run from the tools/ directory:
     cd tools && python -m authoring --help
@@ -43,6 +44,24 @@ def main():
     gate_parser.add_argument("slug", help="Node slug in staging")
     gate_parser.add_argument("--config", type=Path, default=None, help="Path to pipeline config YAML")
 
+    # calibrate subcommand (Phase 13 Plan 02)
+    calibrate_parser = subparsers.add_parser(
+        "calibrate",
+        help="Measure gate accuracy against the gold test set (prints TPR/TNR)",
+    )
+    calibrate_parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=None,
+        help="Path to gold-manifest.yaml (default: tools/authoring/test-fixtures/gold/gold-manifest.yaml)",
+    )
+    calibrate_parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Path to pipeline config YAML",
+    )
+
     args = parser.parse_args()
 
     if args.command == "generate":
@@ -76,6 +95,22 @@ def main():
         for check in report.mechanical + report.judgment:
             suffix = f" — {check.detail}" if check.detail else ""
             print(f"  [{check.status.value}] {check.name}{suffix}")
+    elif args.command == "calibrate":
+        from .calibrate import run_calibrate
+        from .config import load_config
+        from .subprocess_tools import resolve_project_root
+        config = load_config(args.config)
+        project_root = resolve_project_root(config.project_root)
+        result = run_calibrate(
+            manifest_path=args.manifest,
+            project_root=project_root,
+            verbose=True,
+        )
+        if result.tpr < 0.8 or result.tnr < 0.8:
+            print("[calibrate] FAIL: TPR or TNR below 0.80 threshold")
+            sys.exit(1)
+        else:
+            print("[calibrate] PASS: gate meets accuracy threshold")
 
 
 if __name__ == "__main__":

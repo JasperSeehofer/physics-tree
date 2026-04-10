@@ -2,9 +2,7 @@ concept_id: kinematics
 title: Kinematics
 eqf_level: 4
 bloom_minimum: apply
-prerequisites:
-- vectors
-- calculus
+prerequisites: []
 misconceptions: []
 domain_of_applicability:
 - Classical mechanics (v << c)

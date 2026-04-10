@@ -25,9 +25,10 @@ from .quality_gate import GateReport, run_gate
 from .subprocess_tools import build_binaries, resolve_project_root
 
 
-GOLD_DIR = Path(__file__).parent / "test-fixtures" / "gold"
+_THIS_FILE = Path(__file__).resolve()
+GOLD_DIR = _THIS_FILE.parent / "test-fixtures" / "gold"
 KINEMATICS_SRC = (
-    Path(__file__).parent.parent.parent
+    _THIS_FILE.parent.parent.parent
     / "content"
     / "classical-mechanics"
     / "kinematics"
@@ -97,8 +98,18 @@ def generate_gold_fixtures() -> None:
     GOLD_DIR.mkdir(parents=True, exist_ok=True)
 
     # --- Good node (ground truth PASS) ---
+    #
+    # The pilot kinematics node declares prerequisites (vectors, calculus)
+    # that don't yet exist as content directories. That makes the unmodified
+    # pilot fail the gate's prerequisite_existence mechanical check, which
+    # would make every gold copy of it fail even when no intentional mutation
+    # has been applied. To preserve the "good node = PASS" invariant, we
+    # clear `prerequisites` on the baseline good node and on every mutation
+    # *except* the `missing-prerequisites` mutation (which explicitly sets a
+    # bad prereq slug).
     good_dir = GOLD_DIR / "kinematics-good"
     _copy_node(KINEMATICS_SRC, good_dir)
+    _patch_yaml_field(good_dir / "node.yaml", "prerequisites", [])
     # Good node has no review-report.md — judgment checks yield WARNING, not
     # FAIL. Overall verdict remains PASS (WARNINGs do not block per Plan 01).
 
@@ -106,6 +117,8 @@ def generate_gold_fixtures() -> None:
     def _make_bad_judgment(slug: str, review_text: str) -> None:
         d = GOLD_DIR / slug
         _copy_node(KINEMATICS_SRC, d)
+        # Clear prereqs so judgment failure is the only reason to FAIL.
+        _patch_yaml_field(d / "node.yaml", "prerequisites", [])
         (d / "review-report.md").write_text(review_text)
 
     _make_bad_judgment(
@@ -335,6 +348,16 @@ def generate_gold_fixtures() -> None:
         dst = GOLD_DIR / slug
         _copy_node(KINEMATICS_SRC, dst)
 
+        # Clear prereqs on every mutation EXCEPT the prereq-targeting one and
+        # the yaml-corruption ones (where rewriting node.yaml would mask the
+        # intended failure mode).
+        if slug_suffix not in (
+            "missing-prerequisites",
+            "bad-yaml-syntax",
+            "empty-node-yaml",
+        ):
+            _patch_yaml_field(dst / "node.yaml", "prerequisites", [])
+
         if slug_suffix == "missing-phase-1":
             (dst / "phase-1.md").unlink(missing_ok=True)
 
@@ -520,7 +543,10 @@ def run_calibrate(
 
     for entry in nodes:
         slug = entry["slug"]
-        node_path = manifest_path.parent / entry["path"]
+        # Resolve to absolute path — the Rust validator is invoked with
+        # cwd=project_root and treats relative paths relative to that cwd,
+        # which causes false "file not found" errors on gold fixtures.
+        node_path = (manifest_path.parent / entry["path"]).resolve()
         expected_pass = entry["expected_verdict"] == "PASS"
 
         try:
@@ -531,16 +557,22 @@ def run_calibrate(
             if verbose:
                 print(f"  [ERROR] {slug}: gate raised exception: {exc}")
 
-        if expected_pass and predicted_pass:
+        # Classification convention: "positive" = the gate correctly
+        # catches a bad node. So:
+        #   expected FAIL, predicted FAIL → TP (caught the defect)
+        #   expected PASS, predicted PASS → TN (passed a good node)
+        #   expected PASS, predicted FAIL → FP (false alarm)
+        #   expected FAIL, predicted PASS → FN (missed defect — most dangerous)
+        if not expected_pass and not predicted_pass:
             outcome = "TP"
             tp += 1
-        elif not expected_pass and not predicted_pass:
+        elif expected_pass and predicted_pass:
             outcome = "TN"
             tn += 1
-        elif not expected_pass and predicted_pass:
+        elif expected_pass and not predicted_pass:
             outcome = "FP"
             fp += 1
-        else:
+        else:  # not expected_pass and predicted_pass
             outcome = "FN"
             fn += 1
 

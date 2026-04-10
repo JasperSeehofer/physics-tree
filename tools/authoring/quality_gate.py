@@ -244,11 +244,19 @@ def run_mechanical_checks(
         )
     else:
         if errors:
+            # Rust validator's --json output is a list of error dicts
+            # (e.g. {"kind": "missing_phase_file", "number": 3, ...}), but
+            # very old builds returned plain strings. Normalise to strings
+            # before joining so the gate doesn't crash on either shape.
+            rendered = [
+                e if isinstance(e, str) else str(e)
+                for e in errors
+            ]
             results.append(
                 CheckResult(
                     name="rust_validator",
                     status=CheckStatus.FAIL,
-                    detail="; ".join(errors),
+                    detail="; ".join(rendered),
                 )
             )
         else:
