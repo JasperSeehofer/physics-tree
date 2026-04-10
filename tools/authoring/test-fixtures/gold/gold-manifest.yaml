@@ -1,0 +1,122 @@
+nodes:
+- slug: kinematics-good
+  path: kinematics-good
+  expected_verdict: PASS
+  expected_failing_checks: []
+  notes: Copy of pilot kinematics node — ground truth PASS
+- slug: kinematics-bad-judgment-wrong-formula
+  path: kinematics-bad-judgment-wrong-formula
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - formula_correctness
+  - derivation_rigor
+  notes: Wrong formula and missing derivation
+- slug: kinematics-bad-judgment-rubber-stamp
+  path: kinematics-bad-judgment-rubber-stamp
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - productive_failure_design
+  notes: Struggle problem solvable with prior knowledge
+- slug: kinematics-bad-judgment-no-fading
+  path: kinematics-bad-judgment-no-fading
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - concreteness_fading_sequence
+  - worked_example_fading
+  notes: Missing iconic stage and worked example fading
+- slug: kinematics-bad-judgment-poor-self-explanation
+  path: kinematics-bad-judgment-poor-self-explanation
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - self_explanation_quality
+  notes: Surface-level self-explanation prompts
+- slug: kinematics-bad-judgment-high-cognitive-load
+  path: kinematics-bad-judgment-high-cognitive-load
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - cognitive_load
+  notes: Three representations introduced simultaneously
+- slug: kinematics-missing-phase-1
+  path: kinematics-missing-phase-1
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: phase-1.md deleted
+- slug: kinematics-missing-phase-3
+  path: kinematics-missing-phase-3
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: phase-3.md deleted
+- slug: kinematics-missing-phase-5
+  path: kinematics-missing-phase-5
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: phase-5.md deleted
+- slug: kinematics-bad-yaml-syntax
+  path: kinematics-bad-yaml-syntax
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: node.yaml syntax error (unclosed bracket)
+- slug: kinematics-wrong-eqf-level
+  path: kinematics-wrong-eqf-level
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: eqf_level set to 0 (invalid)
+- slug: kinematics-empty-misconceptions
+  path: kinematics-empty-misconceptions
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: misconceptions list is empty
+- slug: kinematics-broken-latex-inline
+  path: kinematics-broken-latex-inline
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - latex_balance_phase_2
+  notes: unbalanced $ in phase-2.md
+- slug: kinematics-broken-latex-display
+  path: kinematics-broken-latex-display
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - latex_balance_phase_2
+  notes: unbalanced \[ in phase-2.md
+- slug: kinematics-broken-latex-phase-0
+  path: kinematics-broken-latex-phase-0
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - latex_balance_phase_0
+  notes: unbalanced $ in phase-0.md
+- slug: kinematics-broken-latex-phase-4
+  path: kinematics-broken-latex-phase-4
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - latex_balance_phase_4
+  notes: unbalanced $ in phase-4.md
+- slug: kinematics-short-phase-1
+  path: kinematics-short-phase-1
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - word_count_phase_1
+  notes: phase-1.md reduced to 3 words
+- slug: kinematics-short-phase-2
+  path: kinematics-short-phase-2
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - word_count_phase_2
+  notes: phase-2.md reduced to 3 words
+- slug: kinematics-missing-prerequisites
+  path: kinematics-missing-prerequisites
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - prerequisite_existence
+  notes: prerequisites list references nonexistent slug
+- slug: kinematics-empty-node-yaml
+  path: kinematics-empty-node-yaml
+  expected_verdict: FAIL
+  expected_failing_checks:
+  - rust_validator
+  notes: node.yaml is an empty file
