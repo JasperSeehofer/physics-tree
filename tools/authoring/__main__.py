@@ -4,6 +4,7 @@ Usage:
     python -m authoring generate <spec.yaml> [--config <config.yaml>]
     python -m authoring preview <slug> [--config <config.yaml>]
     python -m authoring approve <slug> --branch <branch> [--config <config.yaml>]
+    python -m authoring gate <slug> [--config <config.yaml>]
 
 Run from the tools/ directory:
     cd tools && python -m authoring --help
@@ -37,6 +38,11 @@ def main():
     app.add_argument("--branch", required=True, help="Physics branch (e.g., classical-mechanics)")
     app.add_argument("--config", type=Path, default=None, help="Path to pipeline config YAML")
 
+    # gate subcommand (Phase 13 Plan 01)
+    gate_parser = subparsers.add_parser("gate", help="Run quality gate checks on staged content")
+    gate_parser.add_argument("slug", help="Node slug in staging")
+    gate_parser.add_argument("--config", type=Path, default=None, help="Path to pipeline config YAML")
+
     args = parser.parse_args()
 
     if args.command == "generate":
@@ -50,6 +56,26 @@ def main():
     elif args.command == "approve":
         from .pipeline import run_approve
         run_approve(args.slug, args.branch, args.config)
+    elif args.command == "gate":
+        from .quality_gate import run_gate, write_gate_report
+        from .staging import StagingManager
+        from .config import load_config
+        from .subprocess_tools import build_binaries, resolve_project_root
+        config = load_config(args.config)
+        project_root = resolve_project_root(config.project_root)
+        build_binaries(project_root)
+        staging = StagingManager()
+        staging_dir = staging.get_staging_dir(args.slug)
+        if not staging_dir.exists():
+            print(f"[gate] ERROR: No staged content found for '{args.slug}'")
+            sys.exit(1)
+        report = run_gate(staging_dir, project_root)
+        report_path = write_gate_report(report, staging_dir)
+        print(f"[gate] Quality gate report written to: {report_path}")
+        print(f"[gate] Overall: {'PASS' if report.overall_pass else 'FAIL'}")
+        for check in report.mechanical + report.judgment:
+            suffix = f" — {check.detail}" if check.detail else ""
+            print(f"  [{check.status.value}] {check.name}{suffix}")
 
 
 if __name__ == "__main__":
