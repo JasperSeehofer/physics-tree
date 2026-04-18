@@ -6,6 +6,7 @@
 node_modules/
 tools/authoring/output/*/
 tools/authoring/.venv/
+tools/.venv/
 tools/authoring/*.egg-info/
 tools/authoring/uv.lock
 __pycache__/

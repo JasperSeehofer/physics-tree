@@ -139,16 +139,3 @@ None — the agent modules are complete wrappers around the SDK. No hardcoded em
 ---
 *Phase: 12-ai-authoring-pipeline*
 *Completed: 2026-04-05*
-
-## Self-Check: PASSED
-
-- FOUND: tools/authoring/agents/__init__.py
-- FOUND: tools/authoring/agents/author.py
-- FOUND: tools/authoring/agents/reviewer.py
-- FOUND: tools/authoring/agents/student.py
-- FOUND: tools/authoring/prompts/author_system.md
-- FOUND: tools/authoring/prompts/physics_reviewer.md
-- FOUND: tools/authoring/prompts/pedagogy_reviewer.md
-- FOUND: tools/authoring/prompts/student_simulator.md
-- FOUND commit c5fa650: feat(12-02): create Author agent module and system prompt
-- FOUND commit 4075935: feat(12-02): create Reviewer and Student Simulator agents with prompts
