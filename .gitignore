@@ -11,3 +11,6 @@ tools/authoring/*.egg-info/
 tools/authoring/uv.lock
 __pycache__/
 *.pyc
+
+# gsd-* skills are user-scope (~/.claude/skills); never track per-repo skill-store symlinks
+.claude/skills/gsd-*
