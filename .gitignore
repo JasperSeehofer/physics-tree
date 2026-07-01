@@ -14,3 +14,6 @@ __pycache__/
 
 # gsd-* skills are user-scope (~/.claude/skills); never track per-repo skill-store symlinks
 .claude/skills/gsd-*
+
+# git worktrees are local — never track
+.claude/worktrees/
