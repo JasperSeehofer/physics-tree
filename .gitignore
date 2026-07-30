@@ -17,3 +17,9 @@ __pycache__/
 
 # git worktrees are local — never track
 .claude/worktrees/
+
+# Gardener custodial report (regenerated each run)
+.gardener-notes.md
+
+# Local SQLite runtime artifact
+physics_tree.db
