@@ -4,8 +4,10 @@ type: schema_activation
 estimated_minutes: 12
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 
 ## Recall Prompt
 
@@ -69,6 +71,6 @@ A Foucault pendulum in Stuttgart ($48.78^{\circ}$ N) does not return to its star
 
 Meanwhile, in loop quantum gravity, the configuration variable is not the metric. It is the **holonomy** $h_{\gamma}[A] = \mathcal{P}\exp\left(-\oint_{\gamma} A\right)$ — a group element attached to a loop, whose entire physical content is "what happens to a vector carried around $\gamma$ and brought back". The Wilson loops of your pQCD work are the same object on a different bundle.
 
-These are the same fact. The Foucault rotation is the holonomy of the Levi-Civita connection around a circle of latitude, and its value, $2\pi\cos\theta_{0}$, is exactly the curvature flux through the enclosed cap. Both classical gravity and Yang–Mills turned out to be theories of connections; the reason quantum gravity keeps reaching for holonomies is that *the connection, not the metric, is the object with a clean loop-based description*.
+These are the same fact. The Foucault rotation is the holonomy of the Levi-Civita connection around a circle of latitude: the swing plane comes back rotated by $2\pi\cos\theta_{0}$, so it falls short of a full turn by $2\pi(1 - \cos\theta_{0})$ — and *that* shortfall is exactly the curvature flux through the enclosed polar cap. Both classical gravity and Yang–Mills turned out to be theories of connections; the reason quantum gravity keeps reaching for holonomies is that *the connection, not the metric, is the object with a clean loop-based description*.
 
 By the end of this node you will have derived the pendulum number from the metric, proven that the connection is extra structure rather than a consequence of the metric, and seen why the choice of which conditions to impose on it is exactly the fork between general relativity and its teleparallel cousins.

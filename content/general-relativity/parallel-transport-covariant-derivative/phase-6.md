@@ -4,14 +4,16 @@ type: spaced_return
 estimated_minutes: 25
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 
 ## Spaced Prompt
 
 Self-contained: everything you need is restated here, so you can do this weeks later without re-reading any earlier phase. Closed book, thirty minutes, paper only.
 
-**Setup you are given.** A smooth manifold with a metric $g_{\mu\nu}$. A rule for differentiating vector fields written $\nabla_{\mu}V^{\rho} = \partial_{\mu}V^{\rho} + \Gamma^{\rho}{}_{\mu\lambda}V^{\lambda}$.
+**Setup you are given.** A smooth manifold with a metric $g_{\mu\nu}$ of signature $(-,+,+,+)$, with $c = 1$. A rule for differentiating vector fields written $\nabla_{\mu}V^{\rho} = \partial_{\mu}V^{\rho} + \Gamma^{\rho}{}_{\mu\lambda}V^{\lambda}$ — first lower index is the direction of differentiation. Torsion is $T^{\lambda}{}_{\mu\nu} = \Gamma^{\lambda}{}_{\mu\nu} - \Gamma^{\lambda}{}_{\nu\mu}$. (These are the conventions of Phase 2; if you answer in another set, say so at the top of the page and stay in it — half the marks here are for not drifting.)
 
 1. **Why $\Gamma$ exists.** In two sentences, say what goes wrong with $\partial_{\mu}V^{\rho}$ and what the correction term is fixing. Then write the transformation law of $\Gamma$ and circle the term that proves it is not a tensor.
 

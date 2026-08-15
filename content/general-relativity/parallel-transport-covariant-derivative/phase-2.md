@@ -4,8 +4,10 @@ type: concreteness_fading
 estimated_minutes: 45
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 <!-- S-6 RESOLVED in spec v1.2 4: at graduate tier "concrete" means instantiation, -->
 <!-- not physicality - a specific manifold with measured numbers, as below. -->
 <!-- S-8 RESOLVED: the three derivations under one Derivation H2 are now the -->
@@ -24,7 +26,7 @@ Now carry it east along the equator to longitude $90^{\circ}$ E. Nothing about t
 
 Now carry it back north to the pole along the $90^{\circ}$ E meridian. It arrives at the pole pointing along the $90^{\circ}$ E meridian — that is, rotated by exactly $90.0^{\circ}$ from where it started.
 
-The vector was never twisted. Every leg was a "straightest possible" carry. The path enclosed one octant of the sphere, area $\tfrac{1}{8} \times 4\pi \times 6371^{2}\ \mathrm{km}^{2} = 1.275 \times 10^{8}\ \mathrm{km}^{2}$. Divide that area by $6371^{2}$ and you get $1.571 = \pi/2$ radians $= 90.0^{\circ}$ — the rotation, to three figures.
+The vector was never twisted. Every leg was a "straightest possible" carry. The path enclosed one octant of the sphere, area $\tfrac{1}{8} \times 4\pi \times 6371^{2}\ \mathrm{km}^{2} = 6.376 \times 10^{7}\ \mathrm{km}^{2}$. Divide that area by $6371^{2}$ and you get $1.571 = \pi/2$ radians $= 90.0^{\circ}$ — the rotation, to three figures.
 
 **The Foucault pendulum in Stuttgart.** Latitude $48.78^{\circ}$ N. A pendulum's swing plane is carried around the circle of latitude once per sidereal day ($23.934$ h) by the Earth's rotation, and nothing torques it. Measured result: the plane precesses at
 
@@ -90,6 +92,12 @@ Its components are defined by $\nabla_{\partial_{\mu}}\partial_{\nu} = \Gamma^{\
 
 $$\nabla_{\mu}\omega_{\nu} = \partial_{\mu}\omega_{\nu} - \Gamma^{\lambda}{}_{\mu\nu}\omega_{\lambda}, \qquad \nabla_{\mu}T^{\rho}{}_{\sigma} = \partial_{\mu}T^{\rho}{}_{\sigma} + \Gamma^{\rho}{}_{\mu\lambda}T^{\lambda}{}_{\sigma} - \Gamma^{\lambda}{}_{\mu\sigma}T^{\rho}{}_{\lambda}.$$
 
+One index-slot per $\Gamma$, sign set by whether the slot is up or down: that is the whole rule, and it is worth stating that it is the whole rule *for tensors only*. A tensor **density** of weight $w$ — such as $\sqrt{-g}$ ($w = 1$), the Levi-Civita symbol, or any measure you integrate against — is not a tensor, and the same formula gives the wrong answer for it. The extension that actually commutes with contraction picks up one further term,
+
+$$\nabla_{\mu}\mathfrak{T} = \left(\text{the tensor formula}\right) - w\,\Gamma^{\lambda}{}_{\lambda\mu}\,\mathfrak{T},$$
+
+and the fastest check is the case you already know: with $\Gamma^{\lambda}{}_{\lambda\mu} = \partial_{\mu}\ln\sqrt{-g}$ for the Levi-Civita connection, $w = 1$ gives $\nabla_{\mu}\sqrt{-g} = \partial_{\mu}\sqrt{-g} - \partial_{\mu}\sqrt{-g} = 0$, which is what metric compatibility requires and what the naive formula would not have produced. This is the `false_generalisation` misconception on densities declared in `node.yaml`; the counterexample is the one line above.
+
 **3. Parallel transport** along $\gamma : [0,1] \to M$ is the solution operator of $\nabla_{\dot\gamma}V = 0$, a linear isomorphism $P_{\gamma} : T_{\gamma(0)}M \to T_{\gamma(1)}M$. It depends on $\gamma$, in general not only on its endpoints. The **holonomy group** at $p$ is $\mathrm{Hol}_{p}(\nabla) = \{P_{\gamma} : \gamma \text{ a loop at } p\} \subseteq GL(T_{p}M)$ — a subgroup of $O(n)$ (or $O(1,n-1)$) when the connection is metric-compatible, because then transport preserves the inner product.
 
 **4. Torsion and curvature** are the two tensors measuring failure of the connection to be trivial:
@@ -98,7 +106,11 @@ $$T(u,v) = \nabla_{u}v - \nabla_{v}u - [u,v], \qquad T^{\lambda}{}_{\mu\nu} = \G
 
 $$R(u,v)w = \nabla_{u}\nabla_{v}w - \nabla_{v}\nabla_{u}w - \nabla_{[u,v]}w, \qquad [\nabla_{\mu},\nabla_{\nu}]V^{\rho} = R^{\rho}{}_{\sigma\mu\nu}V^{\sigma} - T^{\lambda}{}_{\mu\nu}\nabla_{\lambda}V^{\rho}.$$
 
-Both are tensors even though $\Gamma$ is not — the inhomogeneous pieces cancel in each antisymmetrisation. Curvature is *infinitesimal holonomy*: transport around a coordinate parallelogram of sides $\delta a^{\mu}, \delta b^{\nu}$ returns $V^{\rho} + R^{\rho}{}_{\sigma\mu\nu}V^{\sigma}\delta a^{\mu}\delta b^{\nu} + O(\delta^{3})$. Integrating that statement over the enclosed region is the Ambrose–Singer / Gauss–Bonnet content behind the $2\pi\cos\theta_{0}$ result.
+Both are tensors even though $\Gamma$ is not — the inhomogeneous pieces cancel in each antisymmetrisation. Curvature is *infinitesimal holonomy*: transport around a coordinate parallelogram traversed along $\delta a$, then $\delta b$, then $-\delta a$, then $-\delta b$ returns
+
+$$V^{\rho} \;-\; R^{\rho}{}_{\sigma\mu\nu}V^{\sigma}\,\delta a^{\mu}\,\delta b^{\nu} \;+\; O(\delta^{3}).$$
+
+The minus sign is fixed by the traversal order and reverses with it, so it is a statement about an *oriented* loop, not about curvature — check the orientation before quoting the sign from any source. Integrating that statement over the enclosed region is the Gauss–Bonnet content behind the $2\pi(1-\cos\theta_{0})$ deficit of the Bridging Stage.
 
 **5. The gauge-theoretic form.** Package $\Gamma$ as a matrix-valued one-form $(\boldsymbol{\Gamma}_{\mu})^{\rho}{}_{\lambda} = \Gamma^{\rho}{}_{\mu\lambda}$, so $\nabla_{\mu} = \partial_{\mu} + \boldsymbol{\Gamma}_{\mu}$. The inhomogeneous transformation law of Phase 1 becomes, for a frame rotation $\Lambda$,
 
@@ -109,6 +121,22 @@ which is the Yang–Mills gauge transformation with gauge group $GL(n,\mathbb{R}
 ## Derivation
 
 Three things are derived here, in dependency order: (D1) the transformation law that forces $\Gamma$ to exist as non-tensorial extra structure — already obtained in Phase 1, restated for completeness; (D2) the fundamental theorem of Riemannian geometry, which pins $\Gamma$ down uniquely once two further conditions are imposed; (D3) the sphere connection used in the Bridging Stage, as a worked instance of D2.
+
+### Conventions
+
+Every equation in this node uses the column below, and nothing in it is forced — each entry is a choice, and the literature you will read next is split on most of them. Copying a formula across a convention boundary without checking is the single most productive source of sign errors in this subject, which is why the table comes before the derivation rather than in an appendix.
+
+| Object | This node | Also common, and incompatible |
+|---|---|---|
+| Metric signature | $(-,+,+,+)$, with $c = 1$ | $(+,-,-,-)$ — flips $E = -\xi_{\mu}p^{\mu}$ to $+\xi_{\mu}p^{\mu}$ |
+| Connection index order | $\nabla_{\mu}V^{\rho} = \partial_{\mu}V^{\rho} + \Gamma^{\rho}{}_{\mu\lambda}V^{\lambda}$ — the **first lower index is the differentiation direction** | $\Gamma^{\rho}{}_{\lambda\mu}$, direction last. Identical for Levi-Civita, *not* identical once torsion is allowed |
+| Torsion | $T^{\lambda}{}_{\mu\nu} = \Gamma^{\lambda}{}_{\mu\nu} - \Gamma^{\lambda}{}_{\nu\mu}$ | The same expression with the opposite overall sign |
+| Riemann | $[\nabla_{\mu},\nabla_{\nu}]V^{\rho} = R^{\rho}{}_{\sigma\mu\nu}V^{\sigma} - T^{\lambda}{}_{\mu\nu}\nabla_{\lambda}V^{\rho}$, equivalently $R^{\rho}{}_{\sigma\mu\nu} = \partial_{\mu}\Gamma^{\rho}{}_{\nu\sigma} - \partial_{\nu}\Gamma^{\rho}{}_{\mu\sigma} + \Gamma^{\rho}{}_{\mu\lambda}\Gamma^{\lambda}{}_{\nu\sigma} - \Gamma^{\rho}{}_{\nu\lambda}\Gamma^{\lambda}{}_{\mu\sigma}$ | Overall sign reversed (Weinberg); or the last two indices written first |
+| Gaussian curvature, $n = 2$ | $K = R_{1212}/\det g$, which gives $K = +1/R^{2}$ on the sphere | — |
+| Transport / holonomy | $\dfrac{dV^{\mu}}{d\lambda} = -\Gamma^{\mu}{}_{\nu\lambda}u^{\nu}V^{\lambda}$, hence $\mathcal{P}\exp\left(-\oint\Gamma\right)$ | Both signs appear; they are inverse group elements |
+| Gauge derivative | $D_{\mu} = \partial_{\mu} - igA^{a}_{\mu}T^{a}$, so the dictionary to §5 is $\boldsymbol{\Gamma}_{\mu} \leftrightarrow -igA_{\mu}$ | $D_{\mu} = \partial_{\mu} + igA_{\mu}$, or anti-Hermitian generators absorbing the $i$ |
+
+This table is the treatment for the `convention_trap` misconception declared in `node.yaml`: the trap is not that index order matters *here* — for the Levi-Civita connection it does not — but that the symmetry which makes it harmless is a property of one connection and not of the notation, so the habit of ignoring it does not survive the first torsionful paper you read.
 
 ### Assumptions
 

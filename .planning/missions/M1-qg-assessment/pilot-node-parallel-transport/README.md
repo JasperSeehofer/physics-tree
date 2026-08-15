@@ -1,53 +1,41 @@
-# STAGED graduate pilot node — `parallel-transport-covariant-derivative`
+# `parallel-transport-covariant-derivative` — provenance record
 
-**Status: STAGED. Validates under content-spec v1.2 at `tier: graduate`.
-Not yet ingestible content — moving it into `content/` is the human's
-ratification act, and two items below block that.**
+**The node itself no longer lives here.** Mission M4 moved it, after review, to
 
-Produced by mission **M1b** (quantum-gravity-programme orchestration, 2026-08-15) as a
-stress test of the v1.1 7-phase content template at graduate level, then migrated
-to the v1.2 graduate schema by mission **M2** (2026-08-15). It is a real node
-written at real graduate depth, not a mock-up — but it has had no physics
-review, no pedagogy review, and no learner contact.
+```
+content/general-relativity/parallel-transport-covariant-derivative/
+```
+
+which is the spec §2 location `content/{branch}/{slug}/`. This directory is kept
+so the M1b report's links still resolve and so the node's history has one page
+that explains where it came from. Everything below is history; nothing below is
+the node.
+
+## What it is
+
+The first graduate-tier node in PhysicsTree, and the first content of any tier
+outside `classical-mechanics`. Written as the entry node of a quantum-gravity
+study track for a physics MSc with strong-but-rusty differential geometry.
 
 | | |
 |---|---|
-| Target learner | Physics MSc, strong-but-rusty differential geometry / GR, operational tree-level QFT, no formal path-integral or renormalization training |
+| Target learner | Physics MSc, rusty differential geometry / GR, operational tree-level QFT, no formal path-integral or renormalization training |
 | Declared level | EQF 7, `tier: graduate`, `bloom_minimum: analyze` |
 | Active time | 202 min across 7 phases (inside the v1.2 EQF 7–8 band of 120–240 min) |
-| Structural validator | **PASSES** — `./target/debug/validate <this dir>` exits 0 |
-| Python quality gate | `prerequisite_existence` **PASSES** — all 5 prerequisites are declared `status: external` |
-| Physics review | none |
-| Pedagogy review | none |
-| Blocks ratification | (1) no physics review; (2) phase-5 quiz item 4 uses `fill_in_formula` for a tensor answer, which spec v1.2 §6 forbids |
+| New branch | `general-relativity` — created by this node |
 
-## What is in here
+## Its three passes
 
-```
-node.yaml     metadata; inline comments mark each field where the spec strains
-phase-0.md    Schema Activation      12 min   + a `## Calibration Probe` block: the
-                                              rustiness triage and its routing rule
-phase-1.md    Productive Struggle    30 min   flat plane in polar coordinates; the gap is
-                                              non-uniqueness of the connection, not its existence
-phase-2.md    Concreteness Fading    45 min   Foucault pendulum (Stuttgart) + octant triangle ->
-                                              sphere transport ODE -> axiomatic connection ->
-                                              three derivations incl. the fundamental theorem
-phase-3.md    Worked Examples        40 min   FLRW Christoffels + redshift (full);
-                                              Newtonian limit (partial); 2D rotationally
-                                              symmetric metric + cosmic string (mostly faded)
-phase-4.md    Self-Explanation       20 min   why Lie derivative needs no connection; the
-                                              equivalence principle as a normal-form theorem
-phase-5.md    Retrieval Check        30 min   6 quiz items; Berry-phase transfer problem
-phase-6.md    Spaced Return          25 min   closed-book reconstruction; Killing-vector
-                                              interleaving with `lie-derivative` + `metric-tensor`
-assets/       empty
-```
+| Mission | Date | What it did |
+|---|---|---|
+| **M1b** | 2026-08-15 | Authored it against spec v1.0 *with deliberate violations*, each one the evidence for a finding in [`../M1b-pedagogy-report.md`](../M1b-pedagogy-report.md). Explicitly disclaimed: "Do not treat it as correct." |
+| **M2** | 2026-08-15 | Built the v1.2 graduate tier the M1b findings asked for, and migrated the node onto it. Schema-level only; the physics was not touched. See [`../../M2-graduate-tier/M2-report.md`](../../M2-graduate-tier/M2-report.md). |
+| **M4** | 2026-08-15 | Independent adversarial physics review (**F-3**, reviewer ≠ author by construction), the quiz conversion (**F-2**), and the move into `content/`. See [`../../M4-pilot-adoption/M4-report.md`](../../M4-pilot-adoption/M4-report.md). |
 
-## What the M2 migration changed
+## What M2 resolved
 
-The node was authored against spec v1.0 with deliberate violations, each the
-*evidence* for a finding in [`../M1b-pedagogy-report.md`](../M1b-pedagogy-report.md).
-Spec v1.2 resolved five of them; the schema-level changes here are the migration.
+The node was authored against spec v1.0 with deliberate violations. Spec v1.2
+resolved five of them; the schema-level changes were the migration.
 
 | M1b finding | v1.0 violation | v1.2 status |
 |---|---|---|
@@ -59,23 +47,23 @@ Spec v1.2 resolved five of them; the schema-level changes here are the migration
 | S-10 | 202 min outside every band | v1.2 documents a 120–240 min band for EQF 7–8 |
 | S-8, S-13a | 3 derivations under one H2; `### Assumptions` | Both now the documented convention |
 
-Still open, unchanged in the node:
+## What M4 resolved
 
-- **Phase 5 quiz item 4** uses `fill_in_formula` for the Levi-Civita connection —
-  an index-carrying answer the math.js grader will mark wrong every time. Spec
-  v1.2 §6 now forbids this; the item is left in place as M1b's evidence and must
-  be converted to a structure-testing `multiple_choice` item before this node
-  moves into `content/`. Fixing the grader is a separate mission (S-9).
+- **S-9 (was a ratification blocker).** Phase-5 quiz item 4 used
+  `fill_in_formula` for the Levi-Civita connection — an index-carrying answer
+  the math.js scalar sampler marks wrong every time, and which spec v1.2 §6
+  forbids. Converted to the structure-testing `multiple_choice` item the spec
+  prescribes.
+- **Physics review (was a ratification blocker).** Seven MINOR corrections
+  applied across five phases; **no MAJOR findings**. Full list in the M4 report.
+
+## Still open, carried into the node
+
 - **No `sessions: N` field.** 202 min is not one sitting, and both the Learning
   Room gate and the FSRS scheduler still treat the node as the review unit (S-10).
-- **The advisory gate is policy, not behaviour.** `phase_gate()` in the domain
-  crate returns Advisory for graduate phases 2 and 3, but the Learning Room does
-  not consume it yet, so the app still gates strictly (S-1).
-
-## Physics content notes
-
-The physics has been checked for internal consistency (Christoffel signs, the
-cyclic-permutation derivation, the FLRW redshift, the $2\pi\cos\theta_0$ holonomy,
-the Foucault numbers for 48.78 N, the $K = -f''/f$ result and its sphere and
-cosmic-string specialisations) but has **not** been independently reviewed.
-Treat every numerical claim as needing a second pass before any use.
+- **The advisory gate is policy, not behaviour.** `phase_gate()` returns Advisory
+  for graduate phases 2 and 3, but the Learning Room does not consume it yet, so
+  the app still gates strictly (S-1).
+- **No phase-embedded quiz block is consumed by the app at all** — a repo-level
+  infrastructure finding M4 raised and deliberately did not fix. It affects the
+  shipped kinematics node identically. See the M4 report, finding I-1.

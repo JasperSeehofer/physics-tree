@@ -4,17 +4,22 @@ type: retrieval_check
 estimated_minutes: 30
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
-<!-- S-9 OPEN - RATIFICATION BLOCKER for quiz item 4 below. -->
-<!-- Content spec v1.2 6 now forbids fill_in_formula for tensor-valued or -->
-<!-- index-carrying answers: the grader is math.js numeric sampling over named -->
-<!-- scalar variables (crates/app/src/components/quiz/formula_input.rs -> -->
-<!-- window.__mathjs_bridge.checkEquivalence) and will mark every correct answer -->
-<!-- to item 4 WRONG. Item 4 is left in place as the evidence M1b filed it as; -->
-<!-- convert it to a structure-testing multiple_choice item before this node is -->
-<!-- moved into content/. Item 5 (2*pi*cos(theta_0)) is scalar and grades fine. -->
-<!-- The assessment engine itself is out of M2 scope. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
+<!-- S-9 RESOLVED by mission M4 (F-2). Item 4 was a fill_in_formula whose -->
+<!-- answer was the Levi-Civita connection, an index-carrying object that -->
+<!-- content-spec v1.2 6 forbids for this type: the grader is math.js numeric -->
+<!-- sampling over named scalar variables (crates/app/src/components/quiz/ -->
+<!-- formula_input.rs -> window.__mathjs_bridge.checkEquivalence) and would -->
+<!-- mark every correct answer WRONG. Converted to the structure-testing -->
+<!-- multiple_choice item the spec prescribes; the closed-book reconstruction -->
+<!-- of the formula itself now lives in phase-6 item 3, where a human grades -->
+<!-- it. Item 5 stays fill_in_formula: its answer is a scalar, which is what -->
+<!-- 6 permits. See the M4 report for the separate infrastructure finding -->
+<!-- that no phase-embedded quiz block of ANY type is consumed by the app -->
+<!-- today, and that 6's schema has no `variables` field for the sampler. -->
 
 ## Quiz
 
@@ -55,15 +60,20 @@ difficulty: apply
 ```
 
 ```quiz
-type: fill_in_formula
-prompt: 'Write the Levi-Civita connection coefficients in terms of the metric.'
-answer: 'Gamma^lambda_{mu nu} = (1/2) g^{lambda rho} (d_mu g_{nu rho} + d_nu g_{rho mu} - d_rho g_{mu nu})'
-difficulty: remember
+type: multiple_choice
+prompt: 'The Levi-Civita formula is obtained by writing metric compatibility three times with the indices cyclically permuted and forming (i) + (ii) $-$ (iii). That manipulation uses torsion-freeness three separate times. Suppose you keep metric compatibility and drop torsion-freeness. What happens to the derivation?'
+options:
+  - 'Nothing survives: without torsion-freeness the three cyclically permuted copies of metric compatibility cannot be written down at all'
+  - 'The formula comes out unchanged, because torsion-freeness is used only at the final step, where the metric is inverted'
+  - 'The cancellations no longer complete, and what survives is the Levi-Civita expression plus a contorsion tensor built from $T^{\lambda}{}_{\mu\nu}$ — the metric determines the connection only once the torsion is supplied separately'
+  - 'The formula comes out unchanged in value, but must be read with the two lower indices in the opposite order'
+answer: 2
+difficulty: analyze
 ```
 
 ```quiz
 type: fill_in_formula
-prompt: 'A vector is parallel-transported once around a circle of latitude at colatitude $\theta_0$ on a sphere. Write the angle by which it returns rotated, in radians.'
+prompt: 'A vector is parallel-transported once around a circle of latitude at colatitude $\theta_0$ on a sphere, in the direction of increasing $\varphi$. Write the total rotation angle it accumulates in the local orthonormal frame over the circuit, in radians. (Not the shortfall relative to a full turn — that is the complementary quantity.)'
 answer: '2*pi*cos(theta_0)'
 difficulty: apply
 ```
@@ -102,4 +112,4 @@ with $\Omega$ the solid angle enclosed by $\hat{n}$ on the sphere of directions.
 
 **(f) — extension, if you want the quantum-gravity payoff.** The same structure with a non-abelian structure group and a *path-ordered* exponential gives $h_{\gamma}[A] = \mathcal{P}\exp\left(-\oint_{\gamma}A\right)$. Why must the exponential be path-ordered here but not in (d)? What does that non-commutativity do to the statement "holonomy = enclosed curvature", and how does it survive as the non-abelian Stokes theorem?
 
-**Answers.** (b) base $= S^{2}$ of field directions (or $\mathbb{R}^{3}\setminus\{0\}$), fibre $= U(1)$ phase, group $U(1)$, connection $A = i\langle +,\hat{n}\rvert d \lvert +,\hat{n}\rangle$. (c) $F = -\tfrac{1}{2}\dfrac{\hat{n}}{\lvert \vec{B}\rvert^{2}}$ in the $\pm$ sector, a Dirac monopole of charge $\mp\tfrac{1}{2}$; its total flux $\mp 2\pi$ is the first Chern number, which is why the phase is quantised for the whole sphere. (d) $\gamma_{\pm} = \mp\tfrac{1}{2}\Omega$; for $\alpha \to \pi/2$, $\gamma = \mp\pi$. (e) The general theorem is the Ambrose–Singer / non-abelian Stokes statement that holonomy around a contractible loop equals the exponentiated curvature flux through any surface it bounds; nothing in it refers to a metric.
+**Answers.** (b) base $= S^{2}$ of field directions (or $\mathbb{R}^{3}\setminus\{0\}$), fibre $= U(1)$ phase, group $U(1)$, connection $A = i\langle +,\hat{n}\rvert d \lvert +,\hat{n}\rangle$. (c) $F = \mp\tfrac{1}{2}\dfrac{\hat{n}}{\lvert \vec{B}\rvert^{2}}$ in the $\pm$ sector, a Dirac monopole of charge $\mp\tfrac{1}{2}$; its total flux $\mp 2\pi$ over the sphere is $2\pi$ times the first Chern number $\mp 1$, which is why the phase is quantised. (d) $\gamma_{\pm} = \mp\tfrac{1}{2}\Omega$; for $\alpha \to \pi/2$, $\gamma = \mp\pi$. (e) The general theorem is the (non-abelian) Stokes statement that holonomy around a contractible loop is the exponentiated curvature flux through any surface it bounds; nothing in it refers to a metric. Ambrose–Singer is the neighbouring theorem — that the holonomy *algebra* is spanned by the curvature transported back to the base point — and is what makes the flux statement more than a coincidence; do not cite it for the flux statement itself.
