@@ -1,0 +1,194 @@
+# =============================================================================
+# SECOND GRADUATE NODE — content-spec v1.2, tier: graduate.
+#
+# Authored by mission M9a (2026-08-15) from a live teaching moment: the vault's
+# probe A5 (score 1 + a documented misconception) plus the oral follow-up in
+# chat the same day. This is the first node in the tree whose misconception
+# list starts from measured learner error rather than from authoring judgment.
+#
+# Register, structure and conventions follow the adopted graduate exemplar
+# content/general-relativity/parallel-transport-covariant-derivative/, which is
+# also this node's one *internal* prerequisite. The two are deliberately
+# complementary: the exemplar answers "why must a connection exist and what
+# picks one out"; this node answers "what does differentiation cost when you
+# refuse to buy a connection at all".
+#
+# Physics reviewed adversarially by mission M9b (reviewer != author by
+# construction, D10), which re-derived every mathematical claim from scratch --
+# including symbolic verification of the two general identities (D2's bridge
+# identity for an arbitrary connection, D3's Killing residue for an arbitrary
+# metric-compatible torsionful one) -- and found no MAJOR fault. Three MINOR
+# presentation/arithmetic defects were corrected before adoption.
+#
+# Provenance and the full review record:
+#   .planning/missions/M9-lie-covariant-node/M9a-author-notes.md
+#   .planning/missions/M9-lie-covariant-node/M9b-review.md
+# =============================================================================
+
+concept_id: lie-vs-covariant-derivative
+title: 'Lie Derivative vs Covariant Derivative'
+
+# EQF 7. The node assumes a physics master's worth of tensor calculus and one
+# prior node on connections; its own novel content (flow-pullback definition,
+# C-infinity-linearity as the diagnostic, torsion as the bridge object) is
+# master's-level differential geometry, not doctoral. Reserve 8 for the nodes
+# that sit on research literature.
+eqf_level: 7
+
+# Declared, not inferred. The EQF-7 inference would agree, but the advisory
+# phase-2/3 gate and the misconception cap read this field, and this node leans
+# hard on both: its calibration probe carries a correctness gate that the
+# fluency gate cannot express (see phase-0, and M9a-author-notes.md).
+tier: graduate
+
+# Floor, not profile. `remember` for the flow definition, `apply` for the
+# component computations, `analyze` for the tensoriality argument, `evaluate`
+# for "which of the two equations L_xi g = 0 and nabla g = 0 constrains what".
+# The per-learner profile is measured by the Phase-0 probe.
+bloom_minimum: analyze
+
+prerequisites:
+  # The one internal prerequisite in the tree. Hard: this node opens by assuming
+  # the reader already knows that a connection exists, is not unique, and is not
+  # a tensor. That argument is not repeated here.
+  - id: parallel-transport-covariant-derivative
+    kind: hard
+    status: internal
+  - id: smooth-manifolds
+    kind: hard
+    status: external
+  - id: tangent-vectors-and-vector-fields
+    kind: hard
+    status: external
+  # The genuinely load-bearing external one, and the one most often skipped:
+  # without integral curves and local flows the Lie derivative has no
+  # definition, only a formula — which is precisely how the misconception this
+  # node treats gets in.
+  - id: flows-and-integral-curves
+    kind: hard
+    status: external
+  - id: tensor-fields
+    kind: hard
+    status: external
+  # Known well, needs reactivating rather than teaching: the metric appears here
+  # only in its two roles as *selector* of a connection and as the object whose
+  # symmetries the Killing equation describes.
+  - id: metric-tensor
+    kind: recall
+    status: external
+  # Held alongside for comparison in Phase 2's structural stage and Phase 5:
+  # the internal-bundle connection of the learner's own LO pQCD work is the
+  # cleanest counterexample to "a connection is a metric thing".
+  - id: gauge-connections-and-wilson-loops
+    kind: contrast
+    status: external
+
+# Seven, under the graduate cap of eight. Entry 1 is measured, not inferred:
+# it is the verbatim error mode recorded on probe A5 (wiki/meta/qg-knowledge-
+# state.md, 2026-08-15), where a correct non-trivial identity was recalled and
+# then used to draw exactly the wrong conclusion. Entry 7 is this learner's
+# documented profile signature ("recognition intact, production fluency gone")
+# rather than a false belief.
+misconceptions:
+  - type: conflation
+    statement: 'The Lie derivative needs a metric, because it is built from the commutator and derivatives of vector fields have to be corrected with Christoffel symbols'
+  - type: conflation
+    statement: 'The covariant derivative needs the metric — stated without qualification, so that connection and metric are treated as one structure rather than two'
+  - type: belief
+    statement: 'The Lie derivative is a directional derivative, so L_X T at a point depends only on the value of X at that point'
+  - type: false_generalisation
+    statement: 'The identity [X,Y] = nabla_X Y - nabla_Y X holds for every connection, so partial derivatives may always be swapped for covariant ones inside a commutator'
+  - type: convention_trap
+    statement: 'The sign of the torsion term relating the two derivatives is fixed by the mathematics, so the bridge identity can be copied between sources without checking'
+  - type: scope_violation
+    statement: 'Killing equation L_xi g = nabla_mu xi_nu + nabla_nu xi_mu holds for any connection, since the left-hand side has no connection in it'
+  - type: fluency_gap
+    statement: 'Can state that the Lie derivative is metric-free, but cannot compute L_X g for a given field and metric without reaching for Christoffel symbols'
+
+domain_of_applicability:
+  - 'The Lie derivative is defined on any smooth manifold with no further structure whatsoever — no metric, no connection, no volume form — but only for tensor fields on TM, because only there does a diffeomorphism act canonically'
+  - 'The covariant derivative requires a connection and nothing else; it is defined on sections of any vector bundle carrying one, tangent bundle or internal, metric present or absent'
+  - 'The bridge identity nabla_X Y - nabla_Y X = [X,Y] + T(X,Y) holds for every affine connection; the familiar torsion-free special case is licensed by a postulate, not by the notation'
+  - 'The Killing form L_xi g = nabla_mu xi_nu + nabla_nu xi_mu requires the Levi-Civita connection specifically: metric compatibility and vanishing torsion each enter exactly once, and the identity acquires a torsion term without the second'
+  - 'Classical smooth regime only: assumes a fixed differentiable manifold with a well-defined tangent bundle. Says nothing about superpositions of geometries or about settings where the flow of a vector field is not defined'
+
+esco_tags: []
+
+# 170 min, inside the EQF 7-8 band of 120-240. Per-phase sum: 15+25+40+35+20+20+15.
+# Deliberately lighter than the 202 of the prerequisite node: the argument here
+# is narrower (one distinction, one bridge object) and the reader arrives
+# already carrying connections. Still not one sitting; see the M2 report's
+# open `sessions: N` follow-up.
+estimated_minutes: 170
+
+derivation_required: true
+
+node_type: concept
+depth_tier: branch
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — differentiation compares values at different points;
+# nothing on a bare manifold compares them; there are exactly two ways to
+# manufacture a comparison (drag along a flow, transport along a connection);
+# they differ in what data they demand, not in how much geometry they contain;
+# the metric enters neither construction and only *selects* among connections;
+# and the tensor measuring the mismatch between the two comparisons is the
+# torsion, whose tensoriality depends on both derivatives' characters at once.
+# Seven novel elements relative to the declared prerequisites: (1) L_X by flow
+# pullback, (2) C-infinity-linearity as the tensoriality diagnostic, (3) the
+# connection axioms read as a contrast table against L_X, (4) the bridge
+# identity with its torsion residue, (5) torsion's tensoriality by mutual
+# cancellation, (6) the Lie derivative's bundle restriction, (7) Killing's
+# equation as the place where both structures meet. Splitting would put the
+# Phase-1 struggle in a different node from its own gap reveal.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # Restates probe A5 as item 1 and carries a correctness gate on it that
+      # is separate from the fluency gate of the spec's routing table: a wrong
+      # answer there makes Phase 2 mandatory at any self-rating, because a
+      # misconception is not mastery and expertise reversal does not apply to it.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      # Optional at graduate tier (spec v1.2 section 4). Declared because the
+      # transfer this node is built for is precisely structural: the same
+      # question asked of an internal bundle inverts the price list, and that
+      # inversion is what dissolves the metric-connection conflation for good.
+      - structural_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
