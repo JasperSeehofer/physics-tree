@@ -481,9 +481,16 @@ pub fn LearningRoomPage() -> impl IntoView {
 
                                         // Phase 5 (retrieval_check) renders PhaseQuiz instead of MarkCompleteButton
                                         if phase_type == "retrieval_check" && !is_completed {
-                                            // Extract quiz YAML from phase HTML data-quiz-block attributes
+                                            // Extract quiz YAML from phase HTML data-quiz-block attributes.
+                                            // Each ```quiz fenced block becomes its own data-quiz-block div
+                                            // (markdown_renderer.rs), so a phase with N questions yields N
+                                            // separate YAML strings here. Join them with the "\n---\n"
+                                            // separator PhaseQuiz's parser already splits on (M5: previously
+                                            // only the first question was ever passed through, so a
+                                            // multi-question phase 5 quiz silently dropped every question
+                                            // after the first).
                                             let quiz_yamls = extract_quiz_yaml_from_html(&html_for_quiz);
-                                            let first_yaml = quiz_yamls.into_iter().next().unwrap_or_default();
+                                            let combined_yaml = quiz_yamls.join("\n---\n");
 
                                             let accent_clone = accent.clone();
                                             let phase_type_clone = phase_type.clone();
@@ -492,7 +499,7 @@ pub fn LearningRoomPage() -> impl IntoView {
                                             view! {
                                                 <div class="mt-6">
                                                     <PhaseQuiz
-                                                        quiz_yaml=first_yaml
+                                                        quiz_yaml=combined_yaml
                                                         accent_color=accent_clone.clone()
                                                         on_pass=Callback::new(move |_| {
                                                             let slug_clone = slug_clone2.clone();

@@ -11,14 +11,14 @@ use leptos::prelude::*;
 // Quiz data model
 // ─────────────────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuizOption {
     pub text: String,
     pub correct: bool,
     pub explanation: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuizBlock {
     pub question: String,
     pub options: Vec<QuizOption>,
@@ -27,67 +27,136 @@ pub struct QuizBlock {
 // ─────────────────────────────────────────────────────────────────────────────
 // Minimal YAML parser for the quiz block format
 // ─────────────────────────────────────────────────────────────────────────────
-// Expected structure:
+//
+// Format per `docs/content-spec.md` v1.2 §6 ("Quiz Block Format"). Fields:
+//   type: multiple_choice | fill_in_formula | matching   (required)
+//   prompt: "..."                                        (required)
+//   options: [list[string]]                               (required for multiple_choice)
+//   answer: <int> | <string>                              (required; 0-based index
+//                                                           for multiple_choice, the
+//                                                           expected expression for
+//                                                           fill_in_formula)
+//   difficulty: remember | understand | ... | create      (required; not consumed
+//                                                           by this renderer)
+//
+// Example (spec §6, verbatim):
 //   type: multiple_choice
-//   question: "..."
+//   prompt: "A 2 kg object has a net force of 10 N applied to it. What is its acceleration?"
 //   options:
-//     - text: "..."
-//       correct: true
-//       explanation: "..."
-//     - text: "..."
-//       correct: false
-//       explanation: "..."
-
+//     - "0.2 m/s²"
+//     - "5 m/s²"
+//     - "20 m/s²"
+//     - "12 m/s²"
+//   answer: 1
+//   difficulty: apply
+//
+// M5 (2026-08-15): this function previously expected an invented format
+// (`question:` + `- text: "..."` / `correct: true` mappings) that the spec never
+// defined and no node in `content/` ever used — every phase-embedded quiz block
+// in the repository silently failed to parse (M4 finding I-1). This rewrite makes
+// the parser conform to the spec instead (per the M5 mission contract: the spec is
+// the contract, the parser conforms to it).
+//
+// Scope: `type: multiple_choice` only. The rendering component below
+// (`QuizQuestionCard`) is a button/radio picker over discrete options; it has no
+// UI for grading a free-form `fill_in_formula` answer or a `matching` block (the
+// spec enumerates `matching` as a valid type but — as of v1.2 — never defines its
+// fields, which is a spec gap, not something this parser can resolve; see the M5
+// report). Building that UI is explicitly out of scope for M5 ("new question
+// types" / "UI changes" are non-goals). `parse_quiz_block` therefore recognizes
+// but does not convert non-multiple_choice blocks — it returns `None` for them,
+// same as it does for malformed input, so a block missing understood fields never
+// silently renders as a broken quiz question.
 pub fn parse_quiz_block(yaml: &str) -> Option<QuizBlock> {
-    let mut question = String::new();
-    let mut options: Vec<QuizOption> = Vec::new();
-    let mut current_option: Option<(String, bool, String)> = None;
+    let mut quiz_type = String::new();
+    let mut prompt = String::new();
+    let mut answer_raw: Option<String> = None;
+    let mut options: Vec<String> = Vec::new();
     let mut in_options = false;
 
     for line in yaml.lines() {
         let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
 
-        if trimmed.starts_with("question:") {
-            let val = extract_yaml_value(trimmed, "question:");
-            question = val;
+        if trimmed.starts_with("type:") {
+            quiz_type = extract_yaml_value(trimmed, "type:");
+            in_options = false;
+        } else if trimmed.starts_with("prompt:") {
+            prompt = extract_yaml_value(trimmed, "prompt:");
+            in_options = false;
         } else if trimmed == "options:" {
             in_options = true;
-        } else if in_options {
-            if trimmed.starts_with("- text:") {
-                // Start new option — save the previous one
-                if let Some((text, correct, explanation)) = current_option.take() {
-                    options.push(QuizOption { text, correct, explanation });
-                }
-                let text = extract_yaml_value(trimmed, "- text:");
-                current_option = Some((text, false, String::new()));
-            } else if trimmed.starts_with("text:") {
-                if let Some(ref mut opt) = current_option {
-                    opt.0 = extract_yaml_value(trimmed, "text:");
-                }
-            } else if trimmed.starts_with("correct:") {
-                let val = extract_yaml_value(trimmed, "correct:");
-                if let Some(ref mut opt) = current_option {
-                    opt.1 = val.trim() == "true";
-                }
-            } else if trimmed.starts_with("explanation:") {
-                let val = extract_yaml_value(trimmed, "explanation:");
-                if let Some(ref mut opt) = current_option {
-                    opt.2 = val;
-                }
-            }
+        } else if trimmed.starts_with("answer:") {
+            answer_raw = Some(extract_yaml_value(trimmed, "answer:"));
+            in_options = false;
+        } else if trimmed.starts_with("difficulty:") {
+            // Bloom level — not consumed by this renderer today.
+            in_options = false;
+        } else if in_options && trimmed.starts_with("- ") {
+            options.push(extract_yaml_value(trimmed, "-"));
+        } else {
+            // Any other line (e.g. a YAML doc separator) ends the options block.
+            in_options = false;
         }
     }
 
-    // Save last option
-    if let Some((text, correct, explanation)) = current_option.take() {
-        options.push(QuizOption { text, correct, explanation });
-    }
-
-    if question.is_empty() || options.is_empty() {
+    if quiz_type != "multiple_choice" {
         return None;
     }
 
-    Some(QuizBlock { question, options })
+    if prompt.is_empty() || options.is_empty() {
+        return None;
+    }
+
+    // `answer` must be a valid 0-based index into `options` — anything else
+    // (missing, non-numeric, out of range) makes the block malformed rather
+    // than a quiz with no correct option.
+    let correct_index: usize = answer_raw.as_deref()?.trim().parse().ok()?;
+    if correct_index >= options.len() {
+        return None;
+    }
+
+    let quiz_options = options
+        .into_iter()
+        .enumerate()
+        .map(|(idx, text)| QuizOption {
+            text,
+            correct: idx == correct_index,
+            // The spec has no per-option explanation field; QuizQuestionCard
+            // already treats an empty explanation as "nothing to show".
+            explanation: String::new(),
+        })
+        .collect();
+
+    Some(QuizBlock { question: prompt, options: quiz_options })
+}
+
+/// Parse every quiz block out of a `quiz_yaml` string that may contain more than
+/// one YAML document (multiple `data-quiz-block` extractions joined by the caller
+/// with a `\n---\n` separator — see `extract_quiz_yaml_from_html` and its call
+/// site in `pages/learning_room.rs`). Non-`multiple_choice` blocks (see
+/// `parse_quiz_block`'s doc comment) are silently skipped, same as a malformed
+/// block would be.
+///
+/// Extracted from `PhaseQuiz`'s body (M5) so the assembly logic — not just the
+/// per-block parse — has direct unit test coverage.
+pub fn parse_quiz_blocks(quiz_yaml: &str) -> Vec<QuizBlock> {
+    let mut blocks = vec![];
+    // Try splitting by YAML document separator
+    for doc in quiz_yaml.split("\n---\n") {
+        if let Some(block) = parse_quiz_block(doc) {
+            blocks.push(block);
+        }
+    }
+    // If no docs found, try the whole string
+    if blocks.is_empty() {
+        if let Some(block) = parse_quiz_block(quiz_yaml) {
+            blocks.push(block);
+        }
+    }
+    blocks
 }
 
 /// Extract value from a YAML key:value line, stripping quotes.
@@ -254,22 +323,7 @@ pub fn PhaseQuiz(
     let score_message: RwSignal<Option<String>> = RwSignal::new(None);
 
     // Parse quiz blocks — support multiple blocks in the YAML by splitting on "---"
-    let questions: Vec<QuizBlock> = {
-        let mut blocks = vec![];
-        // Try splitting by YAML document separator
-        for doc in quiz_yaml.split("\n---\n") {
-            if let Some(block) = parse_quiz_block(doc) {
-                blocks.push(block);
-            }
-        }
-        // If no docs found, try the whole string
-        if blocks.is_empty() {
-            if let Some(block) = parse_quiz_block(&quiz_yaml) {
-                blocks.push(block);
-            }
-        }
-        blocks
-    };
+    let questions: Vec<QuizBlock> = parse_quiz_blocks(&quiz_yaml);
     let question_count = questions.len();
 
     // Per-question answer tracking: None = unanswered, Some(true/false) = correct/wrong
@@ -394,5 +448,253 @@ pub fn PhaseQuiz(
                 }}
             </div>
         </div>
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// M5 repro fixture — verbatim from `content/classical-mechanics/kinematics/phase-5.md`,
+    /// the shipped node's first `multiple_choice` quiz block (fence markers stripped).
+    /// This is exactly the format `docs/content-spec.md` v1.2 6 defines: `prompt:`
+    /// (not `question:`) and `options:` as a bare-string list keyed by a separate
+    /// `answer:` index (not `- text: ...` mappings).
+    const KINEMATICS_MC_BLOCK: &str = r#"type: multiple_choice
+prompt: 'Which of the following is the kinematic equation for velocity as a function of time under constant acceleration?'
+options:
+  - '$v = v_0 + \frac{1}{2}at^2$'
+  - '$v = v_0 + at$'
+  - '$v^2 = v_0^2 + 2a\Delta x$'
+  - '$x = x_0 + v_0 t + at^2$'
+answer: 1
+difficulty: remember"#;
+
+    /// M5 Scope 1 — REPRODUCE.
+    ///
+    /// `parse_quiz_block`'s doc comment (see above) declares the format it expects:
+    /// `question:` for the prompt, and `- text: "..."` / `correct: true` mappings for
+    /// options. That format is not what any node in `content/` — including this
+    /// shipped kinematics node — actually contains; `docs/content-spec.md` 6
+    /// specifies `prompt:` and a bare-string `options:` list keyed by a separate
+    /// `answer:` index. Before the M5 fix, this assertion fails: `question` stays
+    /// empty (no `question:` key exists in spec-format YAML) and `options` stays
+    /// empty (no line matches `- text:`), so `parse_quiz_block` returns `None` for
+    /// every spec-conformant quiz block in the repository. See
+    /// `.planning/missions/M5-quiz-parsing/M5-report.md` for the captured failure
+    /// output from a run of this test against the pre-fix parser.
+    #[test]
+    fn test_repro_spec_format_multiple_choice_block_parses() {
+        let result = parse_quiz_block(KINEMATICS_MC_BLOCK);
+        assert!(
+            result.is_some(),
+            "parse_quiz_block returned None for a verbatim spec-format quiz block \
+             taken from content/classical-mechanics/kinematics/phase-5.md — the parser \
+             does not understand content-spec.md v1.2 6's `prompt:`/bare-options-list/`answer:` format."
+        );
+    }
+
+    /// The parsed block picks out the right option — not just "some" option.
+    #[test]
+    fn test_repro_block_marks_the_correct_option_from_answer_index() {
+        let block = parse_quiz_block(KINEMATICS_MC_BLOCK).expect("should parse");
+        assert_eq!(block.question, "Which of the following is the kinematic equation for velocity as a function of time under constant acceleration?");
+        assert_eq!(block.options.len(), 4);
+        assert_eq!(
+            block.options.iter().filter(|o| o.correct).count(),
+            1,
+            "exactly one option should be marked correct"
+        );
+        assert!(block.options[1].correct, "answer: 1 should mark options[1] correct");
+        assert_eq!(block.options[1].text, "$v = v_0 + at$");
+        assert!(!block.options[0].correct);
+        assert!(!block.options[2].correct);
+        assert!(!block.options[3].correct);
+    }
+
+    /// content-spec.md 6's own Example: Multiple Choice, verbatim.
+    #[test]
+    fn test_spec_own_multiple_choice_example_parses() {
+        let yaml = r#"type: multiple_choice
+prompt: "Which statement is correct about Newton's Second Law?"
+options:
+  - "Force and mass are directly proportional when acceleration is constant"
+  - "Acceleration is directly proportional to net force and inversely proportional to mass"
+  - "An object continues at constant velocity only when no forces act"
+  - "Force equals mass divided by acceleration"
+answer: 1
+difficulty: understand"#;
+        let block = parse_quiz_block(yaml).expect("spec's own example must parse");
+        assert_eq!(block.options.len(), 4);
+        assert!(block.options[1].correct);
+    }
+
+    /// `fill_in_formula` blocks are recognized (the `type:` field is read) but
+    /// deliberately not converted to a `QuizBlock` — this component has no UI to
+    /// grade a free-form formula answer (see the module-level scope note on
+    /// `parse_quiz_block`). This must stay `None` for a principled reason, not
+    /// because the parser mishandles the format.
+    #[test]
+    fn test_fill_in_formula_block_returns_none_by_design_not_by_bug() {
+        let yaml = r#"type: fill_in_formula
+prompt: "Write Newton's Second Law relating net force $F$, mass $m$, and acceleration $a$."
+answer: 'F = ma'
+difficulty: remember"#;
+        assert_eq!(
+            parse_quiz_block(yaml),
+            None,
+            "fill_in_formula is a recognized spec type but out of scope for this \
+             button/radio renderer (M5 non-goal: new question types)"
+        );
+    }
+
+    /// A quiz block whose `answer` index is out of range for `options` is
+    /// malformed — it must not silently render with every option unmarked.
+    #[test]
+    fn test_out_of_range_answer_index_returns_none() {
+        let yaml = r#"type: multiple_choice
+prompt: "test"
+options:
+  - "a"
+  - "b"
+answer: 5
+difficulty: remember"#;
+        assert_eq!(parse_quiz_block(yaml), None);
+    }
+
+    /// A quiz block missing `type:` entirely (or with an unrecognized type) is
+    /// out of scope for this parser, same as `fill_in_formula`/`matching`.
+    #[test]
+    fn test_missing_type_field_returns_none() {
+        let yaml = r#"prompt: "test"
+options:
+  - "a"
+  - "b"
+answer: 0
+difficulty: remember"#;
+        assert_eq!(parse_quiz_block(yaml), None);
+    }
+
+    // ── M5 Scope 3 & 4 — content/ fixtures + ingest/serve path ─────────────────
+    //
+    // Both shipped nodes' phase-5.md quiz sections, run through the exact
+    // pipeline the app uses at request time: render_content_markdown (the same
+    // renderer pages/learning_room.rs calls) -> extract_quiz_yaml_from_html ->
+    // parse_quiz_block / parse_quiz_blocks. Gated on `ssr` because
+    // render_content_markdown is (crates/app/src/components/content/markdown_renderer.rs);
+    // `cargo test --workspace` unifies the `ssr` feature on via the `server`
+    // crate's dependency on `app`, so these run as part of the normal suite.
+    #[cfg(feature = "ssr")]
+    mod content_fixtures {
+        use super::*;
+        use crate::components::content::markdown_renderer::render_content_markdown;
+
+        const KINEMATICS_PHASE5: &str =
+            include_str!("../../../../../content/classical-mechanics/kinematics/phase-5.md");
+        const PARALLEL_TRANSPORT_PHASE5: &str = include_str!(
+            "../../../../../content/general-relativity/parallel-transport-covariant-derivative/phase-5.md"
+        );
+
+        /// Render a phase-5.md file and return every quiz block's raw YAML,
+        /// exactly as `pages/learning_room.rs` extracts it at runtime.
+        fn extract_quiz_yamls(markdown_source: &str) -> Vec<String> {
+            let rendered = render_content_markdown(markdown_source);
+            extract_quiz_yaml_from_html(&rendered.html)
+        }
+
+        #[test]
+        fn test_kinematics_phase5_quiz_blocks_all_present_and_multiple_choice_parse() {
+            let yamls = extract_quiz_yamls(KINEMATICS_PHASE5);
+            assert_eq!(
+                yamls.len(),
+                5,
+                "expected 5 quiz blocks (3 multiple_choice + 2 fill_in_formula) in \
+                 content/classical-mechanics/kinematics/phase-5.md, found {}",
+                yamls.len()
+            );
+
+            let parsed: Vec<_> = yamls.iter().filter_map(|y| parse_quiz_block(y)).collect();
+            assert_eq!(
+                parsed.len(),
+                3,
+                "expected the 3 multiple_choice blocks to parse; got {} Some results from {} blocks",
+                parsed.len(),
+                yamls.len()
+            );
+            for block in &parsed {
+                assert!(!block.question.is_empty());
+                assert_eq!(
+                    block.options.iter().filter(|o| o.correct).count(),
+                    1,
+                    "every parsed block must have exactly one correct option: {:?}",
+                    block
+                );
+            }
+
+            let fill_in_formula_count =
+                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
+            assert_eq!(fill_in_formula_count, 2, "kinematics should carry 2 fill_in_formula blocks");
+        }
+
+        #[test]
+        fn test_parallel_transport_phase5_quiz_blocks_all_present_and_multiple_choice_parse() {
+            let yamls = extract_quiz_yamls(PARALLEL_TRANSPORT_PHASE5);
+            assert_eq!(
+                yamls.len(),
+                6,
+                "expected 6 quiz blocks (5 multiple_choice + 1 fill_in_formula) in \
+                 content/general-relativity/parallel-transport-covariant-derivative/phase-5.md, found {}",
+                yamls.len()
+            );
+
+            let parsed: Vec<_> = yamls.iter().filter_map(|y| parse_quiz_block(y)).collect();
+            assert_eq!(
+                parsed.len(),
+                5,
+                "expected the 5 multiple_choice blocks to parse; got {} Some results from {} blocks",
+                parsed.len(),
+                yamls.len()
+            );
+            for block in &parsed {
+                assert!(!block.question.is_empty());
+                assert_eq!(block.options.iter().filter(|o| o.correct).count(), 1);
+            }
+
+            let fill_in_formula_count =
+                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
+            assert_eq!(fill_in_formula_count, 1, "parallel-transport should carry 1 fill_in_formula block");
+        }
+
+        /// M5 Scope 4 — the serve-path half of the fix. `pages/learning_room.rs`
+        /// previously passed only `extract_quiz_yaml_from_html(...).next()`
+        /// through to `PhaseQuiz`, so a multi-question phase-5 quiz would have
+        /// silently dropped every question after the first even once
+        /// `parse_quiz_block` itself was fixed. This exercises the corrected
+        /// call — every extracted block joined with `"\n---\n"` — through
+        /// `parse_quiz_blocks`, the exact function `PhaseQuiz` calls, and checks
+        /// that all of a node's questions surface, not just one.
+        #[test]
+        fn test_all_multiple_choice_questions_reach_parse_quiz_blocks_not_just_the_first() {
+            let yamls = extract_quiz_yamls(PARALLEL_TRANSPORT_PHASE5);
+            let combined = yamls.join("\n---\n");
+            let blocks = parse_quiz_blocks(&combined);
+            assert_eq!(
+                blocks.len(),
+                5,
+                "expected all 5 multiple_choice questions to survive extraction + \
+                 joining + parsing, got {} — if this regresses, the phase-5 quiz \
+                 is silently showing fewer questions than the node authored",
+                blocks.len()
+            );
+
+            let yamls_kin = extract_quiz_yamls(KINEMATICS_PHASE5);
+            let combined_kin = yamls_kin.join("\n---\n");
+            let blocks_kin = parse_quiz_blocks(&combined_kin);
+            assert_eq!(blocks_kin.len(), 3);
+        }
     }
 }
