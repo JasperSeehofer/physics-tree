@@ -180,30 +180,21 @@ pub fn RightPanel(
                     // Footer CTA — per D-10:
                     // has_phases nodes -> "Start Learning" -> /learning-room/:slug
                     // other nodes -> "Learn this concept" -> /graph/:slug/learn
+                    //
+                    // Both the route and the label come from domain::graph so the
+                    // mapping is unit-tested in one place (M8). `has_phases` is
+                    // derived per request from the node's actual phase-row count
+                    // by db::graph_repo, so a node with real phase content can no
+                    // longer be offered the v1.0 concept page by mistake.
                     <div class="p-6 border-t border-bark-light mt-auto">
-                        {if n.has_phases {
-                            view! {
-                                <a
-                                    href=format!("/learning-room/{}", n.slug)
-                                    class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void \
-                                           cursor-pointer hover:brightness-110 text-sm font-bold \
-                                           block text-center"
-                                >
-                                    "Start Learning"
-                                </a>
-                            }.into_any()
-                        } else {
-                            view! {
-                                <a
-                                    href=format!("/graph/{}/learn", n.slug)
-                                    class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void \
-                                           cursor-pointer hover:brightness-110 text-sm font-bold \
-                                           block text-center"
-                                >
-                                    "Learn this concept"
-                                </a>
-                            }.into_any()
-                        }}
+                        <a
+                            href=domain::node_destination(&n.slug, n.has_phases)
+                            class="w-full py-3 px-4 rounded-lg bg-leaf-green text-void \
+                                   cursor-pointer hover:brightness-110 text-sm font-bold \
+                                   block text-center"
+                        >
+                            {domain::node_destination_label(n.has_phases)}
+                        </a>
                     </div>
                 }
             })}

@@ -329,11 +329,48 @@ pub fn LearningRoomPage() -> impl IntoView {
                             }.into_any()
                         }
                         Some(None) => {
-                            // Error / not found state
+                            // Error / not found state. Offer the v1.0 concept page as
+                            // well as the graph — a stale /learning-room/:slug link
+                            // should never be a dead end (M8).
+                            let concept_href = domain::concept_path(&slug());
                             view! {
                                 <div class="flex flex-col items-center justify-center gap-4 py-24">
                                     <h1 class="text-xl font-bold text-petal-white">"Could not load this phase."</h1>
-                                    <p class="text-mist text-base">"Reload the page or return to the graph."</p>
+                                    <p class="text-mist text-base">"Reload the page, read the concept page, or return to the graph."</p>
+                                    <div class="flex gap-4">
+                                        <a href=concept_href class="text-sky-teal text-sm hover:underline">"Read the concept page"</a>
+                                        <a href="/graph" class="text-sky-teal text-sm hover:underline">"Return to graph"</a>
+                                    </div>
+                                </div>
+                            }.into_any()
+                        }
+                        // A node that exists but carries only the legacy single
+                        // phase-0 stub has no learning room to show. Say so and
+                        // hand the learner to the concept page instead of
+                        // rendering an empty tab bar (M8 "no dead route").
+                        Some(Some(room))
+                            if !domain::has_learning_room(room.phases.len() as i64) =>
+                        {
+                            let title = room.title.clone();
+                            let branch = room.branch.clone();
+                            let concept_href = domain::concept_path(&slug());
+                            view! {
+                                <Breadcrumb branch=branch node_title=title.clone() />
+                                <div class="flex flex-col items-center justify-center gap-4 py-24 text-center">
+                                    <h1 class="text-xl font-bold text-petal-white">
+                                        {format!("{title} does not have a learning room yet.")}
+                                    </h1>
+                                    <p class="text-mist text-base max-w-md">
+                                        "This concept still has its single-page write-up. \
+                                         The seven-phase version is not authored yet."
+                                    </p>
+                                    <a
+                                        href=concept_href
+                                        class="py-3 px-4 rounded-lg bg-leaf-green text-void \
+                                               text-sm font-bold hover:brightness-110"
+                                    >
+                                        "Read the concept page"
+                                    </a>
                                     <a href="/graph" class="text-sky-teal text-sm hover:underline">"Return to graph"</a>
                                 </div>
                             }.into_any()
