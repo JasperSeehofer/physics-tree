@@ -184,7 +184,10 @@ async fn ingest_node_dir(
     .bind(bloom_to_str(&meta.bloom_minimum))
     .bind(meta.estimated_minutes as i16)
     .bind(meta.derivation_required)
-    .bind(meta.misconceptions.as_slice())
+    // Typed misconceptions are flattened to their statement text: the
+    // nodes.misconceptions column is TEXT[]. Persisting the graduate type tag
+    // needs an additive migration — see the M2 report.
+    .bind(meta.misconception_statements())
     .bind(meta.domain_of_applicability.as_slice())
     .bind(meta.esco_tags.as_slice())
     .fetch_one(&mut *tx)

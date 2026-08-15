@@ -11,13 +11,15 @@ use std::fmt;
 pub struct NodeMeta {
     pub concept_id: String,
     pub title: String,
-    /// EQF level 2–7 (European Qualifications Framework)
+    /// EQF level 2–8 (European Qualifications Framework). 8 = doctoral/research level.
     pub eqf_level: u8,
     pub bloom_minimum: BloomLevel,
-    /// concept_id references; empty list for root nodes
-    pub prerequisites: Vec<String>,
-    /// 2–3 common misconceptions stated as student belief strings
-    pub misconceptions: Vec<String>,
+    /// concept_id references; empty list for root nodes.
+    /// Entries are either a bare slug string or a `{id, kind, status}` mapping.
+    pub prerequisites: Vec<Prerequisite>,
+    /// Common misconceptions. 2–3 at school/undergraduate tier, 2–8 at graduate tier.
+    /// Entries are either a bare student-belief string or a `{type, statement}` mapping.
+    pub misconceptions: Vec<Misconception>,
     /// Explicit validity bounds: when this model applies and when it does not
     pub domain_of_applicability: Vec<String>,
     /// ESCO skill tag URIs
@@ -38,6 +40,12 @@ pub struct NodeMeta {
     /// Defaults to "trunk" if not specified in node.yaml.
     #[serde(default = "default_depth_tier")]
     pub depth_tier: String,
+
+    /// Content tier — the single switch every tier-dependent rule hangs off.
+    /// Optional in node.yaml: when absent, `effective_tier()` derives it from
+    /// `eqf_level` (>= 6 → graduate, else school), so no existing node changes.
+    #[serde(default)]
+    pub tier: Option<Tier>,
 }
 
 fn default_node_type() -> String {
@@ -46,6 +54,247 @@ fn default_node_type() -> String {
 
 fn default_depth_tier() -> String {
     "trunk".to_string()
+}
+
+impl NodeMeta {
+    /// The tier this node is validated against: the declared `tier`, or the
+    /// EQF-derived default when `tier` is absent (backwards compatibility).
+    pub fn effective_tier(&self) -> Tier {
+        self.tier
+            .unwrap_or_else(|| Tier::default_for_eqf(self.eqf_level))
+    }
+
+    /// Misconception statements as plain strings, discarding the graduate type tag.
+    /// Used by the ingest binary, whose `nodes.misconceptions` column is `TEXT[]`.
+    pub fn misconception_statements(&self) -> Vec<String> {
+        self.misconceptions
+            .iter()
+            .map(|m| m.statement().to_string())
+            .collect()
+    }
+
+    /// Prerequisite slugs, discarding kind/status.
+    pub fn prerequisite_ids(&self) -> Vec<&str> {
+        self.prerequisites.iter().map(|p| p.id()).collect()
+    }
+}
+
+/// Content tier. Every tier-dependent validation rule hangs off this one switch
+/// (G-2 of the M1b graduate-tier report), so school content is unaffected by the
+/// graduate relaxations.
+///
+/// `undergraduate` is an authoring label only: it is validated exactly like
+/// `school`. Nothing derives it automatically.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Tier {
+    School,
+    Undergraduate,
+    Graduate,
+}
+
+impl Tier {
+    /// The tier implied by an EQF level when node.yaml declares none.
+    /// EQF 6 is bachelor's; 7 master's; 8 doctoral — graduate rules start at 6.
+    pub fn default_for_eqf(eqf_level: u8) -> Tier {
+        if eqf_level >= 6 {
+            Tier::Graduate
+        } else {
+            Tier::School
+        }
+    }
+
+    pub fn is_graduate(&self) -> bool {
+        matches!(self, Tier::Graduate)
+    }
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Tier::School => "school",
+            Tier::Undergraduate => "undergraduate",
+            Tier::Graduate => "graduate",
+        }
+    }
+}
+
+/// How strictly the Learning Room gates a phase for a given tier.
+///
+/// `Strict` — phase N+1 is unreachable until phase N is complete (the v1.0 rule).
+/// `Advisory` — the phase may be skipped on evidence (a passing Phase-0
+/// calibration probe); it is still authored, still required to exist, and still
+/// offered by default.
+///
+/// Rationale (M1b S-1): worked examples and concreteness fading reverse sign for
+/// high-prior-knowledge learners (expertise reversal, Kalyuga et al. 2003), so
+/// forcing a rusty expert through phases 2 and 3 costs working memory. Phases
+/// 0/1/4/5/6 do not reverse and stay strict at every tier.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum PhaseGate {
+    Strict,
+    Advisory,
+}
+
+/// The gate policy for one phase at one tier.
+///
+/// NOTE: this is the policy source of truth; the Learning Room does not consume
+/// it yet (UI wiring is out of scope for M2 — see the M2 report follow-ups).
+pub fn phase_gate(tier: Tier, phase_number: u8) -> PhaseGate {
+    match (tier, phase_number) {
+        (Tier::Graduate, 2) | (Tier::Graduate, 3) => PhaseGate::Advisory,
+        _ => PhaseGate::Strict,
+    }
+}
+
+/// A misconception entry in node.yaml.
+///
+/// Plain strings are the school-tier form and stay valid everywhere. The typed
+/// form exists because graduate learners rarely hold a false belief about the
+/// physics — they conflate operators, carry conventions across texts, or violate
+/// a scope silently, and each type implies a different treatment (M1b S-5).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum Misconception {
+    /// `- "Force is required to maintain motion"`
+    Plain(String),
+    /// `- {type: conflation, statement: "..."}`
+    Typed {
+        #[serde(rename = "type")]
+        error_type: MisconceptionType,
+        statement: String,
+    },
+}
+
+impl Misconception {
+    /// The learner-facing text, whichever form the entry takes.
+    pub fn statement(&self) -> &str {
+        match self {
+            Misconception::Plain(s) => s,
+            Misconception::Typed { statement, .. } => statement,
+        }
+    }
+
+    /// The declared error type, or `None` for the plain-string form.
+    pub fn error_type(&self) -> Option<MisconceptionType> {
+        match self {
+            Misconception::Plain(_) => None,
+            Misconception::Typed { error_type, .. } => Some(*error_type),
+        }
+    }
+}
+
+impl From<String> for Misconception {
+    fn from(s: String) -> Self {
+        Misconception::Plain(s)
+    }
+}
+
+impl From<&str> for Misconception {
+    fn from(s: &str) -> Self {
+        Misconception::Plain(s.to_string())
+    }
+}
+
+/// Graduate error-mode taxonomy (M1b S-5). `belief` is the school-level
+/// "student believes X" form, available typed for consistency.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MisconceptionType {
+    /// A false statement the learner holds to be true.
+    Belief,
+    /// Two distinct objects treated as notational variants of one.
+    Conflation,
+    /// A sign/index/ordering convention assumed portable between sources.
+    ConventionTrap,
+    /// A property of a special case generalised to the whole class.
+    #[serde(alias = "false_generalization")]
+    FalseGeneralisation,
+    /// A result used outside the assumptions that license it.
+    ScopeViolation,
+    /// Can state the result, cannot execute it under realistic conditions.
+    FluencyGap,
+}
+
+/// A prerequisite entry in node.yaml.
+///
+/// Bare slugs stay valid. The mapping form distinguishes the three kinds of
+/// dependency one flat list conflated (M1b S-4b) and marks prerequisites that
+/// live outside `content/` so the authoring gate does not demand a node that
+/// was never meant to exist here (S-4a).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum Prerequisite {
+    /// `- smooth-manifolds`
+    Id(String),
+    /// `- {id: lie-derivative, kind: contrast, status: external}`
+    Detailed {
+        id: String,
+        #[serde(default)]
+        kind: PrerequisiteKind,
+        #[serde(default)]
+        status: PrerequisiteStatus,
+    },
+}
+
+impl Prerequisite {
+    pub fn id(&self) -> &str {
+        match self {
+            Prerequisite::Id(id) => id,
+            Prerequisite::Detailed { id, .. } => id,
+        }
+    }
+
+    pub fn kind(&self) -> PrerequisiteKind {
+        match self {
+            Prerequisite::Id(_) => PrerequisiteKind::default(),
+            Prerequisite::Detailed { kind, .. } => *kind,
+        }
+    }
+
+    pub fn status(&self) -> PrerequisiteStatus {
+        match self {
+            Prerequisite::Id(_) => PrerequisiteStatus::default(),
+            Prerequisite::Detailed { status, .. } => *status,
+        }
+    }
+}
+
+impl From<String> for Prerequisite {
+    fn from(s: String) -> Self {
+        Prerequisite::Id(s)
+    }
+}
+
+impl From<&str> for Prerequisite {
+    fn from(s: &str) -> Self {
+        Prerequisite::Id(s.to_string())
+    }
+}
+
+/// What kind of dependency a prerequisite is — determines whether the linkage
+/// map should gate, contrast, or merely reactivate.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum PrerequisiteKind {
+    /// Blocking: the node is not readable without it.
+    #[default]
+    Hard,
+    /// Adjacent concept held alongside for contrast; not blocking.
+    Contrast,
+    /// Known but rusty; needs reactivation, not instruction.
+    Recall,
+}
+
+/// Whether a prerequisite is expected to exist as a node in `content/`.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum PrerequisiteStatus {
+    /// A node in this repository's `content/` tree.
+    #[default]
+    Internal,
+    /// Assumed knowledge sourced outside PhysicsTree (a textbook, a degree).
+    /// Exempt from the authoring gate's existence check.
+    External,
 }
 
 /// Bloom's Taxonomy cognitive level.
@@ -135,8 +384,12 @@ pub enum ValidationError {
     InvalidEqfLevel {
         value: u8,
     },
+    /// The allowed range is tier-dependent: 2–3 at school/undergraduate,
+    /// 2–8 at graduate (M1b G-3).
     InvalidMisconceptionCount {
         count: usize,
+        min: usize,
+        max: usize,
     },
     MalformedQuizBlock {
         phase: u8,
@@ -162,6 +415,13 @@ pub enum ValidationError {
     EstimatedMinutesMismatch {
         node_total: u16,
         phase_sum: u16,
+    },
+    /// A tier-conditional required block is missing from a phase's `requires` list.
+    /// Introduced with the graduate tier (M1b G-5: Phase 0 `calibration_probe`).
+    MissingTierRequires {
+        tier: String,
+        phase: u8,
+        block: String,
     },
 }
 
@@ -195,13 +455,13 @@ impl fmt::Display for ValidationError {
             ValidationError::InvalidEqfLevel { value } => {
                 write!(
                     f,
-                    "node.yaml:eqf_level  Value {value} out of allowed range 2-7"
+                    "node.yaml:eqf_level  Value {value} out of allowed range 2-8"
                 )
             }
-            ValidationError::InvalidMisconceptionCount { count } => {
+            ValidationError::InvalidMisconceptionCount { count, min, max } => {
                 write!(
                     f,
-                    "node.yaml:misconceptions  Found {count} item(s); required 2-3"
+                    "node.yaml:misconceptions  Found {count} item(s); required {min}-{max}"
                 )
             }
             ValidationError::MalformedQuizBlock { phase, detail } => {
@@ -232,6 +492,12 @@ impl fmt::Display for ValidationError {
                 write!(
                     f,
                     "node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})"
+                )
+            }
+            ValidationError::MissingTierRequires { tier, phase, block } => {
+                write!(
+                    f,
+                    "node.yaml:phases[{phase}]  Missing required block '{block}' for tier {tier}"
                 )
             }
         }
@@ -334,6 +600,20 @@ impl PhaseType {
     }
 }
 
+/// The allowed `misconceptions` count for a tier, inclusive.
+///
+/// School and undergraduate keep the v1.0 cap of 3 — the school construct is a
+/// belief the learner holds, and more than three is a sign the node is too big.
+/// Graduate content is capped at 8 because typed error modes multiply: the M1b
+/// pilot node identified eight and had to drop five.
+pub fn misconception_range(tier: Tier) -> (usize, usize) {
+    if tier.is_graduate() {
+        (2, 8)
+    } else {
+        (2, 3)
+    }
+}
+
 /// Check EQF-conditional rules and append errors to the provided Vec.
 fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
     // EQF >= 4: derivation_required must be true AND phase 2 must contain "derivation"
@@ -385,15 +665,24 @@ fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
 pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     let mut errors = Vec::new();
 
-    // 1. Check eqf_level is in range 2-7
-    if node.meta.eqf_level < 2 || node.meta.eqf_level > 7 {
+    // The tier switch: declared, or derived from eqf_level for pre-tier content.
+    let tier = node.meta.effective_tier();
+
+    // 1. Check eqf_level is in range 2-8 (8 = doctoral/research; M1b G-1)
+    if !(2..=8).contains(&node.meta.eqf_level) {
         errors.push(ValidationError::InvalidEqfLevel { value: node.meta.eqf_level });
     }
 
-    // 2. Check misconceptions count is 2 or 3
+    // 2. Check misconception count against the tier-conditional range (M1b G-3).
+    // Graduate nodes carry more error modes than the school cap of 3 allows.
+    let (min_misconceptions, max_misconceptions) = misconception_range(tier);
     let misconception_count = node.meta.misconceptions.len();
-    if misconception_count < 2 || misconception_count > 3 {
-        errors.push(ValidationError::InvalidMisconceptionCount { count: misconception_count });
+    if !(min_misconceptions..=max_misconceptions).contains(&misconception_count) {
+        errors.push(ValidationError::InvalidMisconceptionCount {
+            count: misconception_count,
+            min: min_misconceptions,
+            max: max_misconceptions,
+        });
     }
 
     // 3. Check exactly 7 phases present (numbers 0-6), no gaps, no duplicates
@@ -477,6 +766,21 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
         }
     }
 
+    // 9b. Tier-conditional requires: graduate nodes need a Phase 0 calibration probe.
+    // The probe is what licenses the advisory gate on phases 2 and 3 (M1b G-5) —
+    // without it there is no evidence on which a learner could skip them.
+    if tier.is_graduate() {
+        if let Some(phase0) = node.meta.phases.iter().find(|p| p.number == 0) {
+            if !phase0.requires.iter().any(|r| r == "calibration_probe") {
+                errors.push(ValidationError::MissingTierRequires {
+                    tier: tier.name().to_string(),
+                    phase: 0,
+                    block: "calibration_probe".into(),
+                });
+            }
+        }
+    }
+
     // 10. estimated_minutes consistency: if per-phase minutes are provided, check sum == node total
     if !node.phase_estimated_minutes.is_empty() {
         let phase_sum: u16 = node.phase_estimated_minutes.values().sum();
@@ -547,16 +851,20 @@ mod tests {
 
     #[test]
     fn test_validation_error_display() {
-        let err = ValidationError::InvalidEqfLevel { value: 8 };
+        let err = ValidationError::InvalidEqfLevel { value: 9 };
         assert_eq!(
             err.to_string(),
-            "node.yaml:eqf_level  Value 8 out of allowed range 2-7"
+            "node.yaml:eqf_level  Value 9 out of allowed range 2-8"
         );
 
         let err = ValidationError::MissingPhase { number: 3 };
         assert_eq!(err.to_string(), "node.yaml:phases  Missing phase number 3");
 
-        let err = ValidationError::InvalidMisconceptionCount { count: 1 };
+        let err = ValidationError::InvalidMisconceptionCount {
+            count: 1,
+            min: 2,
+            max: 3,
+        };
         assert_eq!(
             err.to_string(),
             "node.yaml:misconceptions  Found 1 item(s); required 2-3"
@@ -643,6 +951,7 @@ mod tests {
             phases,
             node_type: "concept".into(),
             depth_tier: "branch".into(),
+            tier: None,
         };
 
         // Build headings for each phase based on its requires
@@ -716,6 +1025,7 @@ mod tests {
             phases,
             node_type: "concept".into(),
             depth_tier: "trunk".into(),
+            tier: None,
         };
 
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
@@ -798,12 +1108,31 @@ mod tests {
     #[test]
     fn test_invalid_eqf_level_too_high() {
         let mut node = make_valid_eqf4_node();
+        node.meta.eqf_level = 9;
+
+        let errors = validate_node(&node);
+        assert!(
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 9 })),
+            "Expected InvalidEqfLevel {{ value: 9 }}, got: {:?}",
+            errors
+        );
+    }
+
+    /// EQF 8 (doctoral) is inside the range after G-1 — the only remaining
+    /// complaint for an otherwise-valid node is the graduate calibration probe.
+    #[test]
+    fn test_eqf8_is_in_range() {
+        let mut node = make_valid_eqf4_node();
         node.meta.eqf_level = 8;
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 8 })),
-            "Expected InvalidEqfLevel {{ value: 8 }}, got: {:?}",
+            !errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::InvalidEqfLevel { .. })),
+            "EQF 8 must be accepted after the range extension, got: {:?}",
             errors
         );
     }
@@ -890,7 +1219,7 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 1 })),
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 1, .. })),
             "Expected InvalidMisconceptionCount {{ count: 1 }}, got: {:?}",
             errors
         );
@@ -908,7 +1237,7 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 4 })),
+            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 4, .. })),
             "Expected InvalidMisconceptionCount {{ count: 4 }}, got: {:?}",
             errors
         );
@@ -1117,5 +1446,345 @@ mod tests {
             "Expected no mismatch error when no per-phase minutes provided, got: {:?}",
             mismatch_errors
         );
+    }
+
+    // ===== Graduate tier (M1b G-1..G-5) =====
+
+    /// A valid EQF 7 graduate node: declared tier, Phase 0 calibration probe,
+    /// typed prerequisites and misconceptions above the school cap of 3.
+    fn make_valid_graduate_node() -> ParsedNode {
+        let mut node = make_valid_eqf4_node();
+        node.meta.concept_id = "parallel-transport".into();
+        node.meta.eqf_level = 7;
+        node.meta.tier = Some(Tier::Graduate);
+        node.meta.prerequisites = vec![
+            Prerequisite::Id("smooth-manifolds".into()),
+            Prerequisite::Detailed {
+                id: "lie-derivative".into(),
+                kind: PrerequisiteKind::Contrast,
+                status: PrerequisiteStatus::External,
+            },
+        ];
+        node.meta.misconceptions = (0..8)
+            .map(|i| Misconception::Typed {
+                error_type: MisconceptionType::Conflation,
+                statement: format!("error mode {i}"),
+            })
+            .collect();
+        if let Some(phase0) = node.meta.phases.iter_mut().find(|p| p.number == 0) {
+            phase0.requires.push("calibration_probe".into());
+        }
+        if let Some(headings) = node.phase_headings.get_mut(&0) {
+            headings.push("Calibration Probe".into());
+        }
+        node
+    }
+
+    #[test]
+    fn test_valid_graduate_node_has_no_errors() {
+        let node = make_valid_graduate_node();
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "Expected no errors for a valid graduate node, got: {:?}",
+            errors
+        );
+    }
+
+    /// G-2: with no declared tier, EQF >= 6 means graduate and everything below
+    /// stays school — which is why no existing v1.1 node changes behaviour.
+    #[test]
+    fn test_tier_defaults_from_eqf_level() {
+        assert_eq!(Tier::default_for_eqf(2), Tier::School);
+        assert_eq!(Tier::default_for_eqf(5), Tier::School);
+        assert_eq!(Tier::default_for_eqf(6), Tier::Graduate);
+        assert_eq!(Tier::default_for_eqf(8), Tier::Graduate);
+
+        let node = make_valid_eqf4_node();
+        assert_eq!(node.meta.tier, None);
+        assert_eq!(node.meta.effective_tier(), Tier::School);
+    }
+
+    /// An explicit `tier` wins over the EQF-derived default in both directions.
+    #[test]
+    fn test_declared_tier_overrides_eqf_default() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.tier = Some(Tier::Graduate);
+        assert_eq!(node.meta.effective_tier(), Tier::Graduate);
+
+        let mut node = make_valid_graduate_node();
+        node.meta.tier = Some(Tier::Undergraduate);
+        assert_eq!(node.meta.effective_tier(), Tier::Undergraduate);
+    }
+
+    /// G-3: the 2–3 cap is unchanged for school content.
+    #[test]
+    fn test_school_tier_misconception_cap_unchanged() {
+        assert_eq!(misconception_range(Tier::School), (2, 3));
+        assert_eq!(misconception_range(Tier::Undergraduate), (2, 3));
+
+        let mut node = make_valid_eqf4_node();
+        node.meta.misconceptions = (0..4).map(|i| format!("belief {i}").into()).collect();
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount {
+                    count: 4,
+                    min: 2,
+                    max: 3
+                }
+            )),
+            "School tier must still cap misconceptions at 3, got: {:?}",
+            errors
+        );
+    }
+
+    /// G-3: graduate content may carry up to 8 typed error modes, but not 9.
+    #[test]
+    fn test_graduate_tier_misconception_range() {
+        assert_eq!(misconception_range(Tier::Graduate), (2, 8));
+
+        let mut node = make_valid_graduate_node();
+        node.meta.misconceptions = (0..9).map(|i| format!("error mode {i}").into()).collect();
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount {
+                    count: 9,
+                    min: 2,
+                    max: 8
+                }
+            )),
+            "Graduate tier must cap misconceptions at 8, got: {:?}",
+            errors
+        );
+    }
+
+    /// Plain strings stay valid at graduate tier — typing is optional.
+    #[test]
+    fn test_graduate_accepts_plain_string_misconceptions() {
+        let mut node = make_valid_graduate_node();
+        node.meta.misconceptions = vec!["plain one".into(), "plain two".into()];
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "Plain-string misconceptions must stay valid at graduate tier, got: {:?}",
+            errors
+        );
+    }
+
+    /// G-5: a graduate node without the Phase-0 calibration probe is rejected —
+    /// the probe is the evidence the advisory gate on phases 2/3 runs on.
+    #[test]
+    fn test_graduate_requires_calibration_probe() {
+        let mut node = make_valid_graduate_node();
+        if let Some(phase0) = node.meta.phases.iter_mut().find(|p| p.number == 0) {
+            phase0.requires.retain(|r| r != "calibration_probe");
+        }
+        if let Some(headings) = node.phase_headings.get_mut(&0) {
+            headings.retain(|h| h != "Calibration Probe");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::MissingTierRequires { phase: 0, block, .. } if block == "calibration_probe"
+            )),
+            "Expected MissingTierRequires for 'calibration_probe', got: {:?}",
+            errors
+        );
+    }
+
+    /// School nodes must not acquire the calibration-probe requirement.
+    #[test]
+    fn test_school_tier_does_not_require_calibration_probe() {
+        let node = make_valid_eqf4_node();
+        let errors = validate_node(&node);
+        assert!(
+            !errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::MissingTierRequires { .. })),
+            "School tier must not require a calibration probe, got: {:?}",
+            errors
+        );
+    }
+
+    /// Declaring the probe in `requires` still demands the H2 in phase-0.md.
+    #[test]
+    fn test_graduate_calibration_probe_needs_its_heading() {
+        let mut node = make_valid_graduate_node();
+        if let Some(headings) = node.phase_headings.get_mut(&0) {
+            headings.retain(|h| h != "Calibration Probe");
+        }
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::MissingRequiredBlock { phase: 0, block, .. } if block == "calibration_probe"
+            )),
+            "Expected MissingRequiredBlock for the calibration probe heading, got: {:?}",
+            errors
+        );
+    }
+
+    /// G-5: the advisory gate covers phases 2 and 3 at graduate tier only.
+    /// Phases 4/5/6 (self-explanation, retrieval, spacing) do not reverse with
+    /// expertise and stay strict everywhere.
+    #[test]
+    fn test_phase_gate_policy() {
+        for n in 0u8..=6 {
+            assert_eq!(
+                phase_gate(Tier::School, n),
+                PhaseGate::Strict,
+                "school phase {n} must stay strict"
+            );
+            assert_eq!(
+                phase_gate(Tier::Undergraduate, n),
+                PhaseGate::Strict,
+                "undergraduate phase {n} must stay strict"
+            );
+        }
+        assert_eq!(phase_gate(Tier::Graduate, 0), PhaseGate::Strict);
+        assert_eq!(phase_gate(Tier::Graduate, 1), PhaseGate::Strict);
+        assert_eq!(phase_gate(Tier::Graduate, 2), PhaseGate::Advisory);
+        assert_eq!(phase_gate(Tier::Graduate, 3), PhaseGate::Advisory);
+        assert_eq!(phase_gate(Tier::Graduate, 4), PhaseGate::Strict);
+        assert_eq!(phase_gate(Tier::Graduate, 5), PhaseGate::Strict);
+        assert_eq!(phase_gate(Tier::Graduate, 6), PhaseGate::Strict);
+    }
+
+    /// G-4: both prerequisite forms expose the same accessors; the bare form
+    /// keeps the v1.0 meaning (hard, internal).
+    #[test]
+    fn test_prerequisite_accessors_and_defaults() {
+        let bare: Prerequisite = "smooth-manifolds".into();
+        assert_eq!(bare.id(), "smooth-manifolds");
+        assert_eq!(bare.kind(), PrerequisiteKind::Hard);
+        assert_eq!(bare.status(), PrerequisiteStatus::Internal);
+
+        let detailed = Prerequisite::Detailed {
+            id: "lie-derivative".into(),
+            kind: PrerequisiteKind::Contrast,
+            status: PrerequisiteStatus::External,
+        };
+        assert_eq!(detailed.id(), "lie-derivative");
+        assert_eq!(detailed.kind(), PrerequisiteKind::Contrast);
+        assert_eq!(detailed.status(), PrerequisiteStatus::External);
+
+        let node = make_valid_graduate_node();
+        assert_eq!(
+            node.meta.prerequisite_ids(),
+            vec!["smooth-manifolds", "lie-derivative"]
+        );
+    }
+
+    /// Typed misconceptions flatten to their statement for the TEXT[] column.
+    #[test]
+    fn test_misconception_accessors_and_flattening() {
+        let plain: Misconception = "velocity is speed".into();
+        assert_eq!(plain.statement(), "velocity is speed");
+        assert_eq!(plain.error_type(), None);
+
+        let typed = Misconception::Typed {
+            error_type: MisconceptionType::ScopeViolation,
+            statement: "assumes vanishing torsion outside GR".into(),
+        };
+        assert_eq!(typed.statement(), "assumes vanishing torsion outside GR");
+        assert_eq!(typed.error_type(), Some(MisconceptionType::ScopeViolation));
+
+        let mut node = make_valid_eqf4_node();
+        node.meta.misconceptions = vec![plain, typed];
+        assert_eq!(
+            node.meta.misconception_statements(),
+            vec![
+                "velocity is speed".to_string(),
+                "assumes vanishing torsion outside GR".to_string()
+            ]
+        );
+    }
+
+    /// Both entry shapes must survive a round trip through a self-describing
+    /// format — the untagged enums are the only part of the schema where a
+    /// serializer change could silently break existing node.yaml files.
+    #[test]
+    fn test_untagged_entry_shapes_round_trip() {
+        let json = r#"{
+            "misconceptions": [
+                "a bare belief string",
+                {"type": "convention_trap", "statement": "index order is portable"},
+                {"type": "false_generalization", "statement": "Gamma has indices so it is a tensor"}
+            ],
+            "prerequisites": [
+                "smooth-manifolds",
+                {"id": "lie-derivative", "kind": "contrast", "status": "external"},
+                {"id": "tensor-fields"}
+            ]
+        }"#;
+
+        #[derive(Deserialize)]
+        struct Shapes {
+            misconceptions: Vec<Misconception>,
+            prerequisites: Vec<Prerequisite>,
+        }
+
+        let parsed: Shapes = serde_json::from_str(json).expect("untagged shapes must deserialize");
+
+        assert_eq!(parsed.misconceptions[0].error_type(), None);
+        assert_eq!(parsed.misconceptions[0].statement(), "a bare belief string");
+        assert_eq!(
+            parsed.misconceptions[1].error_type(),
+            Some(MisconceptionType::ConventionTrap)
+        );
+        // The -ize spelling is accepted as an alias for the -ise variant.
+        assert_eq!(
+            parsed.misconceptions[2].error_type(),
+            Some(MisconceptionType::FalseGeneralisation)
+        );
+
+        assert_eq!(parsed.prerequisites[0].kind(), PrerequisiteKind::Hard);
+        assert_eq!(
+            parsed.prerequisites[0].status(),
+            PrerequisiteStatus::Internal
+        );
+        assert_eq!(parsed.prerequisites[1].kind(), PrerequisiteKind::Contrast);
+        assert_eq!(
+            parsed.prerequisites[1].status(),
+            PrerequisiteStatus::External
+        );
+        // Omitted kind/status fall back to the v1.0 meaning.
+        assert_eq!(parsed.prerequisites[2].kind(), PrerequisiteKind::Hard);
+        assert_eq!(
+            parsed.prerequisites[2].status(),
+            PrerequisiteStatus::Internal
+        );
+    }
+
+    /// A node.yaml with no `tier` key must still deserialize (backwards
+    /// compatibility for every node authored before the graduate tier).
+    #[test]
+    fn test_node_meta_without_tier_deserializes() {
+        let json = r#"{
+            "concept_id": "kinematics",
+            "title": "Kinematics",
+            "eqf_level": 4,
+            "bloom_minimum": "apply",
+            "prerequisites": ["vectors"],
+            "misconceptions": ["one", "two"],
+            "domain_of_applicability": ["classical"],
+            "esco_tags": [],
+            "estimated_minutes": 63,
+            "derivation_required": true,
+            "phases": []
+        }"#;
+
+        let meta: NodeMeta = serde_json::from_str(json).expect("pre-tier node.yaml must parse");
+        assert_eq!(meta.tier, None);
+        assert_eq!(meta.effective_tier(), Tier::School);
+        assert_eq!(meta.node_type, "concept");
+        assert_eq!(meta.depth_tier, "trunk");
     }
 }
