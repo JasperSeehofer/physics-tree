@@ -90,6 +90,12 @@ Its components are defined by $\nabla_{\partial_{\mu}}\partial_{\nu} = \Gamma^{\
 
 $$\nabla_{\mu}\omega_{\nu} = \partial_{\mu}\omega_{\nu} - \Gamma^{\lambda}{}_{\mu\nu}\omega_{\lambda}, \qquad \nabla_{\mu}T^{\rho}{}_{\sigma} = \partial_{\mu}T^{\rho}{}_{\sigma} + \Gamma^{\rho}{}_{\mu\lambda}T^{\lambda}{}_{\sigma} - \Gamma^{\lambda}{}_{\mu\sigma}T^{\rho}{}_{\lambda}.$$
 
+One index-slot per $\Gamma$, sign set by whether the slot is up or down: that is the whole rule, and it is worth stating that it is the whole rule *for tensors only*. A tensor **density** of weight $w$ — such as $\sqrt{-g}$ ($w = 1$), the Levi-Civita symbol, or any measure you integrate against — is not a tensor, and the same formula gives the wrong answer for it. The extension that actually commutes with contraction picks up one further term,
+
+$$\nabla_{\mu}\mathfrak{T} = \left(\text{the tensor formula}\right) - w\,\Gamma^{\lambda}{}_{\lambda\mu}\,\mathfrak{T},$$
+
+and the fastest check is the case you already know: with $\Gamma^{\lambda}{}_{\lambda\mu} = \partial_{\mu}\ln\sqrt{-g}$ for the Levi-Civita connection, $w = 1$ gives $\nabla_{\mu}\sqrt{-g} = \partial_{\mu}\sqrt{-g} - \partial_{\mu}\sqrt{-g} = 0$, which is what metric compatibility requires and what the naive formula would not have produced. This is the `false_generalisation` misconception on densities declared in `node.yaml`; the counterexample is the one line above.
+
 **3. Parallel transport** along $\gamma : [0,1] \to M$ is the solution operator of $\nabla_{\dot\gamma}V = 0$, a linear isomorphism $P_{\gamma} : T_{\gamma(0)}M \to T_{\gamma(1)}M$. It depends on $\gamma$, in general not only on its endpoints. The **holonomy group** at $p$ is $\mathrm{Hol}_{p}(\nabla) = \{P_{\gamma} : \gamma \text{ a loop at } p\} \subseteq GL(T_{p}M)$ — a subgroup of $O(n)$ (or $O(1,n-1)$) when the connection is metric-compatible, because then transport preserves the inner product.
 
 **4. Torsion and curvature** are the two tensors measuring failure of the connection to be trivial:
@@ -113,6 +119,22 @@ which is the Yang–Mills gauge transformation with gauge group $GL(n,\mathbb{R}
 ## Derivation
 
 Three things are derived here, in dependency order: (D1) the transformation law that forces $\Gamma$ to exist as non-tensorial extra structure — already obtained in Phase 1, restated for completeness; (D2) the fundamental theorem of Riemannian geometry, which pins $\Gamma$ down uniquely once two further conditions are imposed; (D3) the sphere connection used in the Bridging Stage, as a worked instance of D2.
+
+### Conventions
+
+Every equation in this node uses the column below, and nothing in it is forced — each entry is a choice, and the literature you will read next is split on most of them. Copying a formula across a convention boundary without checking is the single most productive source of sign errors in this subject, which is why the table comes before the derivation rather than in an appendix.
+
+| Object | This node | Also common, and incompatible |
+|---|---|---|
+| Metric signature | $(-,+,+,+)$, with $c = 1$ | $(+,-,-,-)$ — flips $E = -\xi_{\mu}p^{\mu}$ to $+\xi_{\mu}p^{\mu}$ |
+| Connection index order | $\nabla_{\mu}V^{\rho} = \partial_{\mu}V^{\rho} + \Gamma^{\rho}{}_{\mu\lambda}V^{\lambda}$ — the **first lower index is the differentiation direction** | $\Gamma^{\rho}{}_{\lambda\mu}$, direction last. Identical for Levi-Civita, *not* identical once torsion is allowed |
+| Torsion | $T^{\lambda}{}_{\mu\nu} = \Gamma^{\lambda}{}_{\mu\nu} - \Gamma^{\lambda}{}_{\nu\mu}$ | The same expression with the opposite overall sign |
+| Riemann | $[\nabla_{\mu},\nabla_{\nu}]V^{\rho} = R^{\rho}{}_{\sigma\mu\nu}V^{\sigma} - T^{\lambda}{}_{\mu\nu}\nabla_{\lambda}V^{\rho}$, equivalently $R^{\rho}{}_{\sigma\mu\nu} = \partial_{\mu}\Gamma^{\rho}{}_{\nu\sigma} - \partial_{\nu}\Gamma^{\rho}{}_{\mu\sigma} + \Gamma^{\rho}{}_{\mu\lambda}\Gamma^{\lambda}{}_{\nu\sigma} - \Gamma^{\rho}{}_{\nu\lambda}\Gamma^{\lambda}{}_{\mu\sigma}$ | Overall sign reversed (Weinberg); or the last two indices written first |
+| Gaussian curvature, $n = 2$ | $K = R_{1212}/\det g$, which gives $K = +1/R^{2}$ on the sphere | — |
+| Transport / holonomy | $\dfrac{dV^{\mu}}{d\lambda} = -\Gamma^{\mu}{}_{\nu\lambda}u^{\nu}V^{\lambda}$, hence $\mathcal{P}\exp\left(-\oint\Gamma\right)$ | Both signs appear; they are inverse group elements |
+| Gauge derivative | $D_{\mu} = \partial_{\mu} - igA^{a}_{\mu}T^{a}$, so the dictionary to §5 is $\boldsymbol{\Gamma}_{\mu} \leftrightarrow -igA_{\mu}$ | $D_{\mu} = \partial_{\mu} + igA_{\mu}$, or anti-Hermitian generators absorbing the $i$ |
+
+This table is the treatment for the `convention_trap` misconception declared in `node.yaml`: the trap is not that index order matters *here* — for the Levi-Civita connection it does not — but that the symmetry which makes it harmless is a property of one connection and not of the notation, so the habit of ignoring it does not survive the first torsionful paper you read.
 
 ### Assumptions
 
