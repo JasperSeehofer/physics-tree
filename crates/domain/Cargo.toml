@@ -11,6 +11,12 @@ sqlx = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 pulldown-cmark = { workspace = true, optional = true }
 
+[dev-dependencies]
+# Unconditional in tests so the untagged node.yaml entry shapes (Misconception,
+# Prerequisite) are exercised by a plain `cargo test --workspace`, not only
+# under --all-features.
+serde_json = { workspace = true }
+
 [features]
 default = []
 ssr = ["sqlx", "serde_json", "pulldown-cmark"]

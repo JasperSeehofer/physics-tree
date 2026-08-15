@@ -144,8 +144,39 @@ def _check_word_count(phase_text: str, phase_num: int, min_words: int = 50) -> C
     )
 
 
+def _normalise_prerequisite(entry: object) -> tuple[str, str]:
+    """Return `(id, status)` for a prerequisite entry in either supported shape.
+
+    Content spec v1.2 (M1b G-4) allows two forms:
+      - a bare slug string:            `- vectors`
+      - a mapping with id/kind/status: `- {id: lie-derivative, kind: contrast,
+                                           status: external}`
+
+    Defaults match the v1.0 meaning of a bare slug: `kind: hard`,
+    `status: internal`. A mapping without an `id` key yields an empty id, which
+    the caller reports as malformed rather than as a missing node.
+    """
+    if isinstance(entry, dict):
+        return str(entry.get("id", "")), str(entry.get("status", "internal"))
+    return str(entry), "internal"
+
+
 def _check_prerequisite_existence(node_dir: Path, project_root: Path) -> CheckResult:
-    """Verify every prerequisite slug in node.yaml resolves to a real content directory.
+    """Verify every internal prerequisite in node.yaml resolves to real content.
+
+    A prerequisite resolves if `content/` contains either
+
+      - a v1.1 node directory `<slug>/`, or
+      - a v1.0 flat file `<slug>.md`.
+
+    The directory-only match was a live bug (M1b S-4c): the shipped kinematics
+    pilot node declares `vectors` and `calculus`, which exist as v1.0 flat files,
+    so the node failed its own gate on the day it was authored.
+
+    Prerequisites declared `status: external` are assumed knowledge sourced
+    outside PhysicsTree and are exempt from the check entirely (M1b S-4a) —
+    without the exemption a graduate node cannot be authored until its whole
+    prerequisite chain exists in content/.
 
     Uses `yaml.safe_load()` (T-13-01) — never `yaml.load()`.
     No `prerequisites` field or an empty list = PASS (not all nodes require them).
@@ -192,12 +223,35 @@ def _check_prerequisite_existence(node_dir: Path, project_root: Path) -> CheckRe
         )
 
     missing: list[str] = []
-    for slug in prerequisites:
-        slug_str = str(slug)
-        # Search the content tree for a directory named after the prereq slug.
-        matches = [p for p in content_dir.rglob(slug_str) if p.is_dir()]
-        if not matches:
+    malformed: list[str] = []
+    external: list[str] = []
+    checked = 0
+
+    for entry in prerequisites:
+        slug_str, status = _normalise_prerequisite(entry)
+
+        if not slug_str:
+            malformed.append(repr(entry))
+            continue
+
+        if status == "external":
+            external.append(slug_str)
+            continue
+
+        checked += 1
+        # A prerequisite resolves as a v1.1 node directory <slug>/ ...
+        dir_matches = [p for p in content_dir.rglob(slug_str) if p.is_dir()]
+        # ... or as a v1.0 flat file <slug>.md.
+        file_matches = [p for p in content_dir.rglob(f"{slug_str}.md") if p.is_file()]
+        if not dir_matches and not file_matches:
             missing.append(slug_str)
+
+    if malformed:
+        return CheckResult(
+            name="prerequisite_existence",
+            status=CheckStatus.FAIL,
+            detail=f"Malformed prerequisite entries (no 'id'): {', '.join(malformed)}",
+        )
 
     if missing:
         return CheckResult(
@@ -206,10 +260,13 @@ def _check_prerequisite_existence(node_dir: Path, project_root: Path) -> CheckRe
             detail=f"Missing prerequisite nodes in content/: {', '.join(missing)}",
         )
 
+    detail = f"All {checked} internal prerequisites exist"
+    if external:
+        detail += f"; {len(external)} external (exempt): {', '.join(external)}"
     return CheckResult(
         name="prerequisite_existence",
         status=CheckStatus.PASS,
-        detail=f"All {len(prerequisites)} prerequisites exist",
+        detail=detail,
     )
 
 

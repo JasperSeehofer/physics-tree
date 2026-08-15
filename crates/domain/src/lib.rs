@@ -6,8 +6,9 @@ pub mod user;
 
 pub use content::{ContentMetadata, ReviewStatus};
 pub use content_spec::{
-    BloomLevel, NodeMeta, ParsedNode, PhaseEntry, PhaseType, ValidationError, heading_to_requires,
-    requires_to_heading, validate_node,
+    BloomLevel, Misconception, MisconceptionType, NodeMeta, ParsedNode, PhaseEntry, PhaseGate,
+    PhaseType, Prerequisite, PrerequisiteKind, PrerequisiteStatus, Tier, ValidationError,
+    heading_to_requires, misconception_range, phase_gate, requires_to_heading, validate_node,
 };
 #[cfg(feature = "ssr")]
 pub use content_spec::extract_h2_headings;

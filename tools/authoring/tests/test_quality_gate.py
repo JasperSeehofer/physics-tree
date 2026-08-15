@@ -2,16 +2,19 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from authoring.quality_gate import (
     CheckResult,
     CheckStatus,
     GateReport,
     _check_latex_balance,
+    _check_prerequisite_existence,
     _check_word_count,
     run_judgment_checks,
     write_gate_report,
 )
+from authoring.subprocess_tools import resolve_project_root
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +103,91 @@ def test_word_count_pass():
 def test_word_count_fail():
     result = _check_word_count("short", 0, min_words=50)
     assert result.status == CheckStatus.FAIL
+
+
+# ---------------------------------------------------------------------------
+# _check_prerequisite_existence (content spec v1.2 / M1b G-4)
+# ---------------------------------------------------------------------------
+def _write_node(dir_path: Path, prerequisites) -> Path:
+    """Write a minimal node.yaml carrying only the prerequisites under test."""
+    dir_path.mkdir(parents=True, exist_ok=True)
+    (dir_path / "node.yaml").write_text(yaml.safe_dump({"prerequisites": prerequisites}))
+    return dir_path
+
+
+def test_prerequisite_existence_accepts_v11_node_directory(tmp_path: Path):
+    (tmp_path / "content" / "classical-mechanics" / "vectors").mkdir(parents=True)
+    node_dir = _write_node(tmp_path / "node", ["vectors"])
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.PASS, result.detail
+
+
+def test_prerequisite_existence_accepts_v10_flat_file(tmp_path: Path):
+    """The bug M1b S-4c found: v1.0 prerequisites are files, not directories."""
+    branch = tmp_path / "content" / "classical-mechanics"
+    branch.mkdir(parents=True)
+    (branch / "vectors.md").write_text("# Vectors\n")
+    node_dir = _write_node(tmp_path / "node", ["vectors"])
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.PASS, result.detail
+
+
+def test_prerequisite_existence_still_fails_on_missing(tmp_path: Path):
+    (tmp_path / "content").mkdir()
+    node_dir = _write_node(tmp_path / "node", ["nonexistent-node-abc123"])
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.FAIL
+    assert "nonexistent-node-abc123" in result.detail
+
+
+def test_prerequisite_existence_exempts_external(tmp_path: Path):
+    (tmp_path / "content").mkdir()
+    node_dir = _write_node(
+        tmp_path / "node",
+        [{"id": "smooth-manifolds", "kind": "hard", "status": "external"}],
+    )
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.PASS, result.detail
+    assert "external" in result.detail
+
+
+def test_prerequisite_existence_checks_internal_mapping_entries(tmp_path: Path):
+    """A mapping entry without `status: external` is still checked."""
+    (tmp_path / "content").mkdir()
+    node_dir = _write_node(tmp_path / "node", [{"id": "tensor-fields", "kind": "hard"}])
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.FAIL
+    assert "tensor-fields" in result.detail
+
+
+def test_prerequisite_existence_flags_mapping_without_id(tmp_path: Path):
+    (tmp_path / "content").mkdir()
+    node_dir = _write_node(tmp_path / "node", [{"kind": "hard"}])
+
+    result = _check_prerequisite_existence(node_dir, tmp_path)
+    assert result.status == CheckStatus.FAIL
+    assert "Malformed" in result.detail
+
+
+def test_shipped_kinematics_node_passes_prerequisite_check():
+    """Regression for M1b S-4c: the shipped pilot node failed its own gate.
+
+    kinematics declares `vectors` and `calculus`, which exist only as v1.0 flat
+    files. Before the fix this check returned FAIL for the one v1.1 node in the
+    repository.
+    """
+    root = resolve_project_root()
+    node_dir = root / "content" / "classical-mechanics" / "kinematics"
+    if not node_dir.exists():  # pragma: no cover - defensive
+        pytest.skip("kinematics pilot node not present")
+
+    result = _check_prerequisite_existence(node_dir, root)
+    assert result.status == CheckStatus.PASS, result.detail
 
 
 # ---------------------------------------------------------------------------

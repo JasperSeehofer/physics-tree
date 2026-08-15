@@ -1,13 +1,28 @@
 # Content Specification: 7-Phase Node Template
 
-**Version:** 1.0
+**Version:** 1.2
 **Status:** Canonical — all downstream phases (Phase 9 ingest, Phase 10 pilot authoring, Phase 11 Learning Room, Phase 12 AI pipeline) build against this contract.
+
+**v1.2 changes (graduate tier).** Every change is additive and gated behind the
+new `tier` field; no v1.1 node needs to change. Source: mission M1b's
+graduate-content stress test (`.planning/missions/M1-qg-assessment/M1b-pedagogy-report.md`),
+implemented by mission M2.
+
+| # | Change | Section |
+|---|--------|---------|
+| G-1 | `eqf_level` range extended to 2–8 | §3, §7 |
+| G-2 | New optional `tier: school \| undergraduate \| graduate` — the switch every tier-dependent rule reads | §3 |
+| G-3 | `misconceptions` 2–8 at graduate tier, optionally typed `{type, statement}` | §3 |
+| G-4 | `prerequisites` entries may be `{id, kind, status}`; `external` is exempt from the authoring gate's existence check | §3 |
+| G-5 | Graduate Phase 0 requires a `calibration_probe`; the Learning Room gate becomes advisory for phases 2 and 3 | §1, §4 |
+| — | Granularity rule restated per tier ("one coherent concept") | §1 |
+| — | `node_type` / `depth_tier` documented (they were enforced but undocumented) | §3 |
 
 ---
 
 ## 1. Overview
 
-PhysicsTree content is organized as per-node directories. Each node represents one cognitive object (one formula, theorem, law, or conceptual distinction) and contains a metadata file (`node.yaml`) plus seven sequential phase Markdown files (`phase-0.md` through `phase-6.md`).
+PhysicsTree content is organized as per-node directories. Each node represents one cognitive object and contains a metadata file (`node.yaml`) plus seven sequential phase Markdown files (`phase-0.md` through `phase-6.md`). What "one cognitive object" means is tier-dependent — see [Granularity](#granularity) below.
 
 The seven phases implement an evidence-based didactic sequence:
 
@@ -21,7 +36,61 @@ The seven phases implement an evidence-based didactic sequence:
 | 5 | Retrieval Check | Test recall and ability to apply in new context |
 | 6 | Spaced Return | Distributed practice and interleaving with other concepts |
 
-The phase sequence is non-negotiable. The Learning Room enforces it: a learner cannot access Phase N+1 until Phase N is complete.
+### Phase ordering
+
+The phase sequence is authored in full at every tier — all seven phases exist in
+every node. How strictly a learner is held to the order depends on the tier:
+
+| Tier | Phases 0, 1 | Phases 2, 3 | Phases 4, 5, 6 |
+|------|-------------|-------------|----------------|
+| `school`, `undergraduate` | strict | **strict** | strict |
+| `graduate` | strict | **advisory** | strict |
+
+**Strict** — a learner cannot access Phase N+1 until Phase N is complete (the
+v1.0 rule).
+
+**Advisory** — the phase is still authored, still offered by default, and still
+required to exist; but a learner with evidence of prior mastery may skip it. The
+evidence is the Phase-0 `calibration_probe` (§4). This is not a matter of taste:
+every instructional-support effect the template is built on has prior knowledge
+as its documented boundary condition, and worked examples (Phase 3) and
+concreteness fading (Phase 2) *reverse sign* for high-prior-knowledge learners —
+the expertise reversal effect (Kalyuga, Ayres, Chandler & Sweller 2003), from the
+same Cognitive Load Theory literature the template cites as its foundation.
+Phases 4 (self-explanation), 5 (retrieval) and 6 (spacing) do not reverse — they
+strengthen with expertise — so they stay strict at every tier.
+
+The policy is expressed in code as `domain::content_spec::phase_gate(tier, n)`.
+Enforcement is the Learning Room's; until it consumes the policy, all phases
+behave strictly in the app.
+
+### Granularity
+
+The unit of a node is tier-dependent. Both rows describe *one* cognitive object;
+they differ in how big that object is.
+
+| Tier | One node = | Novel elements | Active time |
+|------|------------|----------------|-------------|
+| `school`, `undergraduate` | **one formula, theorem, law, or conceptual distinction** | 2–4, counted absolutely | 25–45 min (EQF 2–4), 45–75 min (EQF 5–6) |
+| `graduate` | **one coherent concept — possibly several formulas**: one transferable move, i.e. one argument together with its motivation, its resolution, and its instantiation | 5–7, counted **relative to the declared prerequisites** | 120–240 min (EQF 7–8) |
+
+The graduate rule is the ratified outcome of the M1b stress test (S-7). The M1b
+pilot node carries six novel elements and three derivations, and splitting it
+was tested and rejected: its pedagogical spine is a single argument (∂ is not
+tensorial → a connection must exist → it is not unique → something else selects
+it), and cutting anywhere puts Phase 1's gap reveal in a different node from the
+struggle that produced it — breaking the single most load-bearing phase in the
+template.
+
+Two consequences worth stating plainly:
+
+- **Authoring cost, not learning time, is what granularity buys.** Total learning
+  time for a body of material is roughly invariant under the split; the 7-phase
+  structure is a per-node fixed cost, so a finer rule multiplies phase files by
+  3–4× for the same content.
+- **"Several formulas" is not licence for several topics.** The test is whether
+  the node states one argument. If the phases could be re-ordered without loss,
+  it is two nodes.
 
 ---
 
@@ -62,14 +131,105 @@ The `node.yaml` file contains all node-level metadata and the phase manifest dec
 |-------|------|----------|-------------|
 | `concept_id` | string | yes | URL-safe slug; must match the directory name |
 | `title` | string | yes | Human-readable node title |
-| `eqf_level` | integer | yes | 2–7 (European Qualifications Framework level) |
+| `eqf_level` | integer | yes | 2–8 (European Qualifications Framework level). 7 = master's, 8 = doctoral/research |
+| `tier` | enum | no | `school` \| `undergraduate` \| `graduate`. Omit to derive from `eqf_level` (≥ 6 → `graduate`, else `school`) |
 | `bloom_minimum` | enum | yes | One of: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create` |
-| `prerequisites` | list[string] | yes | `concept_id` references; empty list `[]` for root nodes |
-| `misconceptions` | list[string] | yes | 2–3 common misconceptions, stated as student belief strings |
+| `prerequisites` | list[string \| PrerequisiteEntry] | yes | `concept_id` references; empty list `[]` for root nodes |
+| `misconceptions` | list[string \| MisconceptionEntry] | yes | 2–3 items (school/undergraduate) or 2–8 (graduate) |
 | `domain_of_applicability` | list[string] | yes | Explicit validity bounds (when this model applies / does not apply) |
 | `esco_tags` | list[string] | yes | ESCO skill tag URIs |
+| `node_type` | string | no | Graph node type: `concept`, `formula`, `theorem`, `application`, `consequence`. Defaults to `concept` |
+| `depth_tier` | string | no | Graph depth: `trunk`, `branch`, `leaf`. Defaults to `trunk` |
+
+> **`node_type` and `depth_tier` were enforced before they were documented.**
+> `NodeMeta` is `deny_unknown_fields`, so the two serde-defaulted graph fields
+> have always been accepted (and appear in the shipped kinematics `node.yaml`)
+> while being absent from this table. Documented in v1.2; behaviour unchanged.
 
 > **Note on `esco_tags`:** Empty list `[]` is valid during pilot authoring (Phase 10). ESCO tag population is deferred to Phase 14. From Phase 14 onward, `esco_tags` must be non-empty. The validator currently accepts `[]` without error; a non-empty enforcement rule will be added in Phase 14.
+
+### The `tier` switch
+
+`tier` is the one field every tier-dependent rule in this spec reads. It exists
+so that graduate relaxations cannot leak into school content: turn the switch and
+you get the whole graduate rule set; leave it out and nothing changes.
+
+| Tier | Meaning | Rules |
+|------|---------|-------|
+| `school` | EQF 2–5 content | The v1.1 rules, unchanged |
+| `undergraduate` | Authoring label for EQF 5–6 content that should still be validated as school content | Identical to `school` — nothing derives it automatically |
+| `graduate` | EQF 6–8 content for learners with substantial prior knowledge | Misconception cap 8, Phase-0 calibration probe, advisory gate on phases 2/3, graduate granularity |
+
+When `tier` is omitted, it is derived from `eqf_level`: **≥ 6 → `graduate`**,
+otherwise `school`. Every node authored before v1.2 is EQF ≤ 5, so the derivation
+leaves all existing content on the school rules. Declare `tier` explicitly when
+the derivation is wrong for your node — e.g. a genuinely introductory EQF 6 node
+that should keep strict ordering (`tier: undergraduate`), or an EQF 5 bridge node
+written for a returning expert (`tier: graduate`).
+
+### `PrerequisiteEntry`
+
+A prerequisite is either a bare slug or a mapping. The bare form keeps its v1.0
+meaning exactly: `kind: hard`, `status: internal`.
+
+| Sub-field | Type | Default | Meaning |
+|-----------|------|---------|---------|
+| `id` | string | — | `concept_id` of the prerequisite (required in the mapping form) |
+| `kind` | enum | `hard` | `hard` — blocking, the node is not readable without it · `contrast` — held alongside for comparison, not blocking · `recall` — known but rusty, needs reactivation rather than instruction |
+| `status` | enum | `internal` | `internal` — a node in `content/` · `external` — assumed knowledge sourced outside PhysicsTree |
+
+`kind` determines what the Phase-0 linkage map should do with the entry: gate on
+it, contrast against it, or merely reactivate it. `status: external` additionally
+exempts the entry from the authoring gate's existence check, so a graduate node
+can be authored before its whole prerequisite chain exists in `content/`.
+Anything marked `external` is a promise to the learner that the knowledge is
+assumed — use it for material that genuinely belongs to a prior degree, not as a
+way to silence the gate on nodes you intend to write.
+
+```yaml
+prerequisites:
+  - vectors                              # bare slug: hard, internal
+  - id: smooth-manifolds
+    kind: hard
+    status: external
+  - id: lie-derivative
+    kind: contrast
+    status: external
+```
+
+### `MisconceptionEntry`
+
+A misconception is either a bare student-belief string or a typed mapping
+`{type, statement}`. Bare strings stay valid at every tier.
+
+| `type` | What it names | Treatment it implies |
+|--------|---------------|----------------------|
+| `belief` | A false statement the learner holds to be true (the school-level form) | Direct refutation |
+| `conflation` | Two distinct objects treated as notational variants of one | Explicit contrast |
+| `convention_trap` | A sign/index/ordering convention assumed portable between sources | A convention table |
+| `false_generalisation` | A property of a special case generalised to the class (`false_generalization` is accepted) | A counterexample |
+| `scope_violation` | A result used outside the assumptions that license it | `domain_of_applicability` |
+| `fluency_gap` | Can state the result, cannot execute it under realistic conditions | Timed practice |
+
+At school and undergraduate tier the belief form is usually right and the cap of
+3 stands: more than three is a signal the node is too big. At graduate tier a
+learner rarely holds a false belief about the physics — the errors are the other
+five types — and the cap is 8 (the M1b pilot node identified eight and had to
+drop five, two of which survive into published research).
+
+```yaml
+misconceptions:
+  - 'Velocity and speed are the same thing'
+  - type: conflation
+    statement: 'The covariant and Lie derivatives are two notations for one operation'
+  - type: scope_violation
+    statement: 'Assumes metric compatibility and vanishing torsion in a teleparallel context'
+```
+
+> **Authoring footgun.** Both entry shapes are parsed as untagged enums, so a
+> typo in `type:` or `id:` produces `data did not match any variant of untagged
+> enum Misconception` rather than a field-level message. If a node.yaml fails to
+> parse at a misconception or prerequisite line, check the enum spelling first.
 
 | `estimated_minutes` | integer | yes | Estimated total active learning time across all phases |
 | `derivation_required` | boolean | yes | Must be `true` if `eqf_level >= 4` (see EQF-Conditional Rules) |
@@ -162,6 +322,46 @@ phases:
       - interleaving_problem
 ```
 
+### Graduate node.yaml Example (v1.2 fields only)
+
+Everything not shown is identical to the school example above.
+
+```yaml
+concept_id: parallel-transport-covariant-derivative
+title: 'Parallel Transport and the Covariant Derivative'
+eqf_level: 7
+tier: graduate
+bloom_minimum: analyze
+prerequisites:
+  - id: smooth-manifolds
+    kind: hard
+    status: external
+  - id: lie-derivative
+    kind: contrast
+    status: external
+misconceptions:
+  - type: false_generalisation
+    statement: 'The Christoffel symbols are tensor components because they carry indices'
+  - type: belief
+    statement: 'A metric determines exactly one derivative operator'
+  - type: conflation
+    statement: 'The covariant and Lie derivatives are two notations for one operation'
+  - type: convention_trap
+    statement: 'Index order in Gamma does not matter because it is symmetric'
+  - type: scope_violation
+    statement: 'Assumes metric compatibility and vanishing torsion in a teleparallel context'
+estimated_minutes: 202
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      - calibration_probe   # required at tier: graduate
+      - linkage_map
+      - wonder_hook
+  # phases 1–6 as in the school example
+```
+
 ---
 
 ## 4. Phase Reference
@@ -178,8 +378,36 @@ Each phase has a canonical `phase_type` value (used in `node.yaml`) and a set of
 | Block key (snake_case) | H2 heading | Description |
 |------------------------|------------|-------------|
 | `recall_prompt` | `## Recall Prompt` | Open question prompting the learner to recall related prior knowledge |
-| `linkage_map` | `## Linkage Map` | Explicit connections to prerequisite nodes this concept depends on |
+| `linkage_map` | `## Linkage Map` | Explicit connections to prerequisite nodes this concept depends on. At graduate tier, say what each prerequisite's `kind` implies: gate on `hard`, contrast against `contrast`, reactivate `recall` |
 | `wonder_hook` | `## Wonder Hook` | An intriguing question or phenomenon that this node will explain |
+
+**Tier conditional:** `calibration_probe` required at `tier: graduate`.
+
+| Block key (snake_case) | H2 heading | Tier condition | Description |
+|------------------------|------------|----------------|-------------|
+| `calibration_probe` | `## Calibration Probe` | `graduate` | A short, self-scored, closed-book diagnostic that measures *this* learner against *this* node's prerequisites, and states what each outcome implies for the rest of the node |
+
+**Why the probe is mandatory at graduate tier.** It is the evidence the advisory
+gate on phases 2 and 3 runs on (§1). Without it there is nothing on which a
+learner could justifiably skip a phase, and the advisory rule degenerates into
+"skip whatever you like". It also carries the load that `bloom_minimum` cannot:
+a graduate learner's Bloom level is not one number but a profile across the
+node's sub-skills, and the probe measures the profile per learner instead of
+asserting a scalar per node.
+
+A probe must state, for each item, what the result means. The M1b pilot node's
+form is the reference: 4–6 items covering the declared prerequisites, a 0–3
+self-rating scale, and a routing table.
+
+| Rating | Meaning | Consequence |
+|:---:|---|---|
+| 3 | Wrote it fluently, correct first pass | Phases 2 and 3 are skippable |
+| 2 | Reconstructed it, needed a moment | The calibrated target — take the node as written |
+| 1 | Recognised it, could not produce it | Do phases 2 and 3 in full |
+| 0 | Did not recognise it | The prerequisite node is the real next action |
+
+Probe results are learner data, not content: the node declares the items and the
+routing rule, and never records an answer.
 
 ---
 
@@ -211,11 +439,40 @@ Each phase has a canonical `phase_type` value (used in `node.yaml`) and a set of
 | `bridging_stage` | `## Bridging Stage` | Semi-abstract form — physical quantities named but algebra introduced |
 | `abstract_stage` | `## Abstract Stage` | Full symbolic formulation without specific numbers |
 
+> **What "concrete" means (graduate tier).** The school reading of concreteness —
+> real-world objects, no symbolic variables — is unsatisfiable when the object of
+> study *is* a symbolic operator. At graduate tier the operative criterion is
+> **instantiation, not physicality**: a specific manifold, a specific metric, a
+> specific path and measured numbers is a concrete stage even though its subject
+> is a derivative operator. Generic "let $x$ be…" formulations remain the
+> anti-pattern at every tier.
+
+> **Optional `structural_stage` (graduate).** Fading does not stop at "abstract"
+> for graduate content. A fourth stage — same object, different bundle; strip the
+> physics, keep the structure — is where transfer actually happens (the
+> Yang–Mills dictionary for a connection; Berry phase for parallel transport).
+> Declare `structural_stage` in Phase 2 `requires` to add a
+> `## Structural Stage` block. Optional and unenforced: nothing fails if it is
+> absent, and it may be carried inside the abstract stage instead.
+
 **EQF conditional:** `derivation` required at EQF 4+.
 
 | Block key (snake_case) | H2 heading | EQF condition | Description |
 |------------------------|------------|--------------|-------------|
-| `derivation` | `## Derivation` | EQF ≥ 4 | Formal derivation of the abstract formula from first principles. At EQF ≥ 5, must include a `## Assumptions` sub-section stating all assumptions explicitly |
+| `derivation` | `## Derivation` | EQF ≥ 4 | Formal derivation of the abstract formula from first principles. At EQF ≥ 5, must include an `### Assumptions` sub-section stating all assumptions explicitly |
+
+> **Several derivations in one `derivation` block.** A graduate node often needs
+> two or three derivations in dependency order. The convention is H3
+> sub-sections inside the single `## Derivation` H2 — `### 1. Transformation law`,
+> `### 2. Fundamental theorem`, … — each opening with a one-line statement of
+> what it depends on. Only H2 headings are matched against `requires`, so
+> sub-sections are free-form; but a reviewer cannot check "is each derivation
+> complete" without the convention, and the AI pipeline has no other signal.
+>
+> The `### Assumptions` sub-section (EQF ≥ 5) is **documented but not enforced**:
+> `validate_node()` only extracts H2 headings, so no H3-level rule can run yet.
+> Spec v1.0/v1.1 wrote this as `## Assumptions`, which is self-contradictory — an
+> H2 cannot be a sub-section of an H2. Corrected to `###` in v1.2.
 
 ---
 
@@ -365,6 +622,7 @@ Quiz questions are embedded inline in phase Markdown files using a fenced code b
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `type` | string | yes | Quiz type: `multiple_choice`, `fill_in_formula`, `matching` |
+
 | `prompt` | string | yes | The question text (may contain inline LaTeX using `$...$`) |
 | `options` | list[string] | for `multiple_choice` | Answer choices |
 | `answer` | integer or string | yes | For `multiple_choice`: 0-based index of correct option. For `fill_in_formula`: the expected expression |
@@ -411,29 +669,53 @@ difficulty: remember
 ```
 ````
 
+> **Authoring rule: `fill_in_formula` is scalar-only.** Answers are graded by
+> `check_formula_equivalence`, which evaluates the expression with math.js over
+> named scalar variables. It cannot parse index notation, tensor slots, operator
+> expressions, or "equal up to a sign convention", and it will mark **every**
+> correct tensor-valued answer wrong.
+>
+> **Do not use `fill_in_formula` for tensor-valued or index-carrying answers
+> until grading is tensor-aware.** Assess that material with `multiple_choice`
+> items aimed at the *structure* of the argument (which step used which
+> assumption; where the argument breaks if an assumption is dropped), or with an
+> open `transfer_problem`. A related known limitation applies to scalars too: the
+> checker does not recognise `a/b` as equivalent to `\frac{a}{b}`.
+
 ---
 
-## 7. EQF-Conditional Rules
+## 7. EQF- and Tier-Conditional Rules
 
-The `eqf_level` field controls which additional content blocks are required. The `node.yaml` `requires` list must include these conditional blocks; the validator cross-checks compliance.
+The `eqf_level` field controls which additional content blocks are required; the `tier` field controls the rest (misconception count, Phase-0 probe, phase gating, granularity). The `node.yaml` `requires` list must include these conditional blocks; the validator cross-checks compliance.
 
-| EQF Level | Phase 2 — Phase 2: Concreteness Fading | Phase 3 — Worked Examples |
+| EQF Level | Phase 2 — Concreteness Fading | Phase 3 — Worked Examples |
 |-----------|----------------------------------------|--------------------------|
 | 2 | No additional requirements; `derivation_required: false` valid | No additional requirements |
 | 3+ | No additional requirements in Phase 2 | `mostly_faded_example` required in `requires` |
 | 4+ | `derivation_required: true` enforced; `derivation` required in Phase 2 `requires` | `mostly_faded_example` required in `requires` |
-| 5+ | `derivation_required: true`; `derivation` block must include `## Assumptions` subsection | `mostly_faded_example` required in `requires` |
+| 5+ | `derivation_required: true`; `derivation` block must include an `### Assumptions` subsection (documented, not enforced) | `mostly_faded_example` required in `requires` |
+
+| Tier | Phase 0 | misconceptions | Learning Room gate | Granularity |
+|------|---------|----------------|--------------------|-------------|
+| `school`, `undergraduate` | standard blocks | 2–3 | strict, all phases | one formula/theorem/law/distinction; 2–4 novel elements |
+| `graduate` | `calibration_probe` also required | 2–8, optionally typed | advisory for phases 2 and 3 | one coherent concept; 5–7 novel elements, relative to prerequisites |
 
 ### Summary Table
 
-| EQF Level | `derivation_required` | `derivation` in Phase 2 `requires` | `mostly_faded_example` in Phase 3 `requires` | Derivation `## Assumptions` subsection |
-|-----------|----------------------|-----------------------------------|--------------------------------------------|----------------------------------------|
-| 2 | `false` | No | No | No |
-| 3 | `false` | No | Yes | No |
-| 4 | `true` | Yes | Yes | No |
-| 5 | `true` | Yes | Yes | Yes |
-| 6 | `true` | Yes | Yes | Yes |
-| 7 | `true` | Yes | Yes | Yes |
+| EQF Level | Default tier | `derivation_required` | `derivation` in Phase 2 `requires` | `mostly_faded_example` in Phase 3 `requires` | Derivation `### Assumptions` subsection | `calibration_probe` in Phase 0 `requires` |
+|-----------|--------------|----------------------|-----------------------------------|--------------------------------------------|----------------------------------------|-------------------------------------------|
+| 2 | school | `false` | No | No | No | No |
+| 3 | school | `false` | No | Yes | No | No |
+| 4 | school | `true` | Yes | Yes | No | No |
+| 5 | school | `true` | Yes | Yes | Yes | No |
+| 6 | graduate | `true` | Yes | Yes | Yes | Yes |
+| 7 | graduate | `true` | Yes | Yes | Yes | Yes |
+| 8 | graduate | `true` | Yes | Yes | Yes | Yes |
+
+The last column is **tier**-conditional, not EQF-conditional: it follows the
+declared `tier`, and the "default tier" column only says what `tier` would be
+inferred when the field is omitted. An EQF 7 node declared `tier: undergraduate`
+does not need a calibration probe; an EQF 5 node declared `tier: graduate` does.
 
 ### Important: `node.yaml` is the Source of Truth
 
@@ -454,11 +736,13 @@ file:field  description
 Examples:
 
 ```
-node.yaml:eqf_level  Value 8 out of allowed range 2-7
-node.yaml:misconceptions  Found 1 item; required 2-3
+node.yaml:eqf_level  Value 9 out of allowed range 2-8
+node.yaml:misconceptions  Found 1 item(s); required 2-3
+node.yaml:misconceptions  Found 9 item(s); required 2-8
 node.yaml:derivation_required  Must be true for eqf_level 4 (found: false)
 node.yaml:phases  Missing phase number 3
 node.yaml:phases  Duplicate phase number 2
+node.yaml:phases[0]  Missing required block 'calibration_probe' for tier graduate
 phase-2.md:requires  Missing required block 'derivation' (eqf_level=4 requires it in Phase 2)
 phase-3.md:requires  Missing H2 heading for required block 'mostly_faded_example'
 phase-5.md:  File not found at expected path
@@ -468,8 +752,8 @@ node.yaml:phases[2]  Unknown phase_type 'concreteness_fadig' (typo?)
 ### Validation Checks (in order of execution)
 
 1. **YAML parse errors** — `node.yaml` or any `phase-N.md` frontmatter fails YAML deserialization; reported as `file:root  Malformed YAML: {detail}`
-2. **EQF range** — `eqf_level` must be in [2, 7]
-3. **Misconception count** — `misconceptions` list must have 2–3 items
+2. **EQF range** — `eqf_level` must be in [2, 8]
+3. **Misconception count** — tier-conditional: `misconceptions` must have 2–3 items at `school`/`undergraduate` tier, 2–8 at `graduate`
 4. **Phase count** — `phases` list must have exactly 7 entries with numbers 0–6
 5. **Duplicate phase numbers** — `phases` list must not repeat any number 0–6
 6. **Invalid phase numbers** — all numbers must be in [0, 6]
@@ -478,9 +762,18 @@ node.yaml:phases[2]  Unknown phase_type 'concreteness_fadig' (typo?)
 9. **EQF-conditional: `derivation_required`** — if `eqf_level >= 4`, `derivation_required` must be `true`
 10. **EQF-conditional: `derivation` block** — if `eqf_level >= 4`, Phase 2 `requires` must include `derivation`
 11. **EQF-conditional: `mostly_faded_example`** — if `eqf_level >= 3`, Phase 3 `requires` must include `mostly_faded_example`
-12. **EQF 5+ derivation assumptions** — if `eqf_level >= 5`, the `derivation` block in `phase-2.md` must contain a `## Assumptions` subsection
+12. **EQF 5+ derivation assumptions** — if `eqf_level >= 5`, the `derivation` block in `phase-2.md` should contain an `### Assumptions` subsection. **Documented, not enforced**: `validate_node()` sees only H2 headings, so no H3-level rule can run. (v1.0/v1.1 wrote this as `## Assumptions`, which is self-contradictory — an H2 is a sibling block, not a sub-section.)
 13. **Standard requires enforcement: `transfer_problem`** — Phase 5 `requires` must include `transfer_problem` for all nodes regardless of EQF level. A node that omits `transfer_problem` from Phase 5 `requires` will fail validation with `node.yaml:phases[5]  Missing standard required block 'transfer_problem' for phase type retrieval_check`. (Resolved: Gap 1 from Phase 10 SPEC-GAPS.md.)
 14. **`estimated_minutes` consistency** — when per-phase `estimated_minutes` are present in phase frontmatter, their sum must equal the node-level `estimated_minutes` in `node.yaml`. Mismatch produces `node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})`. (Resolved: Gap 4 from Phase 10 SPEC-GAPS.md.)
+15. **Tier-conditional requires: `calibration_probe`** — if the effective tier is `graduate`, Phase 0 `requires` must include `calibration_probe`, producing `node.yaml:phases[0]  Missing required block 'calibration_probe' for tier graduate`. Check 8 then requires the matching `## Calibration Probe` heading in `phase-0.md`. (Added v1.2 / M1b G-5.)
+
+The effective tier used by checks 3 and 15 is the declared `tier`, or — when the
+field is absent — `graduate` for `eqf_level >= 6` and `school` otherwise.
+
+**Not validated (deliberate).** The granularity rule (§1), the novel-element
+budget, the time bands, and the content of the calibration probe are authoring
+judgment, enforced by review rather than by `validate_node()`. The validator
+checks structure; it does not read physics.
 
 ### Running the Validator
 
@@ -496,5 +789,5 @@ Exit code 0 = valid; exit code 1 = validation errors found.
 
 ---
 
-*Content Specification v1.0 — PhysicsTree v1.1 milestone*
-*Spec source: `docs/content-spec.md` | Type enforcement: `crates/domain/src/content_spec.rs`*
+*Content Specification v1.2 — PhysicsTree v1.1 milestone, graduate tier (mission M2)*
+*Spec source: `docs/content-spec.md` | Type enforcement: `crates/domain/src/content_spec.rs` | Authoring gate: `tools/authoring/quality_gate.py`*
