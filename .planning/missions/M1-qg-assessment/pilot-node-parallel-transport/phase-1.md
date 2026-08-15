@@ -95,13 +95,15 @@ $40 + 24 = 64 = n^{3}$: exactly enough, and the fundamental theorem of Riemannia
 
 Most people list metric compatibility and then *silently assume* symmetry in the lower indices without noticing it is a second, independent postulate. If you did that in C3, that is the gap this phase was built to expose — and it is not a harmless one, because relaxing exactly these two conditions is the geometric trinity you already met:
 
-| Keep | Drop | Geometry | Gravity formulated with |
-|---|---|---|---|
-| $\nabla g = 0$, $T = 0$ | — | Riemannian | curvature $R$ (general relativity) |
-| $\nabla g = 0$ | $T = 0$ | Weitzenböck | torsion $T$ (teleparallel gravity) |
-| $T = 0$ | $\nabla g = 0$ | symmetric teleparallel | nonmetricity $Q$ (STEGR) |
+| Keep | Drop | Also impose | Geometry | Gravity formulated with |
+|---|---|---|---|---|
+| $\nabla g = 0$, $T = 0$ | — | — | Riemannian | curvature $R$ (general relativity) |
+| $\nabla g = 0$ | $T = 0$ | $R = 0$ | Weitzenböck | torsion $T$ (teleparallel gravity, TEGR) |
+| $T = 0$ | $\nabla g = 0$ | $R = 0$ | symmetric teleparallel | nonmetricity $Q$ (STEGR) |
 
-The three give the same field equations for the same matter. They are three coordinates on the same physics, and which one you call "the geometry" is a choice of connection — the choice this phase showed you was open.
+Read the third column carefully — it is the part most summaries drop. Relaxing one Levi-Civita condition on its own does *not* land you in the trinity: drop only $T = 0$ and you get Riemann–Cartan geometry (Einstein–Cartan gravity, where spin sources torsion and the field equations genuinely differ from Einstein's); drop only $\nabla g = 0$ and you get metric-affine or Weyl geometry. The trinity's two teleparallel corners are picked out by the *additional* demand that the connection be flat, which is what makes each of them carry the whole gravitational field in a single tensor.
+
+With that flatness condition in place, the three give the same field equations for the same matter. They are three coordinates on the same physics, and which one you call "the geometry" is a choice of connection — the choice this phase showed you was open.
 
 **Part C4 — the trap.** For the flat plane in polar coordinates the connection components that annihilate $V$ are
 
@@ -109,4 +111,4 @@ $$\Gamma^{r}{}_{\varphi\varphi} = -r, \qquad \Gamma^{\varphi}{}_{r\varphi} = \Ga
 
 all others zero. Check: $\nabla_{\varphi}V^{r} = -\sin\varphi + (-r)\left(-\tfrac{\sin\varphi}{r}\right) = 0$, and $\nabla_{\varphi}V^{\varphi} = -\tfrac{\cos\varphi}{r} + \tfrac{1}{r}\cos\varphi = 0$. All four components vanish, as they must.
 
-And $\Gamma \neq 0$ does **not** mean curved. The plane is flat; $\Gamma$ is non-zero purely because the coordinate basis rotates and rescales from point to point. $\Gamma$ is chart-dependent and can always be made to vanish *at any single point* (Riemann normal coordinates). What cannot be transformed away is the *commutator* $[\nabla_{\mu},\nabla_{\nu}]$ — that is curvature, it is a tensor, and for this plane it is zero. Misconception 3 in `node.yaml` is the same trap from the other side: transport here is path-independent because the plane is flat, not because you stayed in one chart.
+And $\Gamma \neq 0$ does **not** mean curved. The plane is flat; $\Gamma$ is non-zero purely because the coordinate basis rotates and rescales from point to point. $\Gamma$ is chart-dependent and can always be made to vanish *at any single point* (Riemann normal coordinates) — for a torsion-free connection. With torsion, only the symmetric part can be removed; the antisymmetric part is $\tfrac{1}{2}T^{\lambda}{}_{\mu\nu}$, a tensor, and a tensor that is non-zero at $p$ in one chart is non-zero at $p$ in every chart. What cannot be transformed away is the *commutator* $[\nabla_{\mu},\nabla_{\nu}]$ — that is curvature, it is a tensor, and for this plane it is zero. Misconception 3 in `node.yaml` is the same trap from the other side: transport here is path-independent because the plane is flat, not because you stayed in one chart.
