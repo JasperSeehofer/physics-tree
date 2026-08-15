@@ -168,3 +168,391 @@ pre.highlight {
 /* Definition list styling */
 dt { font-weight: 700; margin-top: 16px; }
 dd { margin-left: 24px; margin-top: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Learning-room phase layout (M8)
+
+   The learning room renders one `phase-N.md` at a time. Server-side,
+   `components/learning_room/phase_layout.rs` splits the phase on the H2 blocks
+   `docs/content-spec.md` §5 mandates and wraps each in a `.phase-section`
+   carrying a role modifier. Everything below styles that structure.
+
+   Tailwind's preflight resets headings, paragraphs and lists to unstyled
+   inline-ish defaults, and the typography plugin is not installed — the phase
+   body therefore needs its own base rhythm, which is most of why the room read
+   as a wall of text. No new fonts or frameworks: this extends the botanical
+   tokens declared in @theme above.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.phase-content {
+  /* Per-phase accent, set from the tab's phase_accent_class token. */
+  --phase-accent: var(--color-sky-teal);
+}
+.phase-content[data-accent="sky-teal"]      { --phase-accent: var(--color-sky-teal); }
+.phase-content[data-accent="sun-amber"]     { --phase-accent: var(--color-sun-amber); }
+.phase-content[data-accent="leaf-green"]    { --phase-accent: var(--color-leaf-green); }
+.phase-content[data-accent="nebula-purple"] { --phase-accent: var(--color-nebula-purple); }
+.phase-content[data-accent="bloom-pink"]    { --phase-accent: var(--color-bloom-pink); }
+
+.phase-doc {
+  /* Readable measure. Text blocks cap here; tables, math and figures are
+     allowed the full column width below. */
+  --phase-measure: 66ch;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Section blocks ──────────────────────────────────────────────────────── */
+
+.phase-section {
+  --section-accent: var(--phase-accent, var(--color-sky-teal));
+  background: var(--color-bark-dark);
+  border: 1px solid var(--color-bark-light);
+  border-left: 3px solid var(--section-accent);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  padding: 20px 24px 24px;
+}
+
+.phase-section__head {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-bark-mid);
+}
+
+.phase-section__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--section-accent);
+  margin-bottom: 3px;
+}
+
+.phase-section__title {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--color-petal-white);
+}
+
+/* Role accents — each recognizable content role keeps one token. */
+.phase-section--hook       { --section-accent: var(--color-sky-teal); }
+.phase-section--prompt     { --section-accent: var(--color-leaf-green); }
+.phase-section--probe      { --section-accent: var(--color-sun-amber); }
+.phase-section--linkage    { --section-accent: var(--color-mist); }
+.phase-section--problem    { --section-accent: var(--color-sun-amber); }
+.phase-section--reveal     { --section-accent: var(--color-bloom-pink); }
+.phase-section--stage      { --section-accent: var(--color-leaf-green); }
+.phase-section--derivation { --section-accent: var(--color-nebula-purple); }
+.phase-section--example    { --section-accent: var(--color-nebula-purple); }
+.phase-section--check      { --section-accent: var(--color-bloom-pink); }
+.phase-section--plain      { --section-accent: var(--color-bark-light); }
+
+/* ── Base rhythm inside a section body ───────────────────────────────────── */
+
+.phase-section__body { font-size: 16px; line-height: 1.65; }
+
+.phase-section__body > p,
+.phase-section__body > ul,
+.phase-section__body > ol,
+.phase-section__body > blockquote,
+.phase-section__body > details {
+  max-width: var(--phase-measure);
+}
+
+.phase-section__body p { margin: 0 0 14px; }
+.phase-section__body > :last-child { margin-bottom: 0; }
+
+.phase-section__body h3 {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--color-petal-white);
+  margin: 26px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-bark-mid);
+}
+.phase-section__body h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-petal-white);
+  margin: 18px 0 8px;
+}
+.phase-section__body h3:first-child,
+.phase-section__body h4:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.phase-section__body ul,
+.phase-section__body ol { margin: 0 0 14px; padding-left: 22px; }
+.phase-section__body ul { list-style: disc; }
+.phase-section__body ol { list-style: decimal; }
+.phase-section__body li { margin-bottom: 6px; }
+.phase-section__body li > p { margin-bottom: 6px; }
+.phase-section__body li::marker { color: var(--color-mist); }
+
+.phase-section__body a { color: var(--color-sky-teal); text-decoration: underline; }
+.phase-section__body em { font-style: italic; }
+.phase-section__body strong { font-weight: 800; color: var(--color-petal-white); }
+.phase-section__body hr { border: 0; border-top: 1px solid var(--color-bark-mid); margin: 22px 0; }
+
+/* Backticked node slugs read as references, not as code to run. */
+.phase-section__body code {
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--color-bark-mid);
+  color: var(--color-mist);
+}
+.phase-section__body pre code { background: none; padding: 0; color: inherit; }
+
+/* ── Display math: breathing room, and never a horizontal page scroll ────── */
+
+.phase-section__body div[data-latex][data-display="true"] {
+  margin: 22px 0;
+  padding: 4px 0;
+  text-align: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+
+.phase-section__body table {
+  width: 100%;
+  margin: 0 0 16px;
+  border-collapse: collapse;
+  font-size: 15px;
+  display: block;
+  overflow-x: auto;
+}
+.phase-section__body th,
+.phase-section__body td {
+  padding: 8px 12px;
+  border: 1px solid var(--color-bark-light);
+  vertical-align: top;
+}
+.phase-section__body thead th {
+  background: var(--color-bark-mid);
+  font-weight: 800;
+  color: var(--color-petal-white);
+  text-align: left;
+}
+.phase-section__body tbody td { color: var(--color-petal-white); }
+
+/* ── Bold lead-in paragraphs ─────────────────────────────────────────────── */
+/*
+   Every shipped node marks its sub-sections with a `**Bold label.**` paragraph
+   opener — there are no GFM alerts, blockquotes or ::: fenced divs anywhere in
+   content/. Only lead-ins that are direct children of a section body get the
+   callout treatment; the ones nested inside list items stay plain bold so a
+   Linkage Map does not turn into a stack of boxes.
+*/
+.phase-section__body > .lead {
+  position: relative;
+  padding-left: 12px;
+  border-left: 2px solid var(--color-bark-light);
+  margin-top: 18px;
+}
+.phase-section__body > .lead .lead__label { color: var(--color-petal-white); }
+
+.phase-section__body > .lead--step,
+.phase-section__body > .lead--part { border-left-color: var(--section-accent); }
+.phase-section__body > .lead--step .lead__label,
+.phase-section__body > .lead--part .lead__label { color: var(--section-accent); }
+
+.phase-section__body > .lead--example { border-left-color: var(--color-nebula-purple); }
+.phase-section__body > .lead--example .lead__label { color: var(--color-nebula-purple); }
+
+.phase-section__body > .lead--problem { border-left-color: var(--color-sun-amber); }
+.phase-section__body > .lead--problem .lead__label { color: var(--color-sun-amber); }
+
+.phase-section__body > .lead--answer { border-left-color: var(--color-leaf-green); }
+.phase-section__body > .lead--answer .lead__label { color: var(--color-leaf-green); }
+
+/* Warnings, cautions, routing rules, misconception notes. */
+.phase-section__body > .lead--guidance {
+  border-left-color: var(--color-bloom-pink);
+  background: var(--color-bark-mid);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.phase-section__body > .lead--guidance .lead__label { color: var(--color-bloom-pink); }
+
+/* Backward/Forward markers in a Linkage Map are labels, not callouts. */
+.phase-section__body > .lead--direction {
+  border-left: 0;
+  padding-left: 0;
+  margin-bottom: 6px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.phase-section__body > .lead--direction .lead__label {
+  color: var(--color-mist);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+}
+
+/* ── Phase 0: the wonder hook opens the page ─────────────────────────────── */
+
+.phase-section--hook {
+  border: 1px solid color-mix(in srgb, var(--color-sky-teal) 34%, var(--color-bark-light));
+  border-left-width: 3px;
+  border-radius: 0 var(--radius-node) var(--radius-node) 0;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--color-sky-teal) 7%, var(--color-bark-dark)),
+      var(--color-bark-dark) 60%);
+  padding: 24px 28px 26px;
+}
+.phase-section--hook .phase-section__head { border-bottom: 0; padding-bottom: 0; margin-bottom: 10px; }
+.phase-section--hook .phase-section__title { font-size: 15px; color: var(--color-sky-teal); }
+
+/* A question that looks like a question. */
+.phase-section--hook .phase-section__head::after {
+  content: "?";
+  position: absolute;
+  right: 20px;
+  top: 6px;
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-sky-teal);
+  opacity: 0.13;
+  pointer-events: none;
+}
+.phase-section--hook { position: relative; overflow: hidden; }
+
+.phase-section--hook .phase-section__body > p:first-of-type {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--color-petal-white);
+}
+/* The closing "by the end of this node…" promise. */
+.phase-section--hook .phase-section__body > p:last-child {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--color-sky-teal) 25%, transparent);
+  font-size: 15px;
+  color: var(--color-mist);
+}
+.phase-section--hook .phase-section__body > p:first-of-type:last-child {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+  color: var(--color-petal-white);
+  font-size: 19px;
+}
+
+/* ── Phase 0: orientation strip (prerequisites → node → unlocks) ─────────── */
+
+.phase-orient {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  border: 1px dashed var(--color-bark-light);
+  border-radius: var(--radius-card);
+  font-size: 13px;
+  color: var(--color-mist);
+}
+.phase-orient__group { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.phase-orient__eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  opacity: 0.75;
+}
+.phase-orient__items { display: flex; flex-wrap: wrap; gap: 6px; }
+.phase-orient__item,
+.phase-orient__more {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-bark-mid);
+  color: var(--color-petal-white);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.phase-orient__more { background: none; color: var(--color-mist); padding-left: 2px; }
+.phase-orient__arrow { color: var(--color-bark-light); font-size: 15px; }
+.phase-orient__here {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--phase-accent, var(--color-sky-teal));
+  color: var(--color-void);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* ── Activation prompts: a scannable list, not prose ─────────────────────── */
+
+.phase-section--prompt .phase-section__body > ol {
+  counter-reset: activation;
+  list-style: none;
+  padding-left: 0;
+  max-width: var(--phase-measure);
+}
+.phase-section--prompt .phase-section__body > ol > li {
+  counter-increment: activation;
+  position: relative;
+  margin-bottom: 8px;
+  padding: 10px 14px 10px 46px;
+  border: 1px solid var(--color-bark-light);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-leaf-green) 4%, transparent);
+}
+.phase-section--prompt .phase-section__body > ol > li::before {
+  content: counter(activation);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-leaf-green) 18%, transparent);
+  color: var(--color-leaf-green);
+  font-size: 12px;
+  font-weight: 800;
+}
+.phase-section--prompt .phase-section__body > ol > li > p:last-child { margin-bottom: 0; }
+
+/* ── Calibration probe: its own clearly-bounded box ──────────────────────── */
+
+.phase-section--probe {
+  border: 1px solid color-mix(in srgb, var(--color-sun-amber) 40%, var(--color-bark-light));
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--color-sun-amber) 5%, var(--color-bark-dark));
+}
+.phase-section--probe .phase-section__title { color: var(--color-sun-amber); }
+.phase-section--probe .phase-section__body table {
+  border: 1px solid color-mix(in srgb, var(--color-sun-amber) 30%, var(--color-bark-light));
+  border-radius: var(--radius-card);
+}
+.phase-section--probe .phase-section__body thead th {
+  background: color-mix(in srgb, var(--color-sun-amber) 12%, var(--color-bark-mid));
+  color: var(--color-sun-amber);
+}
+
+/* ── Long-form roles: keep the page breathing on 20k-character phases ────── */
+
+.phase-section--derivation .phase-section__body,
+.phase-section--example .phase-section__body,
+.phase-section--stage .phase-section__body { font-size: 15px; }
+
+/* ── Narrow viewports ────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .phase-section { padding: 16px 16px 18px; }
+  .phase-section--hook { padding: 18px 18px 20px; }
+  .phase-section--hook .phase-section__head::after { font-size: 40px; right: 12px; }
+  .phase-section--hook .phase-section__body > p:first-of-type { font-size: 17px; }
+  .phase-orient { font-size: 12px; }
+}

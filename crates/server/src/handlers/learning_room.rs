@@ -10,7 +10,7 @@ use sqlx::PgPool;
 use tower_sessions::Session;
 use uuid::Uuid;
 
-use app::components::content::markdown_renderer::render_content_markdown;
+use app::components::learning_room::phase_layout::render_phase;
 use db::content_repo;
 use db::phase_progress_repo::{self, PhaseProgressRow};
 
@@ -68,11 +68,14 @@ pub async fn get_learning_room_content(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Pre-render each phase's markdown to HTML
+    // Pre-render each phase's markdown to structured, role-aware HTML.
+    // `render_phase` splits the phase on the H2 blocks content-spec.md §5
+    // already mandates and wraps each in a bounded section — the learning room
+    // used to drop one undifferentiated blob of HTML into a single div (M8).
     let phases = phase_rows
         .into_iter()
         .map(|row| {
-            let rendered = render_content_markdown(&row.content_body);
+            let rendered = render_phase(&row.content_body, &row.phase_type, &title);
             PhaseContent {
                 phase_number: row.phase_number,
                 phase_type: row.phase_type,

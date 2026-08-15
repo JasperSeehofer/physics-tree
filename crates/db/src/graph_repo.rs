@@ -4,9 +4,35 @@
 //! requiring a live database connection at compile time — consistent with
 //! content_repo.rs pattern.
 
-use domain::{EdgeType, NodeType, PhysicsEdge, PhysicsNode};
+use domain::{EdgeType, NodeType, PhysicsEdge, PhysicsNode, MIN_LEARNING_ROOM_PHASES};
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
+
+/// SQL projection for `PhysicsNode`, with `has_phases` **derived** rather than read.
+///
+/// M8 root cause: `nodes.has_phases` is a denormalized column that only
+/// migration `20260329000001` ever wrote. `bin/ingest.rs` inserts `node_phases`
+/// rows but never touches the flag, so every node ingested after that migration
+/// — including the graduate-tier `parallel-transport-covariant-derivative` node
+/// — stayed at the `DEFAULT FALSE` despite carrying all seven phases, and the
+/// graph panel offered it the v1.0 concept page instead of its learning room.
+/// The same one-shot backfill set the flag TRUE for 15 legacy v1.0 nodes whose
+/// single stub phase row is not a learning room at all.
+///
+/// Counting `node_phases` per request cannot drift. The column is left in place
+/// (dropping or backfilling it needs a migration, which is out of M8 scope) but
+/// nothing reads its value any more.
+fn node_projection(alias: &str) -> String {
+    format!(
+        "{a}.id, {a}.slug, {a}.title,
+         {a}.node_type::TEXT AS node_type,
+         {a}.branch, {a}.depth_tier, {a}.description,
+         (SELECT count(*) FROM node_phases np WHERE np.node_id = {a}.id)
+             >= {min} AS has_phases",
+        a = alias,
+        min = MIN_LEARNING_ROOM_PHASES
+    )
+}
 
 /// Parse a node row from a dynamic sqlx query result.
 fn parse_node_row(r: &sqlx::postgres::PgRow) -> Result<PhysicsNode, sqlx::Error> {
@@ -37,16 +63,13 @@ fn parse_node_row(r: &sqlx::postgres::PgRow) -> Result<PhysicsNode, sqlx::Error>
 
 /// Fetch all physics nodes ordered by branch then depth_tier.
 pub async fn get_all_nodes(pool: &PgPool) -> Result<Vec<PhysicsNode>, sqlx::Error> {
-    let rows = sqlx::query(
-        r#"SELECT id, slug, title,
-                  node_type::TEXT AS node_type,
-                  branch, depth_tier, description,
-                  COALESCE(has_phases, FALSE) AS has_phases
-           FROM nodes
-           ORDER BY branch, depth_tier"#,
-    )
-    .fetch_all(pool)
-    .await?;
+    let sql = format!(
+        "SELECT {projection}
+         FROM nodes n
+         ORDER BY n.branch, n.depth_tier",
+        projection = node_projection("n")
+    );
+    let rows = sqlx::query(&sql).fetch_all(pool).await?;
 
     rows.iter().map(parse_node_row).collect()
 }
@@ -93,24 +116,20 @@ pub async fn get_prereq_chain(
     pool: &PgPool,
     node_id: Uuid,
 ) -> Result<Vec<PhysicsNode>, sqlx::Error> {
-    let rows = sqlx::query(
-        r#"WITH RECURSIVE prereqs AS (
-               SELECT from_node FROM edges
-               WHERE to_node = $1 AND edge_type = 'prerequisite'
-               UNION
-               SELECT e.from_node FROM edges e
-               JOIN prereqs p ON e.to_node = p.from_node
-               WHERE e.edge_type = 'prerequisite'
-           )
-           SELECT id, slug, title,
-                  node_type::TEXT AS node_type,
-                  branch, depth_tier, description,
-                  COALESCE(has_phases, FALSE) AS has_phases
-           FROM nodes WHERE id IN (SELECT from_node FROM prereqs)"#,
-    )
-    .bind(node_id)
-    .fetch_all(pool)
-    .await?;
+    let sql = format!(
+        "WITH RECURSIVE prereqs AS (
+             SELECT from_node FROM edges
+             WHERE to_node = $1 AND edge_type = 'prerequisite'
+             UNION
+             SELECT e.from_node FROM edges e
+             JOIN prereqs p ON e.to_node = p.from_node
+             WHERE e.edge_type = 'prerequisite'
+         )
+         SELECT {projection}
+         FROM nodes n WHERE n.id IN (SELECT from_node FROM prereqs)",
+        projection = node_projection("n")
+    );
+    let rows = sqlx::query(&sql).bind(node_id).fetch_all(pool).await?;
 
     rows.iter().map(parse_node_row).collect()
 }
@@ -127,6 +146,72 @@ mod tests {
         let url = std::env::var("DATABASE_URL")
             .expect("DATABASE_URL must be set for integration tests");
         PgPool::connect(&url).await.expect("Failed to connect to test database")
+    }
+
+    // ── M8: has_phases is derived, not read ─────────────────────────────────
+
+    #[test]
+    fn node_projection_derives_has_phases_from_node_phases_count() {
+        let sql = node_projection("n");
+        assert!(
+            sql.contains("FROM node_phases np"),
+            "has_phases must be counted from node_phases, got: {sql}"
+        );
+        assert!(
+            sql.contains(&format!(">= {MIN_LEARNING_ROOM_PHASES}")),
+            "projection must use the shared learning-room threshold, got: {sql}"
+        );
+    }
+
+    #[test]
+    fn node_projection_never_reads_the_stale_has_phases_column() {
+        // The denormalized nodes.has_phases column is written by exactly one
+        // migration and by nothing else; reading it is the M8 nav bug.
+        let sql = node_projection("n");
+        assert!(
+            !sql.contains("n.has_phases"),
+            "projection must not read the denormalized column, got: {sql}"
+        );
+    }
+
+    #[test]
+    fn node_projection_qualifies_every_column_with_the_alias() {
+        // The prereq query joins `nodes n` inside a recursive CTE; unqualified
+        // column names would be ambiguous there.
+        let sql = node_projection("n");
+        for col in ["n.id", "n.slug", "n.title", "n.branch", "n.depth_tier"] {
+            assert!(
+                sql.contains(col),
+                "projection must qualify {col}, got: {sql}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    #[ignore] // Requires running PostgreSQL with migrations + content ingested
+    async fn test_has_phases_matches_actual_phase_count() {
+        use domain::has_learning_room;
+
+        let pool = test_pool().await;
+        let nodes = get_all_nodes(&pool).await.expect("get_all_nodes failed");
+
+        for node in &nodes {
+            let count: i64 =
+                sqlx::query_scalar("SELECT count(*) FROM node_phases WHERE node_id = $1")
+                    .bind(node.id)
+                    .fetch_one(&pool)
+                    .await
+                    .expect("phase count query failed");
+
+            assert_eq!(
+                node.has_phases,
+                has_learning_room(count),
+                "{} reports has_phases={} but has {} phase rows",
+                node.slug,
+                node.has_phases,
+                count
+            );
+        }
     }
 
     #[tokio::test]

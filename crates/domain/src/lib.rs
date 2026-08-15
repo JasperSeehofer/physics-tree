@@ -12,6 +12,9 @@ pub use content_spec::{
 };
 #[cfg(feature = "ssr")]
 pub use content_spec::extract_h2_headings;
-pub use graph::{EdgeType, NodeType, PhysicsEdge, PhysicsNode};
+pub use graph::{
+    concept_path, has_learning_room, learning_room_path, node_destination, node_destination_label,
+    EdgeType, NodeType, PhysicsEdge, PhysicsNode, MIN_LEARNING_ROOM_PHASES,
+};
 pub use quiz::{QuizOption, QuizQuestion};
 pub use user::User;

@@ -146,6 +146,14 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
     let mut in_admonition = false;
     let mut in_code_block = false;
     let mut in_quiz_block = false;
+    // Table state. The event consumer hands `push_html` one event at a time, so
+    // the writer's own table bookkeeping resets between calls and every body
+    // cell came out as a `<th>` — visible on the graduate calibration probe's
+    // routing table, whose whole body rendered as headers (M8). Emit table
+    // markup here instead, where the head/body distinction is tracked.
+    let mut table_alignments: Vec<pulldown_cmark::Alignment> = Vec::new();
+    let mut in_table_head = false;
+    let mut table_col = 0usize;
     let mut code_lang = String::new();
     let mut code_buf = String::new();
     let mut quiz_buf = String::new();
@@ -276,6 +284,51 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
                 in_code_block = false;
                 code_buf.clear();
                 code_lang.clear();
+            }
+
+            // Tables — emitted here so head/body cells are distinguishable
+            Event::Start(Tag::Table(alignments)) => {
+                table_alignments = alignments;
+                html.push_str("<table>");
+            }
+            Event::End(TagEnd::Table) => {
+                html.push_str("</tbody></table>");
+                table_alignments.clear();
+            }
+            Event::Start(Tag::TableHead) => {
+                in_table_head = true;
+                table_col = 0;
+                html.push_str("<thead><tr>");
+            }
+            Event::End(TagEnd::TableHead) => {
+                in_table_head = false;
+                html.push_str("</tr></thead><tbody>");
+            }
+            Event::Start(Tag::TableRow) => {
+                table_col = 0;
+                html.push_str("<tr>");
+            }
+            Event::End(TagEnd::TableRow) => {
+                html.push_str("</tr>");
+            }
+            Event::Start(Tag::TableCell) => {
+                let tag = if in_table_head { "th" } else { "td" };
+                match table_alignments.get(table_col) {
+                    Some(pulldown_cmark::Alignment::Left) => {
+                        html.push_str(&format!("<{tag} style=\"text-align: left\">"))
+                    }
+                    Some(pulldown_cmark::Alignment::Center) => {
+                        html.push_str(&format!("<{tag} style=\"text-align: center\">"))
+                    }
+                    Some(pulldown_cmark::Alignment::Right) => {
+                        html.push_str(&format!("<{tag} style=\"text-align: right\">"))
+                    }
+                    _ => html.push_str(&format!("<{tag}>")),
+                }
+                table_col += 1;
+            }
+            Event::End(TagEnd::TableCell) => {
+                html.push_str(if in_table_head { "</th>" } else { "</td>" });
             }
 
             // Headings — buffer content to compute ID
@@ -818,6 +871,53 @@ mod tests {
             "Quiz code block should NOT be syntax-highlighted, got: {}",
             result.html
         );
+    }
+
+    // ── Tables (M8) ──────────────────────────────────────────────────────────
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn table_body_cells_are_td_not_th() {
+        // The graduate calibration probe's routing table used to render every
+        // body cell as a header.
+        let md = "| Rating | Meaning |\n|:---:|---|\n| 3 | Fluent |\n| 0 | Blank |\n";
+        let result = render_content_markdown(md);
+        assert!(
+            result.html.contains("<thead><tr>"),
+            "table should have a head, got: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("<tbody>"),
+            "table should have a body, got: {}",
+            result.html
+        );
+        assert_eq!(
+            result.html.matches("</th>").count(),
+            2,
+            "only the two header cells are <th>, got: {}",
+            result.html
+        );
+        assert_eq!(
+            result.html.matches("</td>").count(),
+            4,
+            "the four body cells are <td>, got: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn table_column_alignment_is_carried_through() {
+        let md = "| a | b | c |\n|:---|:---:|---:|\n| 1 | 2 | 3 |\n";
+        let result = render_content_markdown(md);
+        assert!(result.html.contains("text-align: left"), "{}", result.html);
+        assert!(
+            result.html.contains("text-align: center"),
+            "{}",
+            result.html
+        );
+        assert!(result.html.contains("text-align: right"), "{}", result.html);
     }
 
     #[cfg(feature = "ssr")]
