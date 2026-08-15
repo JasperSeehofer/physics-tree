@@ -1,0 +1,149 @@
+# =============================================================================
+# STAGED GRADUATE NODE — validates under content-spec v1.2, tier: graduate.
+# Authored by mission M1b (2026-08-15) against v1.0 to find where the spec
+# strained; migrated to v1.2 by mission M2 (2026-08-15).
+#
+# NOT YET INGESTIBLE CONTENT. It lives under .planning/missions/, not under
+# content/, on purpose: moving it into content/ is Jasper's ratification act.
+# Its physics has had no second pass (M1b §6: "Do not treat it as correct").
+#
+# Every v1.0 strain recorded in ../M1b-pedagogy-report.md is resolved below and
+# annotated with the finding it closes.
+# =============================================================================
+
+concept_id: parallel-transport-covariant-derivative
+title: 'Parallel Transport and the Covariant Derivative'
+
+# S-2 RESOLVED: eqf_level range is now 2-8. This is the entry node of a track
+# whose later nodes (spin foams, asymptotic safety, functional RG) are EQF 8;
+# at 7 it no longer sits at the ceiling of the scale.
+eqf_level: 7
+
+# S-1 RESOLVED: the tier switch. Declared rather than inferred, although the
+# EQF-7 inference would give the same answer — the declaration is what the
+# advisory phase-2/3 gate and the misconception cap read.
+tier: graduate
+
+# S-3 PARTIALLY RESOLVED: a scalar Bloom level is still a fiction for this node
+# (apply/analyze for index gymnastics, evaluate for the geometric trinity,
+# remember for the bundle-theoretic definition). The per-learner profile is now
+# measured by the Phase-0 calibration probe instead of asserted here; this field
+# records the node's floor.
+bloom_minimum: analyze
+
+# S-4 RESOLVED: prerequisites are typed. None of these exists in content/ and
+# none is scheduled to; the QG track assumes a physics master's, so they are
+# declared `external` and exempt from the authoring gate's existence check.
+# Re-type to `internal` if a differential-geometry curriculum is ever authored
+# here — the ids are already the slugs it would use.
+prerequisites:
+  - id: smooth-manifolds
+    kind: hard
+    status: external
+  - id: tangent-vectors-and-vector-fields
+    kind: hard
+    status: external
+  - id: tensor-fields
+    kind: hard
+    status: external
+  - id: metric-tensor
+    kind: hard
+    status: external
+  - id: lie-derivative
+    kind: contrast          # not needed to read Phase 2; load-bearing in 4 and 6
+    status: external
+
+# S-5 RESOLVED: cap raised to 8 at graduate tier and entries typed. All eight
+# error modes M1b identified are now declarable; five of these had to be dropped
+# under the v1.0 cap of 3, including two that survive into published research
+# (the normal-coordinates one and the index-order one).
+misconceptions:
+  - type: false_generalisation
+    statement: 'The Christoffel symbols are the components of a tensor, because they carry indices and can be raised and lowered with the metric'
+  - type: belief
+    statement: 'A manifold with a metric has exactly one derivative operator, so the connection is determined by the geometry rather than chosen'
+  - type: belief
+    statement: 'Parallel transport is path-independent as long as you stay inside a single coordinate chart'
+  - type: conflation
+    statement: 'The covariant derivative and the Lie derivative are two notations for the same operation'
+  - type: false_generalisation
+    statement: 'Normal coordinates make the Christoffel symbols vanish in a whole neighbourhood, not just at a point'
+  - type: false_generalisation
+    statement: 'The covariant derivative of a tensor density is given by the same formula as for a tensor'
+  - type: belief
+    statement: 'Torsion is a small correction to general relativity rather than an independent choice of connection'
+  - type: convention_trap
+    statement: 'Index order in Gamma^rho_{mu nu} does not matter because it is symmetric — true only for Levi-Civita'
+
+# Unchanged from the draft: M1b found this the best-fitting field in the whole
+# schema at graduate level, and the one that needed no change.
+domain_of_applicability:
+  - 'Valid on any smooth manifold carrying an affine connection; a metric is NOT required to define the covariant derivative'
+  - 'The Levi-Civita specialisation is valid only under metric compatibility AND vanishing torsion; drop either and you get teleparallel or metric-affine geometry instead'
+  - 'Valid for tensor fields on the tangent bundle; spinor fields require the spin connection on the frame bundle and are out of scope for this node'
+  - 'Classical smooth regime only: assumes a fixed differentiable manifold. Makes no statement about superpositions of geometries, discrete spectra of geometric operators, or sub-Planckian smoothness'
+
+esco_tags: []
+
+# S-10 PARTIALLY RESOLVED: spec v1.2 documents an EQF 7-8 band of 120-240 min,
+# which 202 accommodates. The per-phase sum matches (12+30+45+40+20+30+25).
+# Still open: 202 min is not one sitting, and there is no `sessions: N` field —
+# see the M2 report follow-ups.
+estimated_minutes: 202
+
+derivation_required: true
+
+node_type: concept
+depth_tier: trunk
+
+# S-7 RESOLVED by the granularity rule (spec v1.2 §1): one node = one coherent
+# concept, possibly several formulas. This node is one argument — non-tensoriality
+# of the partial derivative -> a connection must exist -> it is not unique ->
+# something else selects it -> the fork into the geometric trinity — carried by
+# six novel elements and three derivations. Splitting it would separate Phase 1's
+# struggle from its own gap reveal.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # S-1 RESOLVED: the probe is what routes this learner. A `3` on items 1-4
+      # licenses skipping phases 2 and 3 (advisory at graduate tier); a `0` on
+      # items 1-3 routes to the prerequisite instead of into this node.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
