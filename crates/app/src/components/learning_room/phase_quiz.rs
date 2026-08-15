@@ -396,3 +396,51 @@ pub fn PhaseQuiz(
         </div>
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// M5 repro fixture — verbatim from `content/classical-mechanics/kinematics/phase-5.md`,
+    /// the shipped node's first `multiple_choice` quiz block (fence markers stripped).
+    /// This is exactly the format `docs/content-spec.md` v1.2 6 defines: `prompt:`
+    /// (not `question:`) and `options:` as a bare-string list keyed by a separate
+    /// `answer:` index (not `- text: ...` mappings).
+    const KINEMATICS_MC_BLOCK: &str = r#"type: multiple_choice
+prompt: 'Which of the following is the kinematic equation for velocity as a function of time under constant acceleration?'
+options:
+  - '$v = v_0 + \frac{1}{2}at^2$'
+  - '$v = v_0 + at$'
+  - '$v^2 = v_0^2 + 2a\Delta x$'
+  - '$x = x_0 + v_0 t + at^2$'
+answer: 1
+difficulty: remember"#;
+
+    /// M5 Scope 1 — REPRODUCE.
+    ///
+    /// `parse_quiz_block`'s doc comment (see above) declares the format it expects:
+    /// `question:` for the prompt, and `- text: "..."` / `correct: true` mappings for
+    /// options. That format is not what any node in `content/` — including this
+    /// shipped kinematics node — actually contains; `docs/content-spec.md` 6
+    /// specifies `prompt:` and a bare-string `options:` list keyed by a separate
+    /// `answer:` index. Before the M5 fix, this assertion fails: `question` stays
+    /// empty (no `question:` key exists in spec-format YAML) and `options` stays
+    /// empty (no line matches `- text:`), so `parse_quiz_block` returns `None` for
+    /// every spec-conformant quiz block in the repository. See
+    /// `.planning/missions/M5-quiz-parsing/M5-report.md` for the captured failure
+    /// output from a run of this test against the pre-fix parser.
+    #[test]
+    fn test_repro_spec_format_multiple_choice_block_parses() {
+        let result = parse_quiz_block(KINEMATICS_MC_BLOCK);
+        assert!(
+            result.is_some(),
+            "parse_quiz_block returned None for a verbatim spec-format quiz block \
+             taken from content/classical-mechanics/kinematics/phase-5.md — the parser \
+             does not understand content-spec.md v1.2 6's `prompt:`/bare-options-list/`answer:` format."
+        );
+    }
+}
