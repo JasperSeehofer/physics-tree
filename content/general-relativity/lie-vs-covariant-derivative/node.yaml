@@ -13,10 +13,16 @@
 # picks one out"; this node answers "what does differentiation cost when you
 # refuse to buy a connection at all".
 #
-# NOT YET REVIEWED. Mission M9b re-derives independently and stages into
-# content/ only if no MAJOR finding is unresolved. Do not ingest from here.
+# Physics reviewed adversarially by mission M9b (reviewer != author by
+# construction, D10), which re-derived every mathematical claim from scratch --
+# including symbolic verification of the two general identities (D2's bridge
+# identity for an arbitrary connection, D3's Killing residue for an arbitrary
+# metric-compatible torsionful one) -- and found no MAJOR fault. Three MINOR
+# presentation/arithmetic defects were corrected before adoption.
 #
-# Provenance: .planning/missions/M9-lie-covariant-node/M9a-author-notes.md
+# Provenance and the full review record:
+#   .planning/missions/M9-lie-covariant-node/M9a-author-notes.md
+#   .planning/missions/M9-lie-covariant-node/M9b-review.md
 # =============================================================================
 
 concept_id: lie-vs-covariant-derivative

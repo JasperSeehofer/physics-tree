@@ -4,7 +4,7 @@ type: spaced_return
 estimated_minutes: 15
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b. Clean. -->
 
 ## Spaced Prompt
 

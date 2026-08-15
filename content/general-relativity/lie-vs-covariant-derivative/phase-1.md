@@ -4,7 +4,9 @@ type: productive_struggle
 estimated_minutes: 25
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b, which -->
+<!-- re-derived Parts A, B and C symbolically. The C2 underbrace signs were the -->
+<!-- one MINOR correction here. -->
 
 ## Struggle Problem
 

@@ -4,7 +4,7 @@ type: self_explanation
 estimated_minutes: 20
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b. Clean. -->
 <!-- Mandatory at every probe score: self-explanation strengthens with expertise -->
 <!-- rather than reversing, so it is outside the advisory gate (spec v1.2 §1). -->
 

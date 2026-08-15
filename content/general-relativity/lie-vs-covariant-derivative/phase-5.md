@@ -4,7 +4,14 @@ type: retrieval_check
 estimated_minutes: 20
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b: all 8 -->
+<!-- quiz blocks parse and every answer index was re-checked against the physics. -->
+<!-- NOTE (platform, not content): the Learning Room renderer drops -->
+<!-- `fill_in_formula` blocks by design (parse_quiz_block returns None for any -->
+<!-- non-multiple_choice type), and the v1.2 fenced-quiz schema has no -->
+<!-- `variables` field for check_formula_equivalence to sample. The adopted -->
+<!-- exemplar node carries the identical item shape. The item below is correct -->
+<!-- and spec-legal; it is inert until that gap is closed. See the M9b review. -->
 <!-- Quiz design per content-spec v1.2 §6: NO tensor-valued `fill_in_formula`. -->
 <!-- The single fill_in_formula item below has a scalar, index-free answer in one -->
 <!-- named variable, which is what the math.js grader can actually evaluate; every -->

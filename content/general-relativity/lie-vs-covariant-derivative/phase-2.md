@@ -4,7 +4,9 @@ type: concreteness_fading
 estimated_minutes: 40
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b, which -->
+<!-- re-derived D1, D2 and D3 from scratch and verified D2 and D3 symbolically -->
+<!-- against arbitrary torsionful connections. Two MINOR corrections here. -->
 <!-- Graduate reading of "concrete" per content-spec v1.2 section 4: instantiation, -->
 <!-- not physicality — a specific manifold, a specific metric, measured numbers. -->
 <!-- The optional `structural_stage` is declared here because the transfer this -->

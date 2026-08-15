@@ -7,7 +7,8 @@ estimated_minutes: 15
 <!-- Authored by mission M9a (2026-08-15) from a live teaching moment: probe A5 -->
 <!-- and its oral follow-up. Register and structure follow the adopted graduate -->
 <!-- exemplar `parallel-transport-covariant-derivative`, which is this node's -->
-<!-- internal prerequisite. NOT YET INDEPENDENTLY REVIEWED — mission M9b. -->
+<!-- internal prerequisite. Independently reviewed by M9b; the two-gate probe -->
+<!-- below is upheld and carried to the spec owner as a v1.3 addendum candidate. -->
 
 ## Recall Prompt
 

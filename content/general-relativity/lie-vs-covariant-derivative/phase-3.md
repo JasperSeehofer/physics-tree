@@ -4,7 +4,8 @@ type: worked_examples
 estimated_minutes: 35
 ---
 
-<!-- Authored by mission M9a (2026-08-15). NOT YET INDEPENDENTLY REVIEWED (M9b). -->
+<!-- Authored by mission M9a (2026-08-15); independently reviewed by M9b, which -->
+<!-- recomputed FLRW, Schwarzschild and the mostly-faded counterexample. Clean. -->
 <!-- Conventions as in phase-2's Conventions table: signature (-,+,+,+), c = 1, -->
 <!-- first lower index of Gamma is the differentiation direction, -->
 <!-- T^lambda_{mu nu} = Gamma^lambda_{mu nu} - Gamma^lambda_{nu mu}. -->
