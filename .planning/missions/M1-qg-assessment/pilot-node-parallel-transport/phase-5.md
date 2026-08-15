@@ -6,15 +6,18 @@ estimated_minutes: 30
 
 <!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
 <!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
-<!-- S-9 OPEN - RATIFICATION BLOCKER for quiz item 4 below. -->
-<!-- Content spec v1.2 6 now forbids fill_in_formula for tensor-valued or -->
-<!-- index-carrying answers: the grader is math.js numeric sampling over named -->
-<!-- scalar variables (crates/app/src/components/quiz/formula_input.rs -> -->
-<!-- window.__mathjs_bridge.checkEquivalence) and will mark every correct answer -->
-<!-- to item 4 WRONG. Item 4 is left in place as the evidence M1b filed it as; -->
-<!-- convert it to a structure-testing multiple_choice item before this node is -->
-<!-- moved into content/. Item 5 (2*pi*cos(theta_0)) is scalar and grades fine. -->
-<!-- The assessment engine itself is out of M2 scope. -->
+<!-- S-9 RESOLVED by mission M4 (F-2). Item 4 was a fill_in_formula whose -->
+<!-- answer was the Levi-Civita connection, an index-carrying object that -->
+<!-- content-spec v1.2 6 forbids for this type: the grader is math.js numeric -->
+<!-- sampling over named scalar variables (crates/app/src/components/quiz/ -->
+<!-- formula_input.rs -> window.__mathjs_bridge.checkEquivalence) and would -->
+<!-- mark every correct answer WRONG. Converted to the structure-testing -->
+<!-- multiple_choice item the spec prescribes; the closed-book reconstruction -->
+<!-- of the formula itself now lives in phase-6 item 3, where a human grades -->
+<!-- it. Item 5 stays fill_in_formula: its answer is a scalar, which is what -->
+<!-- 6 permits. See the M4 report for the separate infrastructure finding -->
+<!-- that no phase-embedded quiz block of ANY type is consumed by the app -->
+<!-- today, and that 6's schema has no `variables` field for the sampler. -->
 
 ## Quiz
 
@@ -55,15 +58,20 @@ difficulty: apply
 ```
 
 ```quiz
-type: fill_in_formula
-prompt: 'Write the Levi-Civita connection coefficients in terms of the metric.'
-answer: 'Gamma^lambda_{mu nu} = (1/2) g^{lambda rho} (d_mu g_{nu rho} + d_nu g_{rho mu} - d_rho g_{mu nu})'
-difficulty: remember
+type: multiple_choice
+prompt: 'The Levi-Civita formula is obtained by writing metric compatibility three times with the indices cyclically permuted and forming (i) + (ii) $-$ (iii). That manipulation uses torsion-freeness three separate times. Suppose you keep metric compatibility and drop torsion-freeness. What happens to the derivation?'
+options:
+  - 'Nothing survives: without torsion-freeness the three cyclically permuted copies of metric compatibility cannot be written down at all'
+  - 'The formula comes out unchanged, because torsion-freeness is used only at the final step, where the metric is inverted'
+  - 'The cancellations no longer complete, and what survives is the Levi-Civita expression plus a contorsion tensor built from $T^{\lambda}{}_{\mu\nu}$ — the metric determines the connection only once the torsion is supplied separately'
+  - 'The formula comes out unchanged in value, but must be read with the two lower indices in the opposite order'
+answer: 2
+difficulty: analyze
 ```
 
 ```quiz
 type: fill_in_formula
-prompt: 'A vector is parallel-transported once around a circle of latitude at colatitude $\theta_0$ on a sphere. Write the angle by which it returns rotated, in radians.'
+prompt: 'A vector is parallel-transported once around a circle of latitude at colatitude $\theta_0$ on a sphere, in the direction of increasing $\varphi$. Write the total rotation angle it accumulates in the local orthonormal frame over the circuit, in radians. (Not the shortfall relative to a full turn — that is the complementary quantity.)'
 answer: '2*pi*cos(theta_0)'
 difficulty: apply
 ```
