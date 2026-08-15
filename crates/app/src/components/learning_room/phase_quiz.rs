@@ -27,67 +27,110 @@ pub struct QuizBlock {
 // ─────────────────────────────────────────────────────────────────────────────
 // Minimal YAML parser for the quiz block format
 // ─────────────────────────────────────────────────────────────────────────────
-// Expected structure:
+//
+// Format per `docs/content-spec.md` v1.2 §6 ("Quiz Block Format"). Fields:
+//   type: multiple_choice | fill_in_formula | matching   (required)
+//   prompt: "..."                                        (required)
+//   options: [list[string]]                               (required for multiple_choice)
+//   answer: <int> | <string>                              (required; 0-based index
+//                                                           for multiple_choice, the
+//                                                           expected expression for
+//                                                           fill_in_formula)
+//   difficulty: remember | understand | ... | create      (required; not consumed
+//                                                           by this renderer)
+//
+// Example (spec §6, verbatim):
 //   type: multiple_choice
-//   question: "..."
+//   prompt: "A 2 kg object has a net force of 10 N applied to it. What is its acceleration?"
 //   options:
-//     - text: "..."
-//       correct: true
-//       explanation: "..."
-//     - text: "..."
-//       correct: false
-//       explanation: "..."
-
+//     - "0.2 m/s²"
+//     - "5 m/s²"
+//     - "20 m/s²"
+//     - "12 m/s²"
+//   answer: 1
+//   difficulty: apply
+//
+// M5 (2026-08-15): this function previously expected an invented format
+// (`question:` + `- text: "..."` / `correct: true` mappings) that the spec never
+// defined and no node in `content/` ever used — every phase-embedded quiz block
+// in the repository silently failed to parse (M4 finding I-1). This rewrite makes
+// the parser conform to the spec instead (per the M5 mission contract: the spec is
+// the contract, the parser conforms to it).
+//
+// Scope: `type: multiple_choice` only. The rendering component below
+// (`QuizQuestionCard`) is a button/radio picker over discrete options; it has no
+// UI for grading a free-form `fill_in_formula` answer or a `matching` block (the
+// spec enumerates `matching` as a valid type but — as of v1.2 — never defines its
+// fields, which is a spec gap, not something this parser can resolve; see the M5
+// report). Building that UI is explicitly out of scope for M5 ("new question
+// types" / "UI changes" are non-goals). `parse_quiz_block` therefore recognizes
+// but does not convert non-multiple_choice blocks — it returns `None` for them,
+// same as it does for malformed input, so a block missing understood fields never
+// silently renders as a broken quiz question.
 pub fn parse_quiz_block(yaml: &str) -> Option<QuizBlock> {
-    let mut question = String::new();
-    let mut options: Vec<QuizOption> = Vec::new();
-    let mut current_option: Option<(String, bool, String)> = None;
+    let mut quiz_type = String::new();
+    let mut prompt = String::new();
+    let mut answer_raw: Option<String> = None;
+    let mut options: Vec<String> = Vec::new();
     let mut in_options = false;
 
     for line in yaml.lines() {
         let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
 
-        if trimmed.starts_with("question:") {
-            let val = extract_yaml_value(trimmed, "question:");
-            question = val;
+        if trimmed.starts_with("type:") {
+            quiz_type = extract_yaml_value(trimmed, "type:");
+            in_options = false;
+        } else if trimmed.starts_with("prompt:") {
+            prompt = extract_yaml_value(trimmed, "prompt:");
+            in_options = false;
         } else if trimmed == "options:" {
             in_options = true;
-        } else if in_options {
-            if trimmed.starts_with("- text:") {
-                // Start new option — save the previous one
-                if let Some((text, correct, explanation)) = current_option.take() {
-                    options.push(QuizOption { text, correct, explanation });
-                }
-                let text = extract_yaml_value(trimmed, "- text:");
-                current_option = Some((text, false, String::new()));
-            } else if trimmed.starts_with("text:") {
-                if let Some(ref mut opt) = current_option {
-                    opt.0 = extract_yaml_value(trimmed, "text:");
-                }
-            } else if trimmed.starts_with("correct:") {
-                let val = extract_yaml_value(trimmed, "correct:");
-                if let Some(ref mut opt) = current_option {
-                    opt.1 = val.trim() == "true";
-                }
-            } else if trimmed.starts_with("explanation:") {
-                let val = extract_yaml_value(trimmed, "explanation:");
-                if let Some(ref mut opt) = current_option {
-                    opt.2 = val;
-                }
-            }
+        } else if trimmed.starts_with("answer:") {
+            answer_raw = Some(extract_yaml_value(trimmed, "answer:"));
+            in_options = false;
+        } else if trimmed.starts_with("difficulty:") {
+            // Bloom level — not consumed by this renderer today.
+            in_options = false;
+        } else if in_options && trimmed.starts_with("- ") {
+            options.push(extract_yaml_value(trimmed, "-"));
+        } else {
+            // Any other line (e.g. a YAML doc separator) ends the options block.
+            in_options = false;
         }
     }
 
-    // Save last option
-    if let Some((text, correct, explanation)) = current_option.take() {
-        options.push(QuizOption { text, correct, explanation });
-    }
-
-    if question.is_empty() || options.is_empty() {
+    if quiz_type != "multiple_choice" {
         return None;
     }
 
-    Some(QuizBlock { question, options })
+    if prompt.is_empty() || options.is_empty() {
+        return None;
+    }
+
+    // `answer` must be a valid 0-based index into `options` — anything else
+    // (missing, non-numeric, out of range) makes the block malformed rather
+    // than a quiz with no correct option.
+    let correct_index: usize = answer_raw.as_deref()?.trim().parse().ok()?;
+    if correct_index >= options.len() {
+        return None;
+    }
+
+    let quiz_options = options
+        .into_iter()
+        .enumerate()
+        .map(|(idx, text)| QuizOption {
+            text,
+            correct: idx == correct_index,
+            // The spec has no per-option explanation field; QuizQuestionCard
+            // already treats an empty explanation as "nothing to show".
+            explanation: String::new(),
+        })
+        .collect();
+
+    Some(QuizBlock { question: prompt, options: quiz_options })
 }
 
 /// Extract value from a YAML key:value line, stripping quotes.
