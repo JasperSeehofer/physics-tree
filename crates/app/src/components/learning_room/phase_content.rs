@@ -88,8 +88,12 @@ pub fn PhaseContentArea(
         });
     }
 
-    let border_class = format!("border-l-4 border-{} pl-4", accent_color);
-
+    // The phase accent rides a `data-accent` attribute rather than a generated
+    // `border-{token}` utility class: Tailwind scans source files for literal
+    // class names, so a class assembled at runtime from `phase_accent_class`
+    // was never emitted and the old left stripe had no colour (M8). The
+    // attribute drives `--phase-accent` in style/main.css, which the
+    // `.phase-section` blocks inherit.
     view! {
         <div
             id="phase-content-scroll"
@@ -98,10 +102,10 @@ pub fn PhaseContentArea(
             <div
                 role="tabpanel"
                 id="phase-content"
-                class="prose prose-invert max-w-none"
-            >
-                <div class=border_class inner_html=html />
-            </div>
+                class="phase-content"
+                data-accent=accent_color
+                inner_html=html
+            />
         </div>
     }
 }

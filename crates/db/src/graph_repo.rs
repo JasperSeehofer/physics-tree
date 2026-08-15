@@ -180,7 +180,10 @@ mod tests {
         // column names would be ambiguous there.
         let sql = node_projection("n");
         for col in ["n.id", "n.slug", "n.title", "n.branch", "n.depth_tier"] {
-            assert!(sql.contains(col), "projection must qualify {col}, got: {sql}");
+            assert!(
+                sql.contains(col),
+                "projection must qualify {col}, got: {sql}"
+            );
         }
     }
 
@@ -193,13 +196,12 @@ mod tests {
         let nodes = get_all_nodes(&pool).await.expect("get_all_nodes failed");
 
         for node in &nodes {
-            let count: i64 = sqlx::query_scalar(
-                "SELECT count(*) FROM node_phases WHERE node_id = $1",
-            )
-            .bind(node.id)
-            .fetch_one(&pool)
-            .await
-            .expect("phase count query failed");
+            let count: i64 =
+                sqlx::query_scalar("SELECT count(*) FROM node_phases WHERE node_id = $1")
+                    .bind(node.id)
+                    .fetch_one(&pool)
+                    .await
+                    .expect("phase count query failed");
 
             assert_eq!(
                 node.has_phases,
