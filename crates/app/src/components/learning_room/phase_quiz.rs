@@ -133,6 +133,32 @@ pub fn parse_quiz_block(yaml: &str) -> Option<QuizBlock> {
     Some(QuizBlock { question: prompt, options: quiz_options })
 }
 
+/// Parse every quiz block out of a `quiz_yaml` string that may contain more than
+/// one YAML document (multiple `data-quiz-block` extractions joined by the caller
+/// with a `\n---\n` separator — see `extract_quiz_yaml_from_html` and its call
+/// site in `pages/learning_room.rs`). Non-`multiple_choice` blocks (see
+/// `parse_quiz_block`'s doc comment) are silently skipped, same as a malformed
+/// block would be.
+///
+/// Extracted from `PhaseQuiz`'s body (M5) so the assembly logic — not just the
+/// per-block parse — has direct unit test coverage.
+pub fn parse_quiz_blocks(quiz_yaml: &str) -> Vec<QuizBlock> {
+    let mut blocks = vec![];
+    // Try splitting by YAML document separator
+    for doc in quiz_yaml.split("\n---\n") {
+        if let Some(block) = parse_quiz_block(doc) {
+            blocks.push(block);
+        }
+    }
+    // If no docs found, try the whole string
+    if blocks.is_empty() {
+        if let Some(block) = parse_quiz_block(quiz_yaml) {
+            blocks.push(block);
+        }
+    }
+    blocks
+}
+
 /// Extract value from a YAML key:value line, stripping quotes.
 fn extract_yaml_value(line: &str, prefix: &str) -> String {
     let raw = line[prefix.len()..].trim().to_string();
@@ -297,22 +323,7 @@ pub fn PhaseQuiz(
     let score_message: RwSignal<Option<String>> = RwSignal::new(None);
 
     // Parse quiz blocks — support multiple blocks in the YAML by splitting on "---"
-    let questions: Vec<QuizBlock> = {
-        let mut blocks = vec![];
-        // Try splitting by YAML document separator
-        for doc in quiz_yaml.split("\n---\n") {
-            if let Some(block) = parse_quiz_block(doc) {
-                blocks.push(block);
-            }
-        }
-        // If no docs found, try the whole string
-        if blocks.is_empty() {
-            if let Some(block) = parse_quiz_block(&quiz_yaml) {
-                blocks.push(block);
-            }
-        }
-        blocks
-    };
+    let questions: Vec<QuizBlock> = parse_quiz_blocks(&quiz_yaml);
     let question_count = questions.len();
 
     // Per-question answer tracking: None = unanswered, Some(true/false) = correct/wrong
