@@ -129,7 +129,7 @@ The cancellation of Part A required **symmetry of $\Gamma$ in its two lower indi
 
 **Part C2 — the argument you were meant to find.** Do not transform anything. Test $C^{\infty}$-linearity, using B1 and B2:
 
-$$S(fX,Y) = \nabla_{fX}Y - \nabla_{Y}(fX) - [fX,Y] = f\nabla_{X}Y - \underbrace{(Yf)X - f\nabla_{Y}X}_{\text{Leibniz on } \nabla} - \underbrace{f[X,Y] + (Yf)X}_{\text{failure of } [\,\cdot\,,\cdot\,]}\,,$$
+$$S(fX,Y) = \nabla_{fX}Y - \nabla_{Y}(fX) - [fX,Y] = f\nabla_{X}Y \underbrace{\;-\,(Yf)X - f\nabla_{Y}X\;}_{\text{from } -\nabla_{Y}(fX),\ \text{Leibniz}} \underbrace{\;-\,f[X,Y] + (Yf)X\;}_{\text{from } -[fX,Y],\ \text{failure of } [\,\cdot\,,\cdot\,]}\,,$$
 
 that is,
 

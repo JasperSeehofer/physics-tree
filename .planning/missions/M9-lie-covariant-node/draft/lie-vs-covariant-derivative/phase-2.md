@@ -26,7 +26,7 @@ because $\xi$ has constant components and no metric component depends on $\varph
 
 **Number 2 — what sliding south does to it.** Flow along $\eta$ and the latitude circles change size: that is the entire content of "the Earth is round". Quantitatively, $C(\theta) = 2\pi R\sin\theta$, so
 
-$$\frac{dC}{d\theta}\bigg|_{\theta_{0}} = 2\pi R\cos\theta_{0} = 2\pi\left(6371\ \mathrm{km}\right)\left(0.7522\right) = 30{,}111\ \mathrm{km\ per\ radian} = 525.6\ \mathrm{km\ per\ degree}.$$
+$$\frac{dC}{d\theta}\bigg|_{\theta_{0}} = 2\pi R\cos\theta_{0} = 2\pi\left(6371\ \mathrm{km}\right)\left(0.7522\right) = 30{,}110\ \mathrm{km\ per\ radian} = 525.5\ \mathrm{km\ per\ degree}.$$
 
 Go one degree south of Stuttgart and your latitude circle is $526$ km longer. That number *is* a Lie derivative: since $C = 2\pi\sqrt{g_{\varphi\varphi}}$ and $\eta$ has constant components,
 
@@ -240,7 +240,9 @@ Three readings of one identity, each worth keeping.
 
 *As a licence.* The familiar move "replace $\partial$ by $\nabla$, the extra terms cancel" is licensed by $T = 0$ and by nothing else. The same holds for general tensors: for a torsion-free connection,
 
-$$\mathcal{L}_{X}T^{\mu\ldots}{}_{\nu\ldots} = X^{\lambda}\nabla_{\lambda}T^{\mu\ldots}{}_{\nu\ldots} - T^{\lambda\ldots}{}_{\nu\ldots}\nabla_{\lambda}X^{\mu} - \cdots + T^{\mu\ldots}{}_{\lambda\ldots}\nabla_{\nu}X^{\lambda} + \cdots$$
+$$\mathcal{L}_{X}W^{\mu\ldots}{}_{\nu\ldots} = X^{\lambda}\nabla_{\lambda}W^{\mu\ldots}{}_{\nu\ldots} - W^{\lambda\ldots}{}_{\nu\ldots}\nabla_{\lambda}X^{\mu} - \cdots + W^{\mu\ldots}{}_{\lambda\ldots}\nabla_{\nu}X^{\lambda} + \cdots$$
+
+(written with $W$ rather than $T$ for the general tensor: in this block $T$ is the torsion.)
 
 which is often *the* practical way to compute a Lie derivative in general relativity. It is a convenience, not a definition, and it is the trapdoor through which "the Lie derivative needs a connection" gets in.
 
