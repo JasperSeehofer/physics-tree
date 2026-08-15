@@ -4,8 +4,10 @@ type: spaced_return
 estimated_minutes: 25
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 
 ## Spaced Prompt
 

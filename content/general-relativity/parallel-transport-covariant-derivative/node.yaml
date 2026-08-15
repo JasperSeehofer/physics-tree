@@ -1,14 +1,20 @@
 # =============================================================================
-# STAGED GRADUATE NODE — validates under content-spec v1.2, tier: graduate.
-# Authored by mission M1b (2026-08-15) against v1.0 to find where the spec
-# strained; migrated to v1.2 by mission M2 (2026-08-15).
+# FIRST GRADUATE NODE — validates under content-spec v1.2, tier: graduate.
 #
-# NOT YET INGESTIBLE CONTENT. It lives under .planning/missions/, not under
-# content/, on purpose: moving it into content/ is Jasper's ratification act.
-# Its physics has had no second pass (M1b §6: "Do not treat it as correct").
+# Authored by mission M1b (2026-08-15) against spec v1.0, to find where the
+# spec strained at graduate depth; migrated to v1.2 by mission M2; physics
+# reviewed adversarially by mission M4 (reviewer != author by construction),
+# which corrected three arithmetic/sign errors, two misleading compressions,
+# and two declared-but-untreated misconceptions, and found no major fault.
 #
-# Every v1.0 strain recorded in ../M1b-pedagogy-report.md is resolved below and
-# annotated with the finding it closes.
+# Provenance, the full review record, and the findings M4 did NOT fix (they
+# are infrastructure, not content):
+#   .planning/missions/M4-pilot-adoption/M4-report.md
+#   .planning/missions/M1-qg-assessment/M1b-pedagogy-report.md
+#   .planning/missions/M2-graduate-tier/M2-report.md
+#
+# Every v1.0 strain recorded in the M1b report is resolved below and annotated
+# with the finding it closes.
 # =============================================================================
 
 concept_id: parallel-transport-covariant-derivative

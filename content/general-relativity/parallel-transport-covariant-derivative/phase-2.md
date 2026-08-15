@@ -4,8 +4,10 @@ type: concreteness_fading
 estimated_minutes: 45
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 <!-- S-6 RESOLVED in spec v1.2 4: at graduate tier "concrete" means instantiation, -->
 <!-- not physicality - a specific manifold with measured numbers, as below. -->
 <!-- S-8 RESOLVED: the three derivations under one Derivation H2 are now the -->

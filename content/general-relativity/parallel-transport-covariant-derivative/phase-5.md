@@ -4,8 +4,10 @@ type: retrieval_check
 estimated_minutes: 30
 ---
 
-<!-- STAGED - Mission M1b 2026-08-15, migrated to content-spec v1.2 by M2. -->
-<!-- Validates under tier: graduate. Not yet in content/ - awaiting ratification. -->
+<!-- Authored by mission M1b (2026-08-15) as a graduate stress test of the v1.1 -->
+<!-- template, migrated to content-spec v1.2 by M2, independently reviewed and -->
+<!-- corrected by M4 (F-3). Validates under tier: graduate. Provenance and the -->
+<!-- full review record: .planning/missions/M4-pilot-adoption/M4-report.md. -->
 <!-- S-9 RESOLVED by mission M4 (F-2). Item 4 was a fill_in_formula whose -->
 <!-- answer was the Levi-Civita connection, an index-carrying object that -->
 <!-- content-spec v1.2 6 forbids for this type: the grader is math.js numeric -->
