@@ -24,7 +24,7 @@ Now carry it east along the equator to longitude $90^{\circ}$ E. Nothing about t
 
 Now carry it back north to the pole along the $90^{\circ}$ E meridian. It arrives at the pole pointing along the $90^{\circ}$ E meridian — that is, rotated by exactly $90.0^{\circ}$ from where it started.
 
-The vector was never twisted. Every leg was a "straightest possible" carry. The path enclosed one octant of the sphere, area $\tfrac{1}{8} \times 4\pi \times 6371^{2}\ \mathrm{km}^{2} = 1.275 \times 10^{8}\ \mathrm{km}^{2}$. Divide that area by $6371^{2}$ and you get $1.571 = \pi/2$ radians $= 90.0^{\circ}$ — the rotation, to three figures.
+The vector was never twisted. Every leg was a "straightest possible" carry. The path enclosed one octant of the sphere, area $\tfrac{1}{8} \times 4\pi \times 6371^{2}\ \mathrm{km}^{2} = 6.376 \times 10^{7}\ \mathrm{km}^{2}$. Divide that area by $6371^{2}$ and you get $1.571 = \pi/2$ radians $= 90.0^{\circ}$ — the rotation, to three figures.
 
 **The Foucault pendulum in Stuttgart.** Latitude $48.78^{\circ}$ N. A pendulum's swing plane is carried around the circle of latitude once per sidereal day ($23.934$ h) by the Earth's rotation, and nothing torques it. Measured result: the plane precesses at
 
@@ -98,7 +98,11 @@ $$T(u,v) = \nabla_{u}v - \nabla_{v}u - [u,v], \qquad T^{\lambda}{}_{\mu\nu} = \G
 
 $$R(u,v)w = \nabla_{u}\nabla_{v}w - \nabla_{v}\nabla_{u}w - \nabla_{[u,v]}w, \qquad [\nabla_{\mu},\nabla_{\nu}]V^{\rho} = R^{\rho}{}_{\sigma\mu\nu}V^{\sigma} - T^{\lambda}{}_{\mu\nu}\nabla_{\lambda}V^{\rho}.$$
 
-Both are tensors even though $\Gamma$ is not — the inhomogeneous pieces cancel in each antisymmetrisation. Curvature is *infinitesimal holonomy*: transport around a coordinate parallelogram of sides $\delta a^{\mu}, \delta b^{\nu}$ returns $V^{\rho} + R^{\rho}{}_{\sigma\mu\nu}V^{\sigma}\delta a^{\mu}\delta b^{\nu} + O(\delta^{3})$. Integrating that statement over the enclosed region is the Ambrose–Singer / Gauss–Bonnet content behind the $2\pi\cos\theta_{0}$ result.
+Both are tensors even though $\Gamma$ is not — the inhomogeneous pieces cancel in each antisymmetrisation. Curvature is *infinitesimal holonomy*: transport around a coordinate parallelogram traversed along $\delta a$, then $\delta b$, then $-\delta a$, then $-\delta b$ returns
+
+$$V^{\rho} \;-\; R^{\rho}{}_{\sigma\mu\nu}V^{\sigma}\,\delta a^{\mu}\,\delta b^{\nu} \;+\; O(\delta^{3}).$$
+
+The minus sign is fixed by the traversal order and reverses with it, so it is a statement about an *oriented* loop, not about curvature — check the orientation before quoting the sign from any source. Integrating that statement over the enclosed region is the Gauss–Bonnet content behind the $2\pi(1-\cos\theta_{0})$ deficit of the Bridging Stage.
 
 **5. The gauge-theoretic form.** Package $\Gamma$ as a matrix-valued one-form $(\boldsymbol{\Gamma}_{\mu})^{\rho}{}_{\lambda} = \Gamma^{\rho}{}_{\mu\lambda}$, so $\nabla_{\mu} = \partial_{\mu} + \boldsymbol{\Gamma}_{\mu}$. The inhomogeneous transformation law of Phase 1 becomes, for a frame rotation $\Lambda$,
 
