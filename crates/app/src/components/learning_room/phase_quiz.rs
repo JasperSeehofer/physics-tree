@@ -11,14 +11,14 @@ use leptos::prelude::*;
 // Quiz data model
 // ─────────────────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuizOption {
     pub text: String,
     pub correct: bool,
     pub explanation: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuizBlock {
     pub question: String,
     pub options: Vec<QuizOption>,
@@ -496,5 +496,205 @@ difficulty: remember"#;
              taken from content/classical-mechanics/kinematics/phase-5.md — the parser \
              does not understand content-spec.md v1.2 6's `prompt:`/bare-options-list/`answer:` format."
         );
+    }
+
+    /// The parsed block picks out the right option — not just "some" option.
+    #[test]
+    fn test_repro_block_marks_the_correct_option_from_answer_index() {
+        let block = parse_quiz_block(KINEMATICS_MC_BLOCK).expect("should parse");
+        assert_eq!(block.question, "Which of the following is the kinematic equation for velocity as a function of time under constant acceleration?");
+        assert_eq!(block.options.len(), 4);
+        assert_eq!(
+            block.options.iter().filter(|o| o.correct).count(),
+            1,
+            "exactly one option should be marked correct"
+        );
+        assert!(block.options[1].correct, "answer: 1 should mark options[1] correct");
+        assert_eq!(block.options[1].text, "$v = v_0 + at$");
+        assert!(!block.options[0].correct);
+        assert!(!block.options[2].correct);
+        assert!(!block.options[3].correct);
+    }
+
+    /// content-spec.md 6's own Example: Multiple Choice, verbatim.
+    #[test]
+    fn test_spec_own_multiple_choice_example_parses() {
+        let yaml = r#"type: multiple_choice
+prompt: "Which statement is correct about Newton's Second Law?"
+options:
+  - "Force and mass are directly proportional when acceleration is constant"
+  - "Acceleration is directly proportional to net force and inversely proportional to mass"
+  - "An object continues at constant velocity only when no forces act"
+  - "Force equals mass divided by acceleration"
+answer: 1
+difficulty: understand"#;
+        let block = parse_quiz_block(yaml).expect("spec's own example must parse");
+        assert_eq!(block.options.len(), 4);
+        assert!(block.options[1].correct);
+    }
+
+    /// `fill_in_formula` blocks are recognized (the `type:` field is read) but
+    /// deliberately not converted to a `QuizBlock` — this component has no UI to
+    /// grade a free-form formula answer (see the module-level scope note on
+    /// `parse_quiz_block`). This must stay `None` for a principled reason, not
+    /// because the parser mishandles the format.
+    #[test]
+    fn test_fill_in_formula_block_returns_none_by_design_not_by_bug() {
+        let yaml = r#"type: fill_in_formula
+prompt: "Write Newton's Second Law relating net force $F$, mass $m$, and acceleration $a$."
+answer: 'F = ma'
+difficulty: remember"#;
+        assert_eq!(
+            parse_quiz_block(yaml),
+            None,
+            "fill_in_formula is a recognized spec type but out of scope for this \
+             button/radio renderer (M5 non-goal: new question types)"
+        );
+    }
+
+    /// A quiz block whose `answer` index is out of range for `options` is
+    /// malformed — it must not silently render with every option unmarked.
+    #[test]
+    fn test_out_of_range_answer_index_returns_none() {
+        let yaml = r#"type: multiple_choice
+prompt: "test"
+options:
+  - "a"
+  - "b"
+answer: 5
+difficulty: remember"#;
+        assert_eq!(parse_quiz_block(yaml), None);
+    }
+
+    /// A quiz block missing `type:` entirely (or with an unrecognized type) is
+    /// out of scope for this parser, same as `fill_in_formula`/`matching`.
+    #[test]
+    fn test_missing_type_field_returns_none() {
+        let yaml = r#"prompt: "test"
+options:
+  - "a"
+  - "b"
+answer: 0
+difficulty: remember"#;
+        assert_eq!(parse_quiz_block(yaml), None);
+    }
+
+    // ── M5 Scope 3 & 4 — content/ fixtures + ingest/serve path ─────────────────
+    //
+    // Both shipped nodes' phase-5.md quiz sections, run through the exact
+    // pipeline the app uses at request time: render_content_markdown (the same
+    // renderer pages/learning_room.rs calls) -> extract_quiz_yaml_from_html ->
+    // parse_quiz_block / parse_quiz_blocks. Gated on `ssr` because
+    // render_content_markdown is (crates/app/src/components/content/markdown_renderer.rs);
+    // `cargo test --workspace` unifies the `ssr` feature on via the `server`
+    // crate's dependency on `app`, so these run as part of the normal suite.
+    #[cfg(feature = "ssr")]
+    mod content_fixtures {
+        use super::*;
+        use crate::components::content::markdown_renderer::render_content_markdown;
+
+        const KINEMATICS_PHASE5: &str =
+            include_str!("../../../../../content/classical-mechanics/kinematics/phase-5.md");
+        const PARALLEL_TRANSPORT_PHASE5: &str = include_str!(
+            "../../../../../content/general-relativity/parallel-transport-covariant-derivative/phase-5.md"
+        );
+
+        /// Render a phase-5.md file and return every quiz block's raw YAML,
+        /// exactly as `pages/learning_room.rs` extracts it at runtime.
+        fn extract_quiz_yamls(markdown_source: &str) -> Vec<String> {
+            let rendered = render_content_markdown(markdown_source);
+            extract_quiz_yaml_from_html(&rendered.html)
+        }
+
+        #[test]
+        fn test_kinematics_phase5_quiz_blocks_all_present_and_multiple_choice_parse() {
+            let yamls = extract_quiz_yamls(KINEMATICS_PHASE5);
+            assert_eq!(
+                yamls.len(),
+                5,
+                "expected 5 quiz blocks (3 multiple_choice + 2 fill_in_formula) in \
+                 content/classical-mechanics/kinematics/phase-5.md, found {}",
+                yamls.len()
+            );
+
+            let parsed: Vec<_> = yamls.iter().filter_map(|y| parse_quiz_block(y)).collect();
+            assert_eq!(
+                parsed.len(),
+                3,
+                "expected the 3 multiple_choice blocks to parse; got {} Some results from {} blocks",
+                parsed.len(),
+                yamls.len()
+            );
+            for block in &parsed {
+                assert!(!block.question.is_empty());
+                assert_eq!(
+                    block.options.iter().filter(|o| o.correct).count(),
+                    1,
+                    "every parsed block must have exactly one correct option: {:?}",
+                    block
+                );
+            }
+
+            let fill_in_formula_count =
+                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
+            assert_eq!(fill_in_formula_count, 2, "kinematics should carry 2 fill_in_formula blocks");
+        }
+
+        #[test]
+        fn test_parallel_transport_phase5_quiz_blocks_all_present_and_multiple_choice_parse() {
+            let yamls = extract_quiz_yamls(PARALLEL_TRANSPORT_PHASE5);
+            assert_eq!(
+                yamls.len(),
+                6,
+                "expected 6 quiz blocks (5 multiple_choice + 1 fill_in_formula) in \
+                 content/general-relativity/parallel-transport-covariant-derivative/phase-5.md, found {}",
+                yamls.len()
+            );
+
+            let parsed: Vec<_> = yamls.iter().filter_map(|y| parse_quiz_block(y)).collect();
+            assert_eq!(
+                parsed.len(),
+                5,
+                "expected the 5 multiple_choice blocks to parse; got {} Some results from {} blocks",
+                parsed.len(),
+                yamls.len()
+            );
+            for block in &parsed {
+                assert!(!block.question.is_empty());
+                assert_eq!(block.options.iter().filter(|o| o.correct).count(), 1);
+            }
+
+            let fill_in_formula_count =
+                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
+            assert_eq!(fill_in_formula_count, 1, "parallel-transport should carry 1 fill_in_formula block");
+        }
+
+        /// M5 Scope 4 — the serve-path half of the fix. `pages/learning_room.rs`
+        /// previously passed only `extract_quiz_yaml_from_html(...).next()`
+        /// through to `PhaseQuiz`, so a multi-question phase-5 quiz would have
+        /// silently dropped every question after the first even once
+        /// `parse_quiz_block` itself was fixed. This exercises the corrected
+        /// call — every extracted block joined with `"\n---\n"` — through
+        /// `parse_quiz_blocks`, the exact function `PhaseQuiz` calls, and checks
+        /// that all of a node's questions surface, not just one.
+        #[test]
+        fn test_all_multiple_choice_questions_reach_parse_quiz_blocks_not_just_the_first() {
+            let yamls = extract_quiz_yamls(PARALLEL_TRANSPORT_PHASE5);
+            let combined = yamls.join("\n---\n");
+            let blocks = parse_quiz_blocks(&combined);
+            assert_eq!(
+                blocks.len(),
+                5,
+                "expected all 5 multiple_choice questions to survive extraction + \
+                 joining + parsing, got {} — if this regresses, the phase-5 quiz \
+                 is silently showing fewer questions than the node authored",
+                blocks.len()
+            );
+
+            let yamls_kin = extract_quiz_yamls(KINEMATICS_PHASE5);
+            let combined_kin = yamls_kin.join("\n---\n");
+            let blocks_kin = parse_quiz_blocks(&combined_kin);
+            assert_eq!(blocks_kin.len(), 3);
+        }
     }
 }
