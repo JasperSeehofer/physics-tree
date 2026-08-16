@@ -1,7 +1,9 @@
 // cargo run --bin validate --features ssr -- content/classical-mechanics/kinematics
 // cargo run --bin validate --features ssr -- content/classical-mechanics/kinematics --json
 
-use domain::content_spec::{extract_h2_headings, validate_node, NodeMeta, ParsedNode};
+use domain::content_spec::{
+    extract_h2_headings, validate_node, validate_node_warnings, NodeMeta, ParsedNode,
+};
 use std::collections::HashMap;
 use std::process;
 
@@ -72,9 +74,7 @@ fn main() {
             }
 
             // On parse error (malformed frontmatter), fall back to treating full file as body.
-            let body = parsed
-                .map(|p| p.content)
-                .unwrap_or(content);
+            let body = parsed.map(|p| p.content).unwrap_or(content);
 
             // Extract H2 headings from the Markdown body
             let headings = extract_h2_headings(&body);
@@ -83,8 +83,31 @@ fn main() {
     }
 
     // Step 4: Build ParsedNode and validate
-    let parsed_node = ParsedNode { meta, phase_files_found, phase_headings, phase_estimated_minutes };
+    let parsed_node = ParsedNode {
+        meta,
+        phase_files_found,
+        phase_headings,
+        phase_estimated_minutes,
+    };
     let errors = validate_node(&parsed_node);
+
+    // Warnings never affect the exit code (v1.3). Printed before the errors so
+    // they are not lost at the bottom of a long failure list.
+    let warnings = validate_node_warnings(&parsed_node);
+    if !warnings.is_empty() {
+        if json_output {
+            // stdout stays the errors array; warnings go to stderr so a caller
+            // piping `--json` into a parser is unaffected.
+            match serde_json::to_string_pretty(&warnings) {
+                Ok(json) => eprintln!("{json}"),
+                Err(e) => eprintln!("Failed to serialize warnings: {e}"),
+            }
+        } else {
+            for warning in &warnings {
+                eprintln!("warning: {warning}");
+            }
+        }
+    }
 
     if errors.is_empty() {
         println!("OK: {dir} is valid");

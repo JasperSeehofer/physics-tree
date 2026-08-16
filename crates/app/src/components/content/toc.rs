@@ -32,9 +32,12 @@ pub fn ConceptToc(
                 if let Some(ul) = document.get_element_by_id("toc-desktop") {
                     for id in &sections_for_effect {
                         let li = document.create_element("li").unwrap();
-                        let a: web_sys::HtmlAnchorElement = document.create_element("a").unwrap().unchecked_into();
+                        let a: web_sys::HtmlAnchorElement =
+                            document.create_element("a").unwrap().unchecked_into();
                         a.set_href(&format!("#{}", id));
-                        a.set_class_name("toc-link text-mist text-sm block py-1 hover:text-petal-white");
+                        a.set_class_name(
+                            "toc-link text-mist text-sm block py-1 hover:text-petal-white",
+                        );
                         a.set_attribute("data-section", id).unwrap();
                         a.set_text_content(Some(&title_case(id)));
                         li.append_child(&a).unwrap();
@@ -51,9 +54,13 @@ pub fn ConceptToc(
                         let el: web_sys::HtmlElement = el.unchecked_into();
                         let section = el.get_attribute("data-section").unwrap_or_default();
                         if section == active {
-                            el.set_class_name("toc-link text-leaf-green font-bold text-sm block py-1");
+                            el.set_class_name(
+                                "toc-link text-leaf-green font-bold text-sm block py-1",
+                            );
                         } else {
-                            el.set_class_name("toc-link text-mist text-sm block py-1 hover:text-petal-white");
+                            el.set_class_name(
+                                "toc-link text-mist text-sm block py-1 hover:text-petal-white",
+                            );
                         }
                     }
                 }

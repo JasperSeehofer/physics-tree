@@ -4,7 +4,10 @@ use leptos::prelude::*;
 /// Get the display initial for an avatar (first char of display_name or email prefix).
 fn get_initial(user: &User) -> String {
     if let Some(name) = &user.display_name {
-        name.chars().next().map(|c| c.to_uppercase().to_string()).unwrap_or_default()
+        name.chars()
+            .next()
+            .map(|c| c.to_uppercase().to_string())
+            .unwrap_or_default()
     } else {
         user.email
             .chars()

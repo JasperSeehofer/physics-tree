@@ -143,9 +143,11 @@ mod tests {
     /// Tests are ignored by default (require a running database).
     /// Run with: DATABASE_URL=postgres://... cargo test -p db -- --ignored
     async fn test_pool() -> PgPool {
-        let url = std::env::var("DATABASE_URL")
-            .expect("DATABASE_URL must be set for integration tests");
-        PgPool::connect(&url).await.expect("Failed to connect to test database")
+        let url =
+            std::env::var("DATABASE_URL").expect("DATABASE_URL must be set for integration tests");
+        PgPool::connect(&url)
+            .await
+            .expect("Failed to connect to test database")
     }
 
     // ── M8: has_phases is derived, not read ─────────────────────────────────
@@ -228,14 +230,20 @@ mod tests {
             assert!(!node.slug.is_empty(), "Node slug should not be empty");
             assert!(!node.title.is_empty(), "Node title should not be empty");
             assert!(!node.branch.is_empty(), "Node branch should not be empty");
-            assert!(!node.depth_tier.is_empty(), "Node depth_tier should not be empty");
+            assert!(
+                !node.depth_tier.is_empty(),
+                "Node depth_tier should not be empty"
+            );
         }
 
         // Verify ordering: should be ordered by branch, depth_tier
         let branches: Vec<&str> = nodes.iter().map(|n| n.branch.as_str()).collect();
         let mut sorted_branches = branches.clone();
         sorted_branches.sort();
-        assert_eq!(branches, sorted_branches, "Nodes should be ordered by branch");
+        assert_eq!(
+            branches, sorted_branches,
+            "Nodes should be ordered by branch"
+        );
 
         // Verify multiple branches exist
         let unique_branches: std::collections::HashSet<&str> =

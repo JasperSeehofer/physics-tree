@@ -1,5 +1,5 @@
-use rapier2d::prelude::*;
 use crate::traits::Simulation;
+use rapier2d::prelude::*;
 
 pub struct InclineSimulation {
     // Rapier physics state
@@ -17,9 +17,9 @@ pub struct InclineSimulation {
     // Block handle
     block_handle: RigidBodyHandle,
     // Parameters
-    slope_angle_deg: f32,  // 10 - 80 degrees
-    block_mass: f32,       // 0.5 - 100 kg
-    friction_coeff: f32,   // 0.0 - 1.0
+    slope_angle_deg: f32, // 10 - 80 degrees
+    block_mass: f32,      // 0.5 - 100 kg
+    friction_coeff: f32,  // 0.0 - 1.0
     // State
     running: bool,
     time: f32,
@@ -128,8 +128,12 @@ impl InclineSimulation {
         self.rebuild();
     }
 
-    pub fn get_slope_angle(&self) -> f32 { self.slope_angle_deg }
-    pub fn get_friction(&self) -> f32 { self.friction_coeff }
+    pub fn get_slope_angle(&self) -> f32 {
+        self.slope_angle_deg
+    }
+    pub fn get_friction(&self) -> f32 {
+        self.friction_coeff
+    }
 
     pub fn play(&mut self) {
         self.running = true;
@@ -293,9 +297,15 @@ impl Simulation for InclineSimulation {
         self.rebuild();
     }
 
-    fn is_running(&self) -> bool { self.running }
-    fn set_running(&mut self, running: bool) { self.running = running; }
-    fn time(&self) -> f32 { self.time }
+    fn is_running(&self) -> bool {
+        self.running
+    }
+    fn set_running(&mut self, running: bool) {
+        self.running = running;
+    }
+    fn time(&self) -> f32 {
+        self.time
+    }
 
     fn positions(&self) -> Vec<(f32, f32)> {
         let pos = self.rigid_body_set[self.block_handle].translation();
@@ -324,8 +334,16 @@ mod tests {
         let sim = InclineSimulation::new(960.0, 540.0);
         let pos = sim.positions();
         // Block should start high up on the slope (y > 0 for 30 degree slope)
-        assert!(pos[0].1 > 0.0, "block should start above ground level, y={}", pos[0].1);
-        assert!(pos[0].0 > 0.0, "block should start to the right of origin, x={}", pos[0].0);
+        assert!(
+            pos[0].1 > 0.0,
+            "block should start above ground level, y={}",
+            pos[0].1
+        );
+        assert!(
+            pos[0].0 > 0.0,
+            "block should start to the right of origin, x={}",
+            pos[0].0
+        );
     }
 
     #[test]
@@ -344,7 +362,8 @@ mod tests {
         assert!(
             pos[0].1 < initial_y,
             "block should slide down the slope with no friction (initial y={:.3}, current y={:.3})",
-            initial_y, pos[0].1
+            initial_y,
+            pos[0].1
         );
     }
 

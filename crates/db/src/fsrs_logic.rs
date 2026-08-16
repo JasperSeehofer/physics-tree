@@ -205,7 +205,10 @@ mod tests {
         let now = Utc::now();
         let result = schedule_review(card, 50, now);
         // After Again rating, reps should be incremented (FSRS tracks attempts)
-        assert!(result.reps > 0, "Expected reps to be incremented after scheduling");
+        assert!(
+            result.reps > 0,
+            "Expected reps to be incremented after scheduling"
+        );
     }
 
     #[test]

@@ -6,10 +6,10 @@
 //!
 //! Per UI-SPEC Multiple Choice Option interaction spec.
 
-use leptos::prelude::*;
-use leptos::web_sys;
 #[cfg(target_arch = "wasm32")]
 use js_sys;
+use leptos::prelude::*;
+use leptos::web_sys;
 
 use domain::quiz::QuizQuestion;
 
@@ -24,10 +24,7 @@ enum QuizState {
 
 /// Multiple choice question with hint/reveal feedback cycle.
 #[component]
-pub fn QuizMultipleChoice(
-    question: QuizQuestion,
-    on_correct: Callback<bool>,
-) -> impl IntoView {
+pub fn QuizMultipleChoice(question: QuizQuestion, on_correct: Callback<bool>) -> impl IntoView {
     let selected: RwSignal<Option<String>> = RwSignal::new(None);
     let attempts: RwSignal<u32> = RwSignal::new(0);
     let state: RwSignal<QuizState> = RwSignal::new(QuizState::Unanswered);
@@ -51,16 +48,20 @@ pub fn QuizMultipleChoice(
     // Defer renderAllPlaceholders to next animation frame so DOM has committed inner_html
     #[cfg(target_arch = "wasm32")]
     {
+        use wasm_bindgen::closure::Closure;
         use wasm_bindgen::JsCast;
         use wasm_bindgen::JsValue;
-        use wasm_bindgen::closure::Closure;
         Effect::new(move |_| {
             let _ = state.get(); // subscribe to state changes
             let window = web_sys::window().unwrap();
             let cb = Closure::<dyn FnMut()>::new(move || {
                 let window = web_sys::window().unwrap();
-                if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-                    if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                if let Ok(bridge) =
+                    js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge"))
+                {
+                    if let Ok(func) =
+                        js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders"))
+                    {
                         let func: js_sys::Function = func.into();
                         let _ = func.call0(&bridge);
                     }
@@ -95,7 +96,9 @@ pub fn QuizMultipleChoice(
         use wasm_bindgen::JsValue;
         let window = web_sys::window().unwrap();
         if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+            if let Ok(func) =
+                js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders"))
+            {
                 let func: js_sys::Function = func.into();
                 let _ = func.call0(&bridge);
             }

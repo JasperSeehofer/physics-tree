@@ -28,20 +28,29 @@ mod tests {
     #[test]
     fn hash_password_produces_argon2id_format() {
         let hash = hash_password("testpassword").expect("hash should succeed");
-        assert!(hash.starts_with("$argon2id$"), "hash should be in PHC format with $argon2id$");
+        assert!(
+            hash.starts_with("$argon2id$"),
+            "hash should be in PHC format with $argon2id$"
+        );
     }
 
     #[test]
     fn verify_password_returns_true_for_correct_password() {
         let password = "correctpassword";
         let hash = hash_password(password).expect("hash should succeed");
-        assert!(verify_password(password, &hash), "correct password should verify");
+        assert!(
+            verify_password(password, &hash),
+            "correct password should verify"
+        );
     }
 
     #[test]
     fn verify_password_returns_false_for_incorrect_password() {
         let hash = hash_password("correctpassword").expect("hash should succeed");
-        assert!(!verify_password("wrongpassword", &hash), "wrong password should not verify");
+        assert!(
+            !verify_password("wrongpassword", &hash),
+            "wrong password should not verify"
+        );
     }
 
     #[test]
@@ -49,6 +58,9 @@ mod tests {
         let password = "samepassword";
         let hash1 = hash_password(password).expect("hash 1 should succeed");
         let hash2 = hash_password(password).expect("hash 2 should succeed");
-        assert_ne!(hash1, hash2, "same password should produce different hashes due to unique salts");
+        assert_ne!(
+            hash1, hash2,
+            "same password should produce different hashes due to unique salts"
+        );
     }
 }

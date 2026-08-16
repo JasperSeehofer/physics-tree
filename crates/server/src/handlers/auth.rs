@@ -1,8 +1,4 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
 use domain::user::User;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -113,9 +109,7 @@ pub async fn login(
 }
 
 /// POST /api/auth/logout — destroy the session.
-pub async fn logout(
-    session: Session,
-) -> Result<StatusCode, (StatusCode, String)> {
+pub async fn logout(session: Session) -> Result<StatusCode, (StatusCode, String)> {
     session
         .delete()
         .await

@@ -98,10 +98,17 @@ async fn test_register_success_returns_201_with_user_fields() {
     )
     .await;
 
-    assert_eq!(status, StatusCode::CREATED, "register should return 201, body: {body}");
+    assert_eq!(
+        status,
+        StatusCode::CREATED,
+        "register should return 201, body: {body}"
+    );
     assert!(body["id"].is_string(), "response should have id field");
     assert_eq!(body["email"], email, "response should echo email");
-    assert!(body["display_name"].is_string() || body["display_name"].is_null(), "response should have display_name");
+    assert!(
+        body["display_name"].is_string() || body["display_name"].is_null(),
+        "response should have display_name"
+    );
 
     cleanup_user(&pool, &email).await;
 }
@@ -118,7 +125,11 @@ async fn test_register_duplicate_email_returns_409() {
         json!({ "email": &email, "password": "testpass123" }),
     )
     .await;
-    assert_eq!(status1, StatusCode::CREATED, "first register should succeed");
+    assert_eq!(
+        status1,
+        StatusCode::CREATED,
+        "first register should succeed"
+    );
 
     // Second registration with same email — should fail
     let (status2, body2) = post_json(
@@ -128,7 +139,11 @@ async fn test_register_duplicate_email_returns_409() {
     )
     .await;
 
-    assert_eq!(status2, StatusCode::CONFLICT, "duplicate register should return 409, body: {body2}");
+    assert_eq!(
+        status2,
+        StatusCode::CONFLICT,
+        "duplicate register should return 409, body: {body2}"
+    );
     let body_str = body2.as_str().unwrap_or("");
     assert!(
         body_str.contains("already exists"),
@@ -150,7 +165,11 @@ async fn test_login_sets_pt_session_cookie() {
         json!({ "email": &email, "password": "testpass123" }),
     )
     .await;
-    assert_eq!(reg_status, StatusCode::CREATED, "registration should succeed");
+    assert_eq!(
+        reg_status,
+        StatusCode::CREATED,
+        "registration should succeed"
+    );
 
     // Login and check cookie
     let req = Request::builder()
@@ -186,7 +205,11 @@ async fn test_me_without_session_returns_null() {
 
     let (status, body) = get_json(app, "/api/auth/me").await;
 
-    assert_eq!(status, StatusCode::OK, "me without session should return 200");
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "me without session should return 200"
+    );
     assert_eq!(body, Value::Null, "me without session should return null");
 }
 
@@ -202,5 +225,9 @@ async fn test_register_short_password_returns_400() {
     )
     .await;
 
-    assert_eq!(status, StatusCode::BAD_REQUEST, "short password should return 400");
+    assert_eq!(
+        status,
+        StatusCode::BAD_REQUEST,
+        "short password should return 400"
+    );
 }

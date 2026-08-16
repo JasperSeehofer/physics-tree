@@ -18,22 +18,26 @@ pub fn StatsCards(summary: DashboardSummary) -> impl IntoView {
     let xp_value = if summary.total_xp == 0 {
         view! {
             <p class="text-3xl font-bold text-mist">"\u{2014}"</p>
-        }.into_any()
+        }
+        .into_any()
     } else {
         view! {
             <p class="text-3xl font-bold text-petal-white">{summary.total_xp.to_string()}</p>
-        }.into_any()
+        }
+        .into_any()
     };
 
     // Streak: em-dash when 0 (not yet active), live count when > 0
     let streak_value = if summary.current_streak == 0 {
         view! {
             <p class="text-3xl font-bold text-mist">"\u{2014}"</p>
-        }.into_any()
+        }
+        .into_any()
     } else {
         view! {
             <p class="text-3xl font-bold text-petal-white">{summary.current_streak.to_string()}</p>
-        }.into_any()
+        }
+        .into_any()
     };
 
     let concepts_value = view! {
@@ -45,13 +49,15 @@ pub fn StatsCards(summary: DashboardSummary) -> impl IntoView {
     let mastery_value = if summary.overall_mastery_pct == 0.0 {
         view! {
             <p class="text-3xl font-bold text-mist">"\u{2014}"</p>
-        }.into_any()
+        }
+        .into_any()
     } else {
         view! {
             <p class="text-3xl font-bold text-petal-white">
                 {format!("{:.0}%", summary.overall_mastery_pct)}
             </p>
-        }.into_any()
+        }
+        .into_any()
     };
 
     view! {

@@ -5,13 +5,19 @@
 # TIER-C: relaxation OFF (Gate 6 D-G6b)
 #
 # ^^ That string is the greppable marker for the whole module. Gate 6 ratified
-# expertise-reversal relaxation OFF for S0.5, and the spec has no per-node or
-# per-module mechanism to express it (M10a FINDING F4): `phase_gate(tier, n)` is
-# a pure function of `tier` alone, and NodeMeta is #[serde(deny_unknown_fields)],
-# so any new key here is a hard parse error rather than a forward-compatible
-# annotation. The policy therefore lives in exactly two places, both of them
-# content: this comment, and the Phase-0 routing table, which grants no skip of
-# Phase 2 or Phase 3 at any self-rating. Do not "fix" this by adding a field.
+# expertise-reversal relaxation OFF for S0.5. When this node was authored the
+# spec had no mechanism to express that (M10a FINDING F4): `phase_gate(tier, n)`
+# was a pure function of `tier` alone, so the policy lived only in content — this
+# comment and the Phase-0 routing table.
+#
+# THAT IS NO LONGER THE CASE. Content-spec v1.3 (mission M12, F4 Option A,
+# ratified at Gate 7 as D-G7c) adds the optional `relaxation: on | off` field
+# below, and `phase_gate_with_relaxation(tier, relaxation, n)` reads it: at
+# `tier: graduate` with `relaxation: off`, phases 2 and 3 are Strict. The field
+# is now the mechanism; this comment and the Phase-0 routing table remain the
+# human-readable trace, and all three must continue to agree. The routing table
+# grants no skip of Phase 2 or Phase 3 at any self-rating, which is exactly what
+# the field now says in structure.
 #
 # Authored by mission M10b (2026-08-16) against the ratified node map
 # .planning/missions/M10-s05-opening/M10a-node-map.md, node 1. Register,
@@ -57,8 +63,22 @@ eqf_level: 7
 # misconception cap of 8 (five are declared, two of which the school cap could
 # not hold), the mandatory calibration probe (which is this module's entry
 # instrument, not a formality), and the phase gate — which Gate 6 has ratified
-# OFF for S0.5 and which is therefore overridden in content. See the header.
+# OFF for S0.5 and which the field below now switches off directly. See the
+# header.
 tier: graduate
+
+# Content-spec v1.3 (G-6). Withdraws the advisory gate: phases 2 and 3 are
+# Strict for this node despite `tier: graduate`. Nothing else about the graduate
+# rule set changes — the misconception cap of 8 and the mandatory probe both
+# still apply, which is precisely why this is a field and not `tier:
+# undergraduate` (that switch would drop the cap to 3 and remove the probe).
+#
+# The licensing argument, in one line: expertise reversal is a boundary
+# condition on *correct* prior knowledge, and Block C's measured profile is
+# production failure over recognition (mean 0.85, below the 1.2 Tier-C
+# threshold; C1 scored 1, "non-fluent"), which is the opposite condition. Set
+# module-wide for S0.5, not per learner. Full argument in phase-0.md.
+relaxation: off
 
 # Floor, not profile. `remember` for the dispersion relation, `apply` for the
 # Fourier diagonalization and the ladder construction, `analyze` for "which

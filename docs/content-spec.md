@@ -1,7 +1,22 @@
 # Content Specification: 7-Phase Node Template
 
-**Version:** 1.2
+**Version:** 1.3
 **Status:** Canonical — all downstream phases (Phase 9 ingest, Phase 10 pilot authoring, Phase 11 Learning Room, Phase 12 AI pipeline) build against this contract.
+
+**v1.3 changes (relaxation control).** Every change is additive and defaults to
+the v1.2 behaviour; no v1.2 node needs to change. Sources: mission M10a's
+FINDING F4 (`.planning/missions/M10-s05-opening/M10a-node-map.md`), ratified at
+Gate 7 as D-G7c, and mission M9b's FIND-1
+(`.planning/missions/M9-lie-covariant-node/M9b-review.md` §5). Implemented by
+mission M12.
+
+| # | Change | Section |
+|---|--------|---------|
+| G-6 | New optional `relaxation: on \| off` — withdraws the graduate advisory gate for one node; defaults to `on` (M10a F4, Option A) | §1, §3, §7 |
+| G-7 | The gate policy reads it: `phase_gate_with_relaxation(tier, relaxation, n)`. The v1.2 `phase_gate(tier, n)` keeps its signature and delegates with `Relaxation::On` | §1, §8 |
+| G-8 | Validation gains a non-fatal **warning** channel (`validate_node_warnings()`); its first rule warns when `relaxation` is declared at a non-graduate tier, where it is inert | §8 |
+| G-9 | A graduate calibration probe MAY declare a **correctness gate** — an `### Correctness Gate` sub-block that overrides the fluency routing table for named items (M9b FIND-1) | §4 |
+| — | Declared limit restated: `phase_gate` still takes no learner evidence, so a correctness gate is content the learner self-applies, not policy the app can enforce (M9b §5.2) | §4, §8 |
 
 **v1.2 changes (graduate tier).** Every change is additive and gated behind the
 new `tier` field; no v1.1 node needs to change. Source: mission M1b's
@@ -41,10 +56,11 @@ The seven phases implement an evidence-based didactic sequence:
 The phase sequence is authored in full at every tier — all seven phases exist in
 every node. How strictly a learner is held to the order depends on the tier:
 
-| Tier | Phases 0, 1 | Phases 2, 3 | Phases 4, 5, 6 |
-|------|-------------|-------------|----------------|
-| `school`, `undergraduate` | strict | **strict** | strict |
-| `graduate` | strict | **advisory** | strict |
+| Tier | `relaxation` | Phases 0, 1 | Phases 2, 3 | Phases 4, 5, 6 |
+|------|--------------|-------------|-------------|----------------|
+| `school`, `undergraduate` | either | strict | **strict** | strict |
+| `graduate` | `on` (default) | strict | **advisory** | strict |
+| `graduate` | `off` | strict | **strict** | strict |
 
 **Strict** — a learner cannot access Phase N+1 until Phase N is complete (the
 v1.0 rule).
@@ -60,7 +76,33 @@ same Cognitive Load Theory literature the template cites as its foundation.
 Phases 4 (self-explanation), 5 (retrieval) and 6 (spacing) do not reverse — they
 strengthen with expertise — so they stay strict at every tier.
 
-The policy is expressed in code as `domain::content_spec::phase_gate(tier, n)`.
+**The relaxation is a claim about the learner, not about the tier** (v1.3). The
+expertise reversal effect is a documented boundary condition on *correct* prior
+knowledge: instructional support becomes redundant, and therefore costly, for a
+learner whose existing schema is right. A graduate cohort whose measured profile
+is production failure over recognition — fluent at recognising the material,
+unable to reproduce it — does not meet that condition, and neither does a learner
+holding a confident misconception. For those, phases 2 and 3 are the parts of the
+node addressed to the measured gap, and routing around them because the learner
+was *fast* is precisely the wrong move.
+
+`tier: graduate` cannot express that, because the tier is a property of the
+content and this is a property of the audience. The optional `relaxation` field
+(§3) is the switch: `relaxation: off` withdraws the advisory gate for that node,
+making phases 2 and 3 strict at graduate tier while every other graduate rule —
+the misconception cap of 8, the mandatory calibration probe, the graduate
+granularity rule — stays in force. It is the mechanism for a ratified
+module-level decision (a whole module authored under `relaxation: off`), not a
+per-learner dial.
+
+The switch can only ever **narrow**. There is no value of `relaxation` under
+which a phase that is strict becomes advisory, so it cannot be used to widen
+skipping past what §1 grants.
+
+The policy is expressed in code as
+`domain::content_spec::phase_gate_with_relaxation(tier, relaxation, n)`, or
+`NodeMeta::phase_gate(n)` for a caller holding a parsed node. The v1.2
+`phase_gate(tier, n)` remains and is exactly the `relaxation: on` policy.
 Enforcement is the Learning Room's; until it consumes the policy, all phases
 behave strictly in the app.
 
@@ -133,6 +175,7 @@ The `node.yaml` file contains all node-level metadata and the phase manifest dec
 | `title` | string | yes | Human-readable node title |
 | `eqf_level` | integer | yes | 2–8 (European Qualifications Framework level). 7 = master's, 8 = doctoral/research |
 | `tier` | enum | no | `school` \| `undergraduate` \| `graduate`. Omit to derive from `eqf_level` (≥ 6 → `graduate`, else `school`) |
+| `relaxation` | enum | no | `on` \| `off`. Defaults to `on`. `off` withdraws the advisory gate on phases 2 and 3; only meaningful at `tier: graduate` |
 | `bloom_minimum` | enum | yes | One of: `remember`, `understand`, `apply`, `analyze`, `evaluate`, `create` |
 | `prerequisites` | list[string \| PrerequisiteEntry] | yes | `concept_id` references; empty list `[]` for root nodes |
 | `misconceptions` | list[string \| MisconceptionEntry] | yes | 2–3 items (school/undergraduate) or 2–8 (graduate) |
@@ -166,6 +209,45 @@ leaves all existing content on the school rules. Declare `tier` explicitly when
 the derivation is wrong for your node — e.g. a genuinely introductory EQF 6 node
 that should keep strict ordering (`tier: undergraduate`), or an EQF 5 bridge node
 written for a returning expert (`tier: graduate`).
+
+### The `relaxation` switch
+
+*(v1.3 / G-6.)* `tier: graduate` turns three things on at once: the misconception
+cap of 8, the mandatory Phase-0 calibration probe, and the advisory gate on
+phases 2 and 3. `relaxation` separates the third from the other two.
+
+| Value | Effect | Use it when |
+|-------|--------|-------------|
+| `on` (default; also the meaning of an absent field) | Phases 2 and 3 are advisory at `tier: graduate` — the v1.2 behaviour | The learner's prior knowledge on this material is correct, and phases 2 and 3 would be redundant support |
+| `off` | Phases 2 and 3 are **strict**, at every tier including `graduate`. Nothing else about the graduate rule set changes | The measured profile is production failure over recognition, or the node targets a confidently-held misconception — the expertise-reversal boundary condition is not met (§1) |
+
+```yaml
+tier: graduate
+relaxation: off   # phases 2 and 3 are strict; cap of 8 and the probe still apply
+```
+
+**Why this is a field rather than a tier.** The obvious workaround —
+`tier: undergraduate` on an EQF-7 node — does buy strictness, and buys it by
+demolition: the same switch drops the misconception cap from 8 to 3 and removes
+the mandatory `calibration_probe`. A graduate module authored against a measured
+learner profile typically carries 5–8 typed misconceptions and uses the probe as
+its routing instrument, so that trade is not available. `relaxation` moves the
+one rule that needs to move.
+
+**Why it defaults to `on`.** Absent means "v1.2", and every node authored before
+v1.3 is therefore unchanged. The default is also the safer direction to be wrong
+in: a node that should have declared `off` offers a skip it should not, which the
+Phase-0 routing table and the correctness gate (§4) still argue against in prose,
+whereas a wrong `off` merely costs a fluent learner some time.
+
+**Scope.** The value is a property of the node, and in practice of the module the
+node belongs to: it encodes a ratified authoring decision about a body of
+material, not a per-learner judgment. Per-learner judgment is the probe's job.
+
+**At a non-graduate tier the field is inert** — nothing is advisory there for it
+to withdraw — and the validator emits a warning rather than an error (§8, check
+W-1). The warning exists because a `relaxation` on a school node is nearly always
+a sign that `tier: graduate` was intended and omitted.
 
 ### `PrerequisiteEntry`
 
@@ -406,8 +488,95 @@ self-rating scale, and a routing table.
 | 1 | Recognised it, could not produce it | Do phases 2 and 3 in full |
 | 0 | Did not recognise it | The prerequisite node is the real next action |
 
+The rating-3 row is the only one the `relaxation` switch touches. Under
+`relaxation: off` (§3) there is no skip to grant, so the node's own routing table
+must restate that row as something the learner does rather than skips — *"phase 2
+is read at speed and phase 3 is done from the faded example down"* is the
+adopted form. Ratings 2, 1 and 0 keep their meanings unchanged. A node whose
+`node.yaml` says `relaxation: off` while its Phase-0 table still offers a skip is
+a review defect, not a validator error: nothing in `validate_node()` reads probe
+prose.
+
 Probe results are learner data, not content: the node declares the items and the
 routing rule, and never records an answer.
+
+#### Correctness gates
+
+*(v1.3 / G-9. Source: mission M9b's FIND-1, which reviewed the two-gate probe in
+`content/general-relativity/lie-vs-covariant-derivative` and found the design
+sound and the spec's provision for it missing.)*
+
+A graduate probe **MAY** declare a **correctness gate**: a named item on which a
+*wrong answer* makes one or more phases mandatory **at any self-rating**,
+overriding the fluency routing table above. A probe with one is a two-gate probe
+— fluency routing plus a correctness override — and the override always wins.
+
+**Why the spec must allow it.** The 0–3 scale is a fluency measure with
+correctness smuggled inside it: rating 3 is defined as *"wrote it fluently,
+correct first pass"*, so a learner who is fluent and *wrong* has no honest row to
+tick, and the scale supplies no mechanism by which a self-scorer establishes the
+correctness half. A confidently-held misconception falls straight through that
+hole and scores a 3. The correctness gate supplies the missing mechanism; it is a
+repair of the scale, not a departure from it.
+
+**The licensing argument is the same one that licenses the advisory gate, read in
+the other direction.** Expertise reversal (Kalyuga et al. 2003) is a claim about
+learners whose *correct* prior schema makes instructional support redundant. A
+confidently held wrong answer is a competing schema, not expertise. Routing that
+learner around phase 2 *because they were fast* would route them around the only
+part of the node addressed to their measured error — which, on a node authored
+because of exactly such an answer, defeats the node. So the relaxation must not
+apply to it. (The `relaxation` field of §3 is the module-scale version of this
+same argument; the correctness gate is the per-item version.)
+
+**A gate may only narrow.** It may make an advisory phase mandatory. It may not
+make a strict phase skippable, and it may not license skipping phases 4, 5 or 6,
+which are strict at every tier (§1). Anything that widens skipping contradicts §1
+and is a spec violation, not an authoring choice.
+
+**How to declare it.** Inside `## Calibration Probe`, as an H3 sub-block:
+
+```markdown
+## Calibration Probe
+
+...items and the 0-3 routing table...
+
+### Correctness Gate
+
+Item 1 is gated on correctness, not fluency. If your answer says in any form
+that the Lie derivative needs a metric or a connection, Phase 2 is mandatory
+whatever you scored -- including a page of 3s. The misconception is the reason
+this node exists; a fast wrong answer is the case the gate is for.
+```
+
+The block **must** name (i) which items are gated, (ii) what counts as a wrong
+answer on each, and (iii) which phases the gate forces. State the licensing
+argument in one sentence so a reviewer can check the gate narrows rather than
+widens.
+
+**Declared limits — read these before relying on a gate.**
+
+1. **Not validated.** `validate_node()` reads H2 headings only, so no H3-level
+   rule can run (the same limit as check 12). The probe's content is already
+   listed under "not validated (deliberate)" in §8: correctness gates are
+   enforced by review, like everything else inside the probe.
+2. **Not expressible in code.** `phase_gate_with_relaxation(tier, relaxation, n)`
+   takes **no learner evidence** — not a probe result, not an item outcome. A
+   correctness gate is therefore content the learner self-applies, and the app
+   cannot enforce it. This is harmless while the Learning Room holds every phase
+   strict, and it becomes a divergence the moment the Learning Room implements
+   skipping: the app would offer a phase-2 skip that the node's own prose
+   forbids, with no mechanism to notice. **Extending the policy to take probe
+   evidence is a prerequisite of the Learning Room consuming it**, not a
+   follow-up to it. Recorded here, unimplemented, deliberately (M9b §5.2/§5.3).
+3. **The evidence model is still one-axis.** The only datum the spec declares per
+   item is a single 0–3 rating; there is nowhere structured to record "item 1 was
+   wrong". The gate is prose that a reviewer reads, not a field a pipeline can
+   find. A structured form (a `calibration_probe` mapping carrying
+   `correctness_gated_items` and `forces_phases`) was considered for v1.3 and
+   deferred: it would be the second half of the same change as limit 2, and
+   authoring it before the consumer exists would fix a shape nothing has yet
+   tested.
 
 ---
 
@@ -698,7 +867,11 @@ The `eqf_level` field controls which additional content blocks are required; the
 | Tier | Phase 0 | misconceptions | Learning Room gate | Granularity |
 |------|---------|----------------|--------------------|-------------|
 | `school`, `undergraduate` | standard blocks | 2–3 | strict, all phases | one formula/theorem/law/distinction; 2–4 novel elements |
-| `graduate` | `calibration_probe` also required | 2–8, optionally typed | advisory for phases 2 and 3 | one coherent concept; 5–7 novel elements, relative to prerequisites |
+| `graduate` | `calibration_probe` also required | 2–8, optionally typed | advisory for phases 2 and 3, unless `relaxation: off` | one coherent concept; 5–7 novel elements, relative to prerequisites |
+
+The gate column is the only one `relaxation` reaches. `relaxation: off` on a
+graduate node makes phases 2 and 3 strict and leaves the other three columns at
+their graduate values (§3); at any other tier the field is inert and warns.
 
 ### Summary Table
 
@@ -770,10 +943,34 @@ node.yaml:phases[2]  Unknown phase_type 'concreteness_fadig' (typo?)
 The effective tier used by checks 3 and 15 is the declared `tier`, or — when the
 field is absent — `graduate` for `eqf_level >= 6` and `school` otherwise.
 
+### Warnings (v1.3)
+
+`validate_node_warnings()` returns findings that are reported but never fail a
+node: the validator prints them to stderr and still exits 0. It is a separate
+function from `validate_node()` rather than a severity field on `ValidationError`,
+so that a non-empty error vector keeps meaning exactly what it always meant —
+rejection. Warnings share the `file:field  description` Display format and the
+tagged-JSON serialization; under `--json` they go to stderr so that stdout stays
+the errors array.
+
+| # | Warning | Condition |
+|---|---------|-----------|
+| W-1 | `node.yaml:relaxation  '{value}' has no effect at tier {tier}; the gate is advisory only at tier graduate` | `relaxation` is declared and the **effective** tier is not `graduate` |
+
+W-1 is about the field being *declared* where it cannot act, not about its value:
+an absent `relaxation` never warns, and a node whose tier is *derived* as
+graduate (`eqf_level >= 6`, no declared `tier`) does not warn either. The rule
+exists because an inert `relaxation` is nearly always a missing `tier: graduate`
+rather than a deliberate no-op.
+
 **Not validated (deliberate).** The granularity rule (§1), the novel-element
-budget, the time bands, and the content of the calibration probe are authoring
-judgment, enforced by review rather than by `validate_node()`. The validator
-checks structure; it does not read physics.
+budget, the time bands, and the content of the calibration probe — including any
+correctness gate (§4) and whether the probe's routing table agrees with the
+node's `relaxation` value — are authoring judgment, enforced by review rather
+than by `validate_node()`. The validator checks structure; it does not read
+physics. Also deliberately absent: `phase_gate` takes no learner evidence, so
+nothing in the toolchain can check a correctness gate against a probe result
+(§4, declared limit 2).
 
 ### Running the Validator
 
@@ -785,9 +982,11 @@ cargo run --bin validate --features ssr -- content/classical-mechanics/newtons-s
 cargo run --bin validate --features ssr -- --json content/classical-mechanics/newtons-second-law
 ```
 
-Exit code 0 = valid; exit code 1 = validation errors found.
+Exit code 0 = valid; exit code 1 = validation errors found. Warnings are printed
+to stderr and do not affect the exit code.
 
 ---
 
+*Content Specification v1.3 — relaxation control and correctness gates (mission M12)*
 *Content Specification v1.2 — PhysicsTree v1.1 milestone, graduate tier (mission M2)*
 *Spec source: `docs/content-spec.md` | Type enforcement: `crates/domain/src/content_spec.rs` | Authoring gate: `tools/authoring/quality_gate.py`*

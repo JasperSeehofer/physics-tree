@@ -130,7 +130,10 @@ pub fn parse_quiz_block(yaml: &str) -> Option<QuizBlock> {
         })
         .collect();
 
-    Some(QuizBlock { question: prompt, options: quiz_options })
+    Some(QuizBlock {
+        question: prompt,
+        options: quiz_options,
+    })
 }
 
 /// Parse every quiz block out of a `quiz_yaml` string that may contain more than
@@ -342,10 +345,7 @@ pub fn PhaseQuiz(
             return;
         }
 
-        let correct_count = signals
-            .iter()
-            .filter(|s| s.get() == Some(true))
-            .count();
+        let correct_count = signals.iter().filter(|s| s.get() == Some(true)).count();
 
         let score_pct = (correct_count * 100) / total;
 
@@ -509,7 +509,10 @@ difficulty: remember"#;
             1,
             "exactly one option should be marked correct"
         );
-        assert!(block.options[1].correct, "answer: 1 should mark options[1] correct");
+        assert!(
+            block.options[1].correct,
+            "answer: 1 should mark options[1] correct"
+        );
         assert_eq!(block.options[1].text, "$v = v_0 + at$");
         assert!(!block.options[0].correct);
         assert!(!block.options[2].correct);
@@ -635,9 +638,14 @@ difficulty: remember"#;
                 );
             }
 
-            let fill_in_formula_count =
-                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
-            assert_eq!(fill_in_formula_count, 2, "kinematics should carry 2 fill_in_formula blocks");
+            let fill_in_formula_count = yamls
+                .iter()
+                .filter(|y| y.contains("type: fill_in_formula"))
+                .count();
+            assert_eq!(
+                fill_in_formula_count, 2,
+                "kinematics should carry 2 fill_in_formula blocks"
+            );
         }
 
         #[test]
@@ -664,9 +672,14 @@ difficulty: remember"#;
                 assert_eq!(block.options.iter().filter(|o| o.correct).count(), 1);
             }
 
-            let fill_in_formula_count =
-                yamls.iter().filter(|y| y.contains("type: fill_in_formula")).count();
-            assert_eq!(fill_in_formula_count, 1, "parallel-transport should carry 1 fill_in_formula block");
+            let fill_in_formula_count = yamls
+                .iter()
+                .filter(|y| y.contains("type: fill_in_formula"))
+                .count();
+            assert_eq!(
+                fill_in_formula_count, 1,
+                "parallel-transport should carry 1 fill_in_formula block"
+            );
         }
 
         /// M5 Scope 4 — the serve-path half of the fix. `pages/learning_room.rs`

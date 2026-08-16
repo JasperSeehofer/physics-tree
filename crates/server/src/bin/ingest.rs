@@ -4,16 +4,17 @@
 
 use clap::Parser;
 use db::create_pool;
-use domain::content_spec::{
-    extract_h2_headings, validate_node, BloomLevel, NodeMeta, ParsedNode,
-};
+use domain::content_spec::{extract_h2_headings, validate_node, BloomLevel, NodeMeta, ParsedNode};
 use sqlx::PgPool;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process;
 
 #[derive(Parser)]
-#[command(name = "ingest", about = "Ingest content directories into the database")]
+#[command(
+    name = "ingest",
+    about = "Ingest content directories into the database"
+)]
 struct Cli {
     /// Content directories to ingest (node dirs or parent dirs).
     /// If a directory contains node.yaml, it is treated as a single node dir.
@@ -67,8 +68,8 @@ fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
         .map_err(|_| format!("node.yaml: file not found at {}", yaml_path.display()))?;
 
     // Step 2: Parse node.yaml with serde_saphyr
-    let meta: NodeMeta = serde_saphyr::from_str(&yaml_str)
-        .map_err(|e| format!("node.yaml:parse  {e}"))?;
+    let meta: NodeMeta =
+        serde_saphyr::from_str(&yaml_str).map_err(|e| format!("node.yaml:parse  {e}"))?;
 
     // Step 3: Read each phase file
     let mut phase_files_found: Vec<u8> = Vec::new();
@@ -95,16 +96,19 @@ fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
                 }
             }
 
-            let body = parsed
-                .map(|p| p.content)
-                .unwrap_or(content);
+            let body = parsed.map(|p| p.content).unwrap_or(content);
 
             let headings = extract_h2_headings(&body);
             phase_headings.insert(n, headings);
         }
     }
 
-    Ok(ParsedNode { meta, phase_files_found, phase_headings, phase_estimated_minutes })
+    Ok(ParsedNode {
+        meta,
+        phase_files_found,
+        phase_headings,
+        phase_estimated_minutes,
+    })
 }
 
 /// Read the raw content (including frontmatter) of a phase file.
@@ -128,11 +132,7 @@ fn infer_branch(dir: &Path) -> String {
 }
 
 /// Upsert a single node directory into the database in its own transaction.
-async fn ingest_node_dir(
-    pool: &PgPool,
-    dir: &Path,
-    dry_run: bool,
-) -> Result<String, String> {
+async fn ingest_node_dir(pool: &PgPool, dir: &Path, dry_run: bool) -> Result<String, String> {
     // Parse and validate
     let parsed = parse_node_dir(dir)?;
 
@@ -152,7 +152,10 @@ async fn ingest_node_dir(
     let meta = &parsed.meta;
 
     // Begin per-node transaction (D-06)
-    let mut tx = pool.begin().await.map_err(|e| format!("    transaction begin: {e}"))?;
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| format!("    transaction begin: {e}"))?;
 
     // Upsert nodes row (D-07, D-10)
     let node_id: uuid::Uuid = sqlx::query_scalar(
@@ -217,7 +220,9 @@ async fn ingest_node_dir(
         .map_err(|e| format!("    node_phases upsert phase {}: {e}", phase.number))?;
     }
 
-    tx.commit().await.map_err(|e| format!("    transaction commit: {e}"))?;
+    tx.commit()
+        .await
+        .map_err(|e| format!("    transaction commit: {e}"))?;
 
     Ok(format!("  {slug:<36} OK"))
 }

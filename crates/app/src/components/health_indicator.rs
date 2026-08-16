@@ -8,9 +8,7 @@ pub fn HealthIndicator() -> impl IntoView {
     let health_status = LocalResource::new(|| async move {
         #[cfg(target_arch = "wasm32")]
         {
-            let resp = gloo_net::http::Request::get("/api/health")
-                .send()
-                .await;
+            let resp = gloo_net::http::Request::get("/api/health").send().await;
             match resp {
                 Ok(r) => r.ok(),
                 Err(_) => false,

@@ -76,5 +76,6 @@ pub fn MasteryBadge(
             </span>
             <span class="text-xs text-mist">{sub_label}</span>
         </div>
-    }.into_any()
+    }
+    .into_any()
 }

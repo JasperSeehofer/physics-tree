@@ -142,10 +142,7 @@ async fn fetch_concept_mastery(node_id: &str) -> Option<i32> {
         return None;
     }
     let url = format!("/api/progress/node/{}", node_id);
-    let resp = gloo_net::http::Request::get(&url)
-        .send()
-        .await
-        .ok()?;
+    let resp = gloo_net::http::Request::get(&url).send().await.ok()?;
     if resp.status() == 401 {
         return None; // Not authenticated — badge stays hidden
     }
@@ -163,9 +160,17 @@ async fn fetch_concept_mastery(node_id: &str) -> Option<i32> {
 /// - `Err(true)` = auth failure (401 — user not logged in)
 /// - `Err(false)` = other error (network, server error, etc.)
 #[cfg(target_arch = "wasm32")]
-async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Result<AwardXpResponse, bool> {
-    let body = serde_json::to_string(&AwardXpRequest { node_id, score_pct, hints_used })
-        .map_err(|_| false)?;
+async fn post_award_xp(
+    node_id: String,
+    score_pct: u32,
+    hints_used: bool,
+) -> Result<AwardXpResponse, bool> {
+    let body = serde_json::to_string(&AwardXpRequest {
+        node_id,
+        score_pct,
+        hints_used,
+    })
+    .map_err(|_| false)?;
     let resp = gloo_net::http::Request::post("/api/progress/award-xp")
         .header("Content-Type", "application/json")
         .body(body)
@@ -192,9 +197,7 @@ async fn post_award_xp(node_id: String, score_pct: u32, hints_used: bool) -> Res
 #[component]
 pub fn ConceptPage() -> impl IntoView {
     let params = use_params_map();
-    let slug = move || {
-        params.with(|p| p.get("slug").unwrap_or_default().to_string())
-    };
+    let slug = move || params.with(|p| p.get("slug").unwrap_or_default().to_string());
 
     // ── Reactive state ──────────────────────────────────────────────────────
     let content: RwSignal<Option<ConceptContent>> = RwSignal::new(None);
@@ -285,7 +288,10 @@ pub fn ConceptPage() -> impl IntoView {
         }
 
         // Compute score: correct / total * 100
-        let correct_count = passed.iter().filter(|p| matches!(p, Some((true, _)))).count();
+        let correct_count = passed
+            .iter()
+            .filter(|p| matches!(p, Some((true, _))))
+            .count();
         let score_pct = ((correct_count as f64 / total as f64) * 100.0).round() as u32;
 
         // Aggregate hint usage: any correct answer that used a hint (D-13)
@@ -332,9 +338,9 @@ pub fn ConceptPage() -> impl IntoView {
     // ── Effect: hydrate content after it loads ───────────────────────────────
     #[cfg(target_arch = "wasm32")]
     Effect::new(move |_| {
+        use wasm_bindgen::closure::Closure;
         use wasm_bindgen::JsCast;
         use wasm_bindgen::JsValue;
-        use wasm_bindgen::closure::Closure;
 
         // Subscribe to content signal — reactive dependency
         let content_val = content.get();
@@ -367,8 +373,11 @@ pub fn ConceptPage() -> impl IntoView {
             };
 
             // 1. KaTeX: render all LaTeX placeholders
-            if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-                if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+            if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge"))
+            {
+                if let Ok(func) =
+                    js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders"))
+                {
                     let func: js_sys::Function = func.into();
                     let _ = func.call0(&bridge);
                 }
@@ -392,14 +401,17 @@ pub fn ConceptPage() -> impl IntoView {
                         ids_array.push(&JsValue::from_str(id));
                     }
 
-                    let callback = wasm_bindgen::closure::Closure::<dyn Fn(String)>::new(
-                        move |id: String| {
+                    let callback =
+                        wasm_bindgen::closure::Closure::<dyn Fn(String)>::new(move |id: String| {
                             set_active_section.set(id);
-                        },
-                    );
+                        });
 
-                    if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__toc_bridge")) {
-                        if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("initScrollSpy")) {
+                    if let Ok(bridge) =
+                        js_sys::Reflect::get(&window, &JsValue::from_str("__toc_bridge"))
+                    {
+                        if let Ok(func) =
+                            js_sys::Reflect::get(&bridge, &JsValue::from_str("initScrollSpy"))
+                        {
                             let func: js_sys::Function = func.into();
                             let _ = func.call2(&bridge, &ids_array, callback.as_ref());
                         }

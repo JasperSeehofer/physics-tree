@@ -1,16 +1,16 @@
-pub mod traits;
-pub mod render;
 pub mod mechanics;
+pub mod render;
+pub mod traits;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_exports {
-    use wasm_bindgen::prelude::*;
-    use web_sys::HtmlCanvasElement;
-    use crate::mechanics::projectile::ProjectileSimulation;
-    use crate::mechanics::pendulum::PendulumSimulation;
     use crate::mechanics::harmonic::HarmonicSimulation;
     use crate::mechanics::incline::InclineSimulation;
     use crate::mechanics::orbital::OrbitalSimulation;
+    use crate::mechanics::pendulum::PendulumSimulation;
+    use crate::mechanics::projectile::ProjectileSimulation;
+    use wasm_bindgen::prelude::*;
+    use web_sys::HtmlCanvasElement;
 
     // ── Projectile ────────────────────────────────────────────────────────────
 
@@ -23,19 +23,35 @@ pub mod wasm_exports {
     impl WasmProjectile {
         #[wasm_bindgen(constructor)]
         pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
-            Self { inner: ProjectileSimulation::new(canvas_width, canvas_height) }
+            Self {
+                inner: ProjectileSimulation::new(canvas_width, canvas_height),
+            }
         }
-        pub fn set_angle(&mut self, degrees: f32) { self.inner.set_angle(degrees); }
-        pub fn set_speed(&mut self, speed: f32) { self.inner.set_speed(speed); }
-        pub fn play(&mut self) { self.inner.play(); }
-        pub fn pause(&mut self) { self.inner.pause(); }
-        pub fn reset(&mut self) { self.inner.reset_sim(); }
+        pub fn set_angle(&mut self, degrees: f32) {
+            self.inner.set_angle(degrees);
+        }
+        pub fn set_speed(&mut self, speed: f32) {
+            self.inner.set_speed(speed);
+        }
+        pub fn play(&mut self) {
+            self.inner.play();
+        }
+        pub fn pause(&mut self) {
+            self.inner.pause();
+        }
+        pub fn reset(&mut self) {
+            self.inner.reset_sim();
+        }
         pub fn tick(&mut self, canvas: &HtmlCanvasElement) {
             use crate::traits::Simulation;
             self.inner.step();
             {
-                let ctx = canvas.get_context("2d").unwrap().unwrap()
-                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                let ctx = canvas
+                    .get_context("2d")
+                    .unwrap()
+                    .unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                    .unwrap();
                 self.inner.render(&ctx);
             }
         }
@@ -43,8 +59,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.is_running()
         }
-        pub fn get_angle(&self) -> f32 { self.inner.get_angle() }
-        pub fn get_speed(&self) -> f32 { self.inner.get_speed() }
+        pub fn get_angle(&self) -> f32 {
+            self.inner.get_angle()
+        }
+        pub fn get_speed(&self) -> f32 {
+            self.inner.get_speed()
+        }
     }
 
     // ── Pendulum ──────────────────────────────────────────────────────────────
@@ -58,14 +78,28 @@ pub mod wasm_exports {
     impl WasmPendulum {
         #[wasm_bindgen(constructor)]
         pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
-            Self { inner: PendulumSimulation::new(canvas_width, canvas_height) }
+            Self {
+                inner: PendulumSimulation::new(canvas_width, canvas_height),
+            }
         }
-        pub fn set_length(&mut self, l: f32) { self.inner.set_length(l); }
-        pub fn set_initial_angle(&mut self, deg: f32) { self.inner.set_initial_angle(deg); }
-        pub fn set_damping(&mut self, d: f32) { self.inner.set_damping(d); }
-        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
-        pub fn play(&mut self) { self.inner.play(); }
-        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn set_length(&mut self, l: f32) {
+            self.inner.set_length(l);
+        }
+        pub fn set_initial_angle(&mut self, deg: f32) {
+            self.inner.set_initial_angle(deg);
+        }
+        pub fn set_damping(&mut self, d: f32) {
+            self.inner.set_damping(d);
+        }
+        pub fn apply_preset(&mut self, preset: &str) {
+            self.inner.apply_preset(preset);
+        }
+        pub fn play(&mut self) {
+            self.inner.play();
+        }
+        pub fn pause(&mut self) {
+            self.inner.pause();
+        }
         pub fn reset(&mut self) {
             use crate::traits::Simulation;
             self.inner.reset();
@@ -74,8 +108,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.step();
             {
-                let ctx = canvas.get_context("2d").unwrap().unwrap()
-                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                let ctx = canvas
+                    .get_context("2d")
+                    .unwrap()
+                    .unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                    .unwrap();
                 self.inner.render(&ctx);
             }
         }
@@ -83,8 +121,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.is_running()
         }
-        pub fn get_length(&self) -> f32 { self.inner.get_length() }
-        pub fn get_angle_deg(&self) -> f32 { self.inner.get_angle_deg() }
+        pub fn get_length(&self) -> f32 {
+            self.inner.get_length()
+        }
+        pub fn get_angle_deg(&self) -> f32 {
+            self.inner.get_angle_deg()
+        }
     }
 
     // ── Harmonic Oscillator ───────────────────────────────────────────────────
@@ -98,15 +140,31 @@ pub mod wasm_exports {
     impl WasmHarmonic {
         #[wasm_bindgen(constructor)]
         pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
-            Self { inner: HarmonicSimulation::new(canvas_width, canvas_height) }
+            Self {
+                inner: HarmonicSimulation::new(canvas_width, canvas_height),
+            }
         }
-        pub fn set_spring_k(&mut self, k: f32) { self.inner.set_spring_k(k); }
-        pub fn set_mass(&mut self, m: f32) { self.inner.set_mass(m); }
-        pub fn set_displacement(&mut self, d: f32) { self.inner.set_displacement(d); }
-        pub fn set_damping(&mut self, d: f32) { self.inner.set_damping(d); }
-        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
-        pub fn play(&mut self) { self.inner.play(); }
-        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn set_spring_k(&mut self, k: f32) {
+            self.inner.set_spring_k(k);
+        }
+        pub fn set_mass(&mut self, m: f32) {
+            self.inner.set_mass(m);
+        }
+        pub fn set_displacement(&mut self, d: f32) {
+            self.inner.set_displacement(d);
+        }
+        pub fn set_damping(&mut self, d: f32) {
+            self.inner.set_damping(d);
+        }
+        pub fn apply_preset(&mut self, preset: &str) {
+            self.inner.apply_preset(preset);
+        }
+        pub fn play(&mut self) {
+            self.inner.play();
+        }
+        pub fn pause(&mut self) {
+            self.inner.pause();
+        }
         pub fn reset(&mut self) {
             use crate::traits::Simulation;
             self.inner.reset();
@@ -115,8 +173,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.step();
             {
-                let ctx = canvas.get_context("2d").unwrap().unwrap()
-                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                let ctx = canvas
+                    .get_context("2d")
+                    .unwrap()
+                    .unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                    .unwrap();
                 self.inner.render(&ctx);
             }
         }
@@ -124,9 +186,15 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.is_running()
         }
-        pub fn get_spring_k(&self) -> f32 { self.inner.get_spring_k() }
-        pub fn get_mass(&self) -> f32 { self.inner.get_mass() }
-        pub fn get_displacement(&self) -> f32 { self.inner.get_displacement() }
+        pub fn get_spring_k(&self) -> f32 {
+            self.inner.get_spring_k()
+        }
+        pub fn get_mass(&self) -> f32 {
+            self.inner.get_mass()
+        }
+        pub fn get_displacement(&self) -> f32 {
+            self.inner.get_displacement()
+        }
     }
 
     // ── Inclined Plane ────────────────────────────────────────────────────────
@@ -140,14 +208,28 @@ pub mod wasm_exports {
     impl WasmIncline {
         #[wasm_bindgen(constructor)]
         pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
-            Self { inner: InclineSimulation::new(canvas_width, canvas_height) }
+            Self {
+                inner: InclineSimulation::new(canvas_width, canvas_height),
+            }
         }
-        pub fn set_slope_angle(&mut self, deg: f32) { self.inner.set_slope_angle(deg); }
-        pub fn set_mass(&mut self, m: f32) { self.inner.set_mass(m); }
-        pub fn set_friction(&mut self, mu: f32) { self.inner.set_friction(mu); }
-        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
-        pub fn play(&mut self) { self.inner.play(); }
-        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn set_slope_angle(&mut self, deg: f32) {
+            self.inner.set_slope_angle(deg);
+        }
+        pub fn set_mass(&mut self, m: f32) {
+            self.inner.set_mass(m);
+        }
+        pub fn set_friction(&mut self, mu: f32) {
+            self.inner.set_friction(mu);
+        }
+        pub fn apply_preset(&mut self, preset: &str) {
+            self.inner.apply_preset(preset);
+        }
+        pub fn play(&mut self) {
+            self.inner.play();
+        }
+        pub fn pause(&mut self) {
+            self.inner.pause();
+        }
         pub fn reset(&mut self) {
             use crate::traits::Simulation;
             self.inner.reset();
@@ -156,8 +238,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.step();
             {
-                let ctx = canvas.get_context("2d").unwrap().unwrap()
-                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                let ctx = canvas
+                    .get_context("2d")
+                    .unwrap()
+                    .unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                    .unwrap();
                 self.inner.render(&ctx);
             }
         }
@@ -165,8 +251,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.is_running()
         }
-        pub fn get_slope_angle(&self) -> f32 { self.inner.get_slope_angle() }
-        pub fn get_friction(&self) -> f32 { self.inner.get_friction() }
+        pub fn get_slope_angle(&self) -> f32 {
+            self.inner.get_slope_angle()
+        }
+        pub fn get_friction(&self) -> f32 {
+            self.inner.get_friction()
+        }
     }
 
     // ── Orbital Mechanics ─────────────────────────────────────────────────────
@@ -180,14 +270,28 @@ pub mod wasm_exports {
     impl WasmOrbital {
         #[wasm_bindgen(constructor)]
         pub fn new(canvas_width: f64, canvas_height: f64) -> Self {
-            Self { inner: OrbitalSimulation::new(canvas_width, canvas_height) }
+            Self {
+                inner: OrbitalSimulation::new(canvas_width, canvas_height),
+            }
         }
-        pub fn set_central_mass(&mut self, m: f32) { self.inner.set_central_mass(m); }
-        pub fn set_initial_distance(&mut self, d: f32) { self.inner.set_initial_distance(d); }
-        pub fn set_initial_speed(&mut self, v: f32) { self.inner.set_initial_speed(v); }
-        pub fn apply_preset(&mut self, preset: &str) { self.inner.apply_preset(preset); }
-        pub fn play(&mut self) { self.inner.play(); }
-        pub fn pause(&mut self) { self.inner.pause(); }
+        pub fn set_central_mass(&mut self, m: f32) {
+            self.inner.set_central_mass(m);
+        }
+        pub fn set_initial_distance(&mut self, d: f32) {
+            self.inner.set_initial_distance(d);
+        }
+        pub fn set_initial_speed(&mut self, v: f32) {
+            self.inner.set_initial_speed(v);
+        }
+        pub fn apply_preset(&mut self, preset: &str) {
+            self.inner.apply_preset(preset);
+        }
+        pub fn play(&mut self) {
+            self.inner.play();
+        }
+        pub fn pause(&mut self) {
+            self.inner.pause();
+        }
         pub fn reset(&mut self) {
             use crate::traits::Simulation;
             self.inner.reset();
@@ -196,8 +300,12 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.step();
             {
-                let ctx = canvas.get_context("2d").unwrap().unwrap()
-                    .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+                let ctx = canvas
+                    .get_context("2d")
+                    .unwrap()
+                    .unwrap()
+                    .dyn_into::<web_sys::CanvasRenderingContext2d>()
+                    .unwrap();
                 self.inner.render(&ctx);
             }
         }
@@ -205,8 +313,14 @@ pub mod wasm_exports {
             use crate::traits::Simulation;
             self.inner.is_running()
         }
-        pub fn get_central_mass(&self) -> f32 { self.inner.get_central_mass() }
-        pub fn get_initial_distance(&self) -> f32 { self.inner.get_initial_distance() }
-        pub fn get_initial_speed(&self) -> f32 { self.inner.get_initial_speed() }
+        pub fn get_central_mass(&self) -> f32 {
+            self.inner.get_central_mass()
+        }
+        pub fn get_initial_distance(&self) -> f32 {
+            self.inner.get_initial_distance()
+        }
+        pub fn get_initial_speed(&self) -> f32 {
+            self.inner.get_initial_speed()
+        }
     }
 }

@@ -38,7 +38,8 @@ pub fn RightPanel(
     #[prop(into)]
     history: RwSignal<Vec<String>>,
 ) -> impl IntoView {
-    let graph_state = use_context::<GraphState>().expect("GraphState context required for RightPanel");
+    let graph_state =
+        use_context::<GraphState>().expect("GraphState context required for RightPanel");
 
     let panel_open = graph_state.panel_open;
     let selected_node = graph_state.selected_node;

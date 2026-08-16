@@ -218,14 +218,13 @@ pub async fn submit_review(
     .await?;
 
     // 7. Fetch new mastery level
-    let new_mastery_level: i32 = sqlx::query(
-        "SELECT mastery_level FROM progress WHERE user_id = $1 AND node_id = $2",
-    )
-    .bind(user_id)
-    .bind(node_id)
-    .fetch_one(pool)
-    .await?
-    .try_get::<i32, _>("mastery_level")?;
+    let new_mastery_level: i32 =
+        sqlx::query("SELECT mastery_level FROM progress WHERE user_id = $1 AND node_id = $2")
+            .bind(user_id)
+            .bind(node_id)
+            .fetch_one(pool)
+            .await?
+            .try_get::<i32, _>("mastery_level")?;
 
     let rating = match fsrs_logic::score_to_rating(score_pct) {
         rs_fsrs::Rating::Again => "Again",
@@ -247,11 +246,7 @@ pub async fn submit_review(
 ///
 /// Per D-05 and Pitfall 6: FSRS columns (stability, difficulty, reps, lapses, state)
 /// are NOT modified — only next_review is pushed forward.
-pub async fn skip_review(
-    pool: &PgPool,
-    user_id: Uuid,
-    node_id: Uuid,
-) -> Result<(), sqlx::Error> {
+pub async fn skip_review(pool: &PgPool, user_id: Uuid, node_id: Uuid) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE progress

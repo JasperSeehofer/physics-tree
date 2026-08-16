@@ -16,9 +16,21 @@ struct SimPreset {
 }
 
 const PROJECTILE_PRESETS: &[SimPreset] = &[
-    SimPreset { label: "Feather",    angle: 60.0, speed: 5.0  },
-    SimPreset { label: "Cannonball", angle: 45.0, speed: 40.0 },
-    SimPreset { label: "Mortar",     angle: 80.0, speed: 25.0 },
+    SimPreset {
+        label: "Feather",
+        angle: 60.0,
+        speed: 5.0,
+    },
+    SimPreset {
+        label: "Cannonball",
+        angle: 45.0,
+        speed: 40.0,
+    },
+    SimPreset {
+        label: "Mortar",
+        angle: 80.0,
+        speed: 25.0,
+    },
 ];
 
 /// Simulation controls bar.

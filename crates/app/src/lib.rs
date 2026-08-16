@@ -57,8 +57,8 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 /// Collapses to hamburger menu below 768px (md breakpoint).
 #[component]
 fn Navbar() -> impl IntoView {
-    let auth_user = use_context::<LocalResource<Option<User>>>()
-        .expect("auth context required in Navbar");
+    let auth_user =
+        use_context::<LocalResource<Option<User>>>().expect("auth context required in Navbar");
 
     let menu_open = RwSignal::new(false);
 
@@ -69,8 +69,13 @@ fn Navbar() -> impl IntoView {
     {
         leptos::task::spawn_local(async move {
             #[derive(serde::Deserialize)]
-            struct DueCountResp { due_count: i64 }
-            if let Ok(resp) = gloo_net::http::Request::get("/api/review/due-count").send().await {
+            struct DueCountResp {
+                due_count: i64,
+            }
+            if let Ok(resp) = gloo_net::http::Request::get("/api/review/due-count")
+                .send()
+                .await
+            {
                 if resp.ok() {
                     if let Ok(data) = resp.json::<DueCountResp>().await {
                         due_count.set(data.due_count);
@@ -221,9 +226,7 @@ pub fn App() -> impl IntoView {
     let auth_user: LocalResource<Option<User>> = LocalResource::new(|| async move {
         #[cfg(target_arch = "wasm32")]
         {
-            let result = gloo_net::http::Request::get("/api/auth/me")
-                .send()
-                .await;
+            let result = gloo_net::http::Request::get("/api/auth/me").send().await;
             match result {
                 Ok(resp) if resp.status() == 200 => {
                     resp.json::<Option<User>>().await.unwrap_or(None)

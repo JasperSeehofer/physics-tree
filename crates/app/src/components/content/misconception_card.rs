@@ -17,9 +17,7 @@ use web_sys::HtmlElement;
 /// - On click: appends reveal text, changes background, removes pointer
 #[cfg(target_arch = "wasm32")]
 pub fn hydrate_misconception_cards(container: &HtmlElement) {
-    let cards_nl = container
-        .query_selector_all("[data-misconception]")
-        .ok();
+    let cards_nl = container.query_selector_all("[data-misconception]").ok();
     let cards_nl = match cards_nl {
         Some(nl) => nl,
         None => return,
@@ -36,12 +34,8 @@ pub fn hydrate_misconception_cards(container: &HtmlElement) {
 
 #[cfg(target_arch = "wasm32")]
 fn wire_misconception_card(el: HtmlElement) {
-    let statement = el
-        .get_attribute("data-statement")
-        .unwrap_or_default();
-    let reveal = el
-        .get_attribute("data-reveal")
-        .unwrap_or_default();
+    let statement = el.get_attribute("data-statement").unwrap_or_default();
+    let reveal = el.get_attribute("data-reveal").unwrap_or_default();
 
     // Render initial state
     el.set_inner_html(&format!(
@@ -60,15 +54,9 @@ fn wire_misconception_card(el: HtmlElement) {
         if let Some(inner) = el_clone.first_element_child() {
             if let Ok(inner_el) = inner.dyn_into::<HtmlElement>() {
                 // Change background
-                let _ = inner_el
-                    .class_list()
-                    .remove_1("bg-bark-mid");
-                let _ = inner_el
-                    .class_list()
-                    .add_1("bg-bark-light");
-                let _ = inner_el
-                    .class_list()
-                    .remove_1("cursor-pointer");
+                let _ = inner_el.class_list().remove_1("bg-bark-mid");
+                let _ = inner_el.class_list().add_1("bg-bark-light");
+                let _ = inner_el.class_list().remove_1("cursor-pointer");
 
                 // Append reveal text
                 let reveal_p = web_sys::window()

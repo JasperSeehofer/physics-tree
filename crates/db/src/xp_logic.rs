@@ -227,37 +227,79 @@ mod tests {
     #[test]
     fn streak_first_session_returns_1() {
         let result = update_streak(None, 0, 0, today());
-        assert_eq!(result, StreakUpdate { new_streak: 1, new_freeze_tokens: 0, freeze_used: false });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 1,
+                new_freeze_tokens: 0,
+                freeze_used: false
+            }
+        );
     }
 
     #[test]
     fn streak_same_day_is_idempotent() {
         let result = update_streak(Some(today()), 5, 1, today());
-        assert_eq!(result, StreakUpdate { new_streak: 5, new_freeze_tokens: 1, freeze_used: false });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 5,
+                new_freeze_tokens: 1,
+                freeze_used: false
+            }
+        );
     }
 
     #[test]
     fn streak_consecutive_day_increments() {
         let result = update_streak(Some(yesterday()), 5, 1, today());
-        assert_eq!(result, StreakUpdate { new_streak: 6, new_freeze_tokens: 1, freeze_used: false });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 6,
+                new_freeze_tokens: 1,
+                freeze_used: false
+            }
+        );
     }
 
     #[test]
     fn streak_two_days_ago_with_freeze_token_uses_freeze() {
         let result = update_streak(Some(two_days_ago()), 5, 1, today());
-        assert_eq!(result, StreakUpdate { new_streak: 6, new_freeze_tokens: 0, freeze_used: true });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 6,
+                new_freeze_tokens: 0,
+                freeze_used: true
+            }
+        );
     }
 
     #[test]
     fn streak_two_days_ago_without_freeze_token_breaks() {
         let result = update_streak(Some(two_days_ago()), 5, 0, today());
-        assert_eq!(result, StreakUpdate { new_streak: 1, new_freeze_tokens: 0, freeze_used: false });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 1,
+                new_freeze_tokens: 0,
+                freeze_used: false
+            }
+        );
     }
 
     #[test]
     fn streak_three_days_ago_with_tokens_still_breaks() {
         let result = update_streak(Some(three_days_ago()), 5, 2, today());
-        assert_eq!(result, StreakUpdate { new_streak: 1, new_freeze_tokens: 2, freeze_used: false });
+        assert_eq!(
+            result,
+            StreakUpdate {
+                new_streak: 1,
+                new_freeze_tokens: 2,
+                freeze_used: false
+            }
+        );
     }
 
     // ── check_streak_milestone ───────────────────────────────────────────────

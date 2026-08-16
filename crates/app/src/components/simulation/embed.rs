@@ -73,11 +73,7 @@ fn update_url_params(params: &[(&str, f32)]) {
     }
     let new_href = url.href();
     if let Ok(history) = window.history() {
-        let _ = history.replace_state_with_url(
-            &wasm_bindgen::JsValue::NULL,
-            "",
-            Some(&new_href),
-        );
+        let _ = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&new_href));
     }
 }
 
@@ -165,9 +161,9 @@ pub fn SimulationEmbed(
             let canvas_raf = canvas_el.clone();
 
             // Create WasmProjectile with canvas dimensions
-            let sim = Rc::new(RefCell::new(
-                simulation::wasm_exports::WasmProjectile::new(w as f64, h as f64),
-            ));
+            let sim = Rc::new(RefCell::new(simulation::wasm_exports::WasmProjectile::new(
+                w as f64, h as f64,
+            )));
 
             // Apply initial values
             {
@@ -204,8 +200,7 @@ pub fn SimulationEmbed(
             let handle_inner = raf_handle.clone();
 
             // Self-scheduling rAF pattern
-            let raf_cb: Rc<RefCell<Option<Closure<dyn FnMut()>>>> =
-                Rc::new(RefCell::new(None));
+            let raf_cb: Rc<RefCell<Option<Closure<dyn FnMut()>>>> = Rc::new(RefCell::new(None));
             let raf_cb_self = raf_cb.clone();
 
             *raf_cb.borrow_mut() = Some(Closure::wrap(Box::new(move || {

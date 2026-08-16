@@ -46,6 +46,16 @@ pub struct NodeMeta {
     /// `eqf_level` (>= 6 → graduate, else school), so no existing node changes.
     #[serde(default)]
     pub tier: Option<Tier>,
+
+    /// Expertise-reversal relaxation switch (v1.3). Optional in node.yaml: when
+    /// absent, `effective_relaxation()` returns `Relaxation::On`, which is the
+    /// v1.2 behaviour, so no existing node changes.
+    ///
+    /// Only meaningful at `tier: graduate` — it is the graduate tier that makes
+    /// phases 2 and 3 advisory in the first place. Setting it at any other tier
+    /// is inert and produces a `ValidationWarning`, not an error.
+    #[serde(default)]
+    pub relaxation: Option<Relaxation>,
 }
 
 fn default_node_type() -> String {
@@ -62,6 +72,26 @@ impl NodeMeta {
     pub fn effective_tier(&self) -> Tier {
         self.tier
             .unwrap_or_else(|| Tier::default_for_eqf(self.eqf_level))
+    }
+
+    /// The relaxation setting this node is gated under: the declared
+    /// `relaxation`, or `Relaxation::On` when the field is absent (v1.2
+    /// behaviour, backwards compatibility).
+    pub fn effective_relaxation(&self) -> Relaxation {
+        self.relaxation.unwrap_or_default()
+    }
+
+    /// This node's gate policy for one phase, reading both switches it declares.
+    ///
+    /// Equivalent to `phase_gate_with_relaxation(self.effective_tier(),
+    /// self.effective_relaxation(), phase_number)`; the convenience exists so a
+    /// caller holding a `NodeMeta` cannot read one switch and forget the other.
+    pub fn phase_gate(&self, phase_number: u8) -> PhaseGate {
+        phase_gate_with_relaxation(
+            self.effective_tier(),
+            self.effective_relaxation(),
+            phase_number,
+        )
     }
 
     /// Misconception statements as plain strings, discarding the graduate type tag.
@@ -135,13 +165,68 @@ pub enum PhaseGate {
     Advisory,
 }
 
-/// The gate policy for one phase at one tier.
+/// Whether the graduate expertise-reversal relaxation applies to a node (v1.3).
+///
+/// `On` — the v1.2 default: at graduate tier, phases 2 and 3 are `Advisory`.
+/// `Off` — the relaxation is withdrawn for this node: phases 2 and 3 are
+/// `Strict` even at graduate tier.
+///
+/// Rationale (M10a FINDING F4): expertise reversal (Kalyuga et al. 2003) is a
+/// claim about learners whose *correct* prior schema makes instructional support
+/// redundant. A module whose measured profile is production failure over
+/// recognition — or one whose learners hold confidently-held wrong answers —
+/// does not meet that boundary condition, so the relaxation must not apply.
+/// Ratified policy (Gate 6 D-G6b) turns it off for whole modules; this field is
+/// how a node says so in structure rather than only in prose.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Relaxation {
+    #[default]
+    On,
+    Off,
+}
+
+impl Relaxation {
+    pub fn is_on(&self) -> bool {
+        matches!(self, Relaxation::On)
+    }
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Relaxation::On => "on",
+            Relaxation::Off => "off",
+        }
+    }
+}
+
+/// The gate policy for one phase at one tier, under the default relaxation.
+///
+/// Equivalent to `phase_gate_with_relaxation(tier, Relaxation::On, n)` and kept
+/// as the v1.2 signature: callers that hold no node-level relaxation setting get
+/// exactly the v1.2 policy.
 ///
 /// NOTE: this is the policy source of truth; the Learning Room does not consume
 /// it yet (UI wiring is out of scope for M2 — see the M2 report follow-ups).
 pub fn phase_gate(tier: Tier, phase_number: u8) -> PhaseGate {
-    match (tier, phase_number) {
-        (Tier::Graduate, 2) | (Tier::Graduate, 3) => PhaseGate::Advisory,
+    phase_gate_with_relaxation(tier, Relaxation::On, phase_number)
+}
+
+/// The gate policy for one phase, reading both the tier and the node's
+/// `relaxation` switch (v1.3).
+///
+/// The relaxation can only ever *narrow* the policy: `Relaxation::Off` turns the
+/// two advisory phases strict, and there is no combination of arguments under
+/// which a phase that is `Strict` at `Relaxation::On` becomes `Advisory`. So the
+/// switch cannot be used to widen skipping — see §1 of `docs/content-spec.md`.
+pub fn phase_gate_with_relaxation(
+    tier: Tier,
+    relaxation: Relaxation,
+    phase_number: u8,
+) -> PhaseGate {
+    match (tier, relaxation, phase_number) {
+        (Tier::Graduate, Relaxation::On, 2) | (Tier::Graduate, Relaxation::On, 3) => {
+            PhaseGate::Advisory
+        }
         _ => PhaseGate::Strict,
     }
 }
@@ -434,7 +519,10 @@ impl fmt::Display for ValidationError {
             ValidationError::DuplicatePhase { number } => {
                 write!(f, "node.yaml:phases  Duplicate phase number {number}")
             }
-            ValidationError::MissingPhaseFile { number, expected_path } => {
+            ValidationError::MissingPhaseFile {
+                number,
+                expected_path,
+            } => {
                 write!(
                     f,
                     "{expected_path}:  File not found at expected path for phase {number}"
@@ -465,10 +553,7 @@ impl fmt::Display for ValidationError {
                 )
             }
             ValidationError::MalformedQuizBlock { phase, detail } => {
-                write!(
-                    f,
-                    "phase-{phase}.md:quiz  Malformed quiz block: {detail}"
-                )
+                write!(f, "phase-{phase}.md:quiz  Malformed quiz block: {detail}")
             }
             ValidationError::InvalidPhaseNumber { number } => {
                 write!(
@@ -476,7 +561,11 @@ impl fmt::Display for ValidationError {
                     "node.yaml:phases  Invalid phase number {number}; must be 0-6"
                 )
             }
-            ValidationError::PhaseTypeMismatch { number, expected, found } => {
+            ValidationError::PhaseTypeMismatch {
+                number,
+                expected,
+                found,
+            } => {
                 write!(
                     f,
                     "node.yaml:phases[{number}]  Phase type mismatch: expected '{expected}', found '{found}'"
@@ -488,7 +577,10 @@ impl fmt::Display for ValidationError {
                     "node.yaml:phases[{phase}]  Missing standard required block '{block}' for phase type retrieval_check"
                 )
             }
-            ValidationError::EstimatedMinutesMismatch { node_total, phase_sum } => {
+            ValidationError::EstimatedMinutesMismatch {
+                node_total,
+                phase_sum,
+            } => {
                 write!(
                     f,
                     "node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})"
@@ -502,6 +594,58 @@ impl fmt::Display for ValidationError {
             }
         }
     }
+}
+
+/// A non-fatal finding produced by `validate_node_warnings()`.
+///
+/// Warnings share `ValidationError`'s `file:field  description` Display format
+/// and its tagged-JSON serialization, but they never fail a node: the validator
+/// binary prints them and still exits 0. Introduced in v1.3, where the first
+/// rule that wants to say "this is inert" rather than "this is wrong" appears.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ValidationWarning {
+    /// `relaxation` is declared on a node whose effective tier is not
+    /// `graduate`. The field is read only where the gate is advisory, so at any
+    /// other tier it has no effect — but it is almost always a sign that `tier`
+    /// was meant to be `graduate` too, which is why it is reported rather than
+    /// ignored. (Added v1.3 / M10a F4.)
+    RelaxationAtNonGraduateTier { tier: String, relaxation: String },
+}
+
+impl fmt::Display for ValidationWarning {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ValidationWarning::RelaxationAtNonGraduateTier { tier, relaxation } => {
+                write!(
+                    f,
+                    "node.yaml:relaxation  '{relaxation}' has no effect at tier {tier}; the gate is advisory only at tier graduate"
+                )
+            }
+        }
+    }
+}
+
+/// Collect the non-fatal findings for a node.
+///
+/// Kept separate from `validate_node()` rather than folded into it as a severity
+/// field, so that every existing caller of `validate_node()` keeps its exact
+/// meaning: a non-empty return is still a rejection.
+pub fn validate_node_warnings(node: &ParsedNode) -> Vec<ValidationWarning> {
+    let mut warnings = Vec::new();
+
+    // W-1. `relaxation` declared where the gate is not advisory anyway.
+    let tier = node.meta.effective_tier();
+    if let Some(relaxation) = node.meta.relaxation {
+        if !tier.is_graduate() {
+            warnings.push(ValidationWarning::RelaxationAtNonGraduateTier {
+                tier: tier.name().to_string(),
+                relaxation: relaxation.name().to_string(),
+            });
+        }
+    }
+
+    warnings
 }
 
 /// Convert a YAML `requires` entry (snake_case) to the expected H2 heading text (Title Case).
@@ -550,7 +694,10 @@ pub fn extract_h2_headings(markdown: &str) -> Vec<String> {
 
     for event in parser {
         match event {
-            Event::Start(Tag::Heading { level: HeadingLevel::H2, .. }) => {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H2,
+                ..
+            }) => {
                 in_h2 = true;
                 current_heading.clear();
             }
@@ -634,7 +781,8 @@ fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
         if !phase2_has_derivation {
             errors.push(ValidationError::EqfConditionalViolation {
                 eqf_level: meta.eqf_level,
-                rule: "phase 2 requires list must contain 'derivation' for EQF level 4+".to_string(),
+                rule: "phase 2 requires list must contain 'derivation' for EQF level 4+"
+                    .to_string(),
             });
         }
     }
@@ -650,7 +798,8 @@ fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
         if !phase3_has_faded {
             errors.push(ValidationError::EqfConditionalViolation {
                 eqf_level: meta.eqf_level,
-                rule: "phase 3 requires list must contain 'mostly_faded_example' for EQF level 3+".to_string(),
+                rule: "phase 3 requires list must contain 'mostly_faded_example' for EQF level 3+"
+                    .to_string(),
             });
         }
     }
@@ -670,7 +819,9 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
 
     // 1. Check eqf_level is in range 2-8 (8 = doctoral/research; M1b G-1)
     if !(2..=8).contains(&node.meta.eqf_level) {
-        errors.push(ValidationError::InvalidEqfLevel { value: node.meta.eqf_level });
+        errors.push(ValidationError::InvalidEqfLevel {
+            value: node.meta.eqf_level,
+        });
     }
 
     // 2. Check misconception count against the tier-conditional range (M1b G-3).
@@ -689,9 +840,13 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     let mut seen_numbers: Vec<u8> = Vec::new();
     for phase in &node.meta.phases {
         if phase.number > 6 {
-            errors.push(ValidationError::InvalidPhaseNumber { number: phase.number });
+            errors.push(ValidationError::InvalidPhaseNumber {
+                number: phase.number,
+            });
         } else if seen_numbers.contains(&phase.number) {
-            errors.push(ValidationError::DuplicatePhase { number: phase.number });
+            errors.push(ValidationError::DuplicatePhase {
+                number: phase.number,
+            });
         } else {
             seen_numbers.push(phase.number);
         }
@@ -727,7 +882,9 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     }
     // Also check for missing phase files for expected phases
     for expected in 0u8..=6 {
-        if !node.phase_files_found.contains(&expected) && !node.meta.phases.iter().any(|p| p.number == expected) {
+        if !node.phase_files_found.contains(&expected)
+            && !node.meta.phases.iter().any(|p| p.number == expected)
+        {
             errors.push(ValidationError::MissingPhaseFile {
                 number: expected,
                 expected_path: format!("phase-{expected}.md"),
@@ -739,7 +896,8 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     for phase in &node.meta.phases {
         if let Some(headings) = node.phase_headings.get(&phase.number) {
             // Normalize headings to requires-key form for comparison
-            let heading_keys: Vec<String> = headings.iter().map(|h| heading_to_requires(h)).collect();
+            let heading_keys: Vec<String> =
+                headings.iter().map(|h| heading_to_requires(h)).collect();
             for req in &phase.requires {
                 if !heading_keys.contains(req) {
                     errors.push(ValidationError::MissingRequiredBlock {
@@ -805,8 +963,14 @@ mod tests {
         assert_eq!(requires_to_heading("linkage_map"), "Linkage Map");
         assert_eq!(requires_to_heading("wonder_hook"), "Wonder Hook");
         assert_eq!(requires_to_heading("struggle_problem"), "Struggle Problem");
-        assert_eq!(requires_to_heading("self_explanation_prompt"), "Self Explanation Prompt");
-        assert_eq!(requires_to_heading("mostly_faded_example"), "Mostly Faded Example");
+        assert_eq!(
+            requires_to_heading("self_explanation_prompt"),
+            "Self Explanation Prompt"
+        );
+        assert_eq!(
+            requires_to_heading("mostly_faded_example"),
+            "Mostly Faded Example"
+        );
         assert_eq!(requires_to_heading("quiz"), "Quiz");
     }
 
@@ -815,8 +979,14 @@ mod tests {
         assert_eq!(heading_to_requires("Recall Prompt"), "recall_prompt");
         assert_eq!(heading_to_requires("Linkage Map"), "linkage_map");
         assert_eq!(heading_to_requires("Wonder Hook"), "wonder_hook");
-        assert_eq!(heading_to_requires("Self Explanation Prompt"), "self_explanation_prompt");
-        assert_eq!(heading_to_requires("Mostly Faded Example"), "mostly_faded_example");
+        assert_eq!(
+            heading_to_requires("Self Explanation Prompt"),
+            "self_explanation_prompt"
+        );
+        assert_eq!(
+            heading_to_requires("Mostly Faded Example"),
+            "mostly_faded_example"
+        );
     }
 
     #[test]
@@ -845,7 +1015,10 @@ mod tests {
         for key in &keys {
             let heading = requires_to_heading(key);
             let back = heading_to_requires(&heading);
-            assert_eq!(back, *key, "Round-trip failed for '{key}': '{heading}' -> '{back}'");
+            assert_eq!(
+                back, *key,
+                "Round-trip failed for '{key}': '{heading}' -> '{back}'"
+            );
         }
     }
 
@@ -903,27 +1076,47 @@ mod tests {
             PhaseEntry {
                 number: 0,
                 phase_type: PhaseType::SchemaActivation,
-                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+                requires: vec![
+                    "recall_prompt".into(),
+                    "linkage_map".into(),
+                    "wonder_hook".into(),
+                ],
             },
             PhaseEntry {
                 number: 1,
                 phase_type: PhaseType::ProductiveStruggle,
-                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+                requires: vec![
+                    "struggle_problem".into(),
+                    "solution_capture".into(),
+                    "gap_reveal".into(),
+                ],
             },
             PhaseEntry {
                 number: 2,
                 phase_type: PhaseType::ConcretenesFading,
-                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into(), "derivation".into()],
+                requires: vec![
+                    "concrete_stage".into(),
+                    "bridging_stage".into(),
+                    "abstract_stage".into(),
+                    "derivation".into(),
+                ],
             },
             PhaseEntry {
                 number: 3,
                 phase_type: PhaseType::WorkedExamples,
-                requires: vec!["full_example".into(), "partially_faded_example".into(), "mostly_faded_example".into()],
+                requires: vec![
+                    "full_example".into(),
+                    "partially_faded_example".into(),
+                    "mostly_faded_example".into(),
+                ],
             },
             PhaseEntry {
                 number: 4,
                 phase_type: PhaseType::SelfExplanation,
-                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+                requires: vec![
+                    "self_explanation_prompt".into(),
+                    "reflection_questions".into(),
+                ],
             },
             PhaseEntry {
                 number: 5,
@@ -952,12 +1145,17 @@ mod tests {
             node_type: "concept".into(),
             depth_tier: "branch".into(),
             tier: None,
+            relaxation: None,
         };
 
         // Build headings for each phase based on its requires
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
         for phase in &meta.phases {
-            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            let headings: Vec<String> = phase
+                .requires
+                .iter()
+                .map(|r| requires_to_heading(r))
+                .collect();
             phase_headings.insert(phase.number, headings);
         }
 
@@ -977,17 +1175,29 @@ mod tests {
             PhaseEntry {
                 number: 0,
                 phase_type: PhaseType::SchemaActivation,
-                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+                requires: vec![
+                    "recall_prompt".into(),
+                    "linkage_map".into(),
+                    "wonder_hook".into(),
+                ],
             },
             PhaseEntry {
                 number: 1,
                 phase_type: PhaseType::ProductiveStruggle,
-                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+                requires: vec![
+                    "struggle_problem".into(),
+                    "solution_capture".into(),
+                    "gap_reveal".into(),
+                ],
             },
             PhaseEntry {
                 number: 2,
                 phase_type: PhaseType::ConcretenesFading,
-                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into()],
+                requires: vec![
+                    "concrete_stage".into(),
+                    "bridging_stage".into(),
+                    "abstract_stage".into(),
+                ],
             },
             PhaseEntry {
                 number: 3,
@@ -997,7 +1207,10 @@ mod tests {
             PhaseEntry {
                 number: 4,
                 phase_type: PhaseType::SelfExplanation,
-                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+                requires: vec![
+                    "self_explanation_prompt".into(),
+                    "reflection_questions".into(),
+                ],
             },
             PhaseEntry {
                 number: 5,
@@ -1026,11 +1239,16 @@ mod tests {
             node_type: "concept".into(),
             depth_tier: "trunk".into(),
             tier: None,
+            relaxation: None,
         };
 
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
         for phase in &meta.phases {
-            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            let headings: Vec<String> = phase
+                .requires
+                .iter()
+                .map(|r| requires_to_heading(r))
+                .collect();
             phase_headings.insert(phase.number, headings);
         }
 
@@ -1065,7 +1283,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::MissingPhase { number: 6 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::MissingPhase { number: 6 })),
             "Expected MissingPhase {{ number: 6 }}, got: {:?}",
             errors
         );
@@ -1084,7 +1304,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::DuplicatePhase { number: 3 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::DuplicatePhase { number: 3 })),
             "Expected DuplicatePhase {{ number: 3 }}, got: {:?}",
             errors
         );
@@ -1099,7 +1321,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 1 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 1 })),
             "Expected InvalidEqfLevel {{ value: 1 }}, got: {:?}",
             errors
         );
@@ -1219,7 +1443,10 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 1, .. })),
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount { count: 1, .. }
+            )),
             "Expected InvalidMisconceptionCount {{ count: 1 }}, got: {:?}",
             errors
         );
@@ -1228,16 +1455,14 @@ mod tests {
     #[test]
     fn test_misconception_count_too_many() {
         let mut node = make_valid_eqf4_node();
-        node.meta.misconceptions = vec![
-            "one".into(),
-            "two".into(),
-            "three".into(),
-            "four".into(),
-        ];
+        node.meta.misconceptions = vec!["one".into(), "two".into(), "three".into(), "four".into()];
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 4, .. })),
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount { count: 4, .. }
+            )),
             "Expected InvalidMisconceptionCount {{ count: 4 }}, got: {:?}",
             errors
         );
@@ -1272,7 +1497,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::MissingPhaseFile { number: 6, .. })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::MissingPhaseFile { number: 6, .. })),
             "Expected MissingPhaseFile {{ number: 6 }}, got: {:?}",
             errors
         );
@@ -1307,10 +1534,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(
-                e,
-                ValidationError::PhaseTypeMismatch { number: 0, .. }
-            )),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::PhaseTypeMismatch { number: 0, .. })),
             "Expected PhaseTypeMismatch for phase 0, got: {:?}",
             errors
         );
@@ -1397,9 +1623,11 @@ mod tests {
         let mut node = make_valid_eqf4_node();
         // node.meta.estimated_minutes is 40 in the fixture
         // Set phase estimated minutes that sum to 63 (mismatch)
-        let phase_minutes: HashMap<u8, u16> = [
-            (0, 5), (1, 10), (2, 12), (3, 10), (4, 6), (5, 12), (6, 8)
-        ].iter().cloned().collect();
+        let phase_minutes: HashMap<u8, u16> =
+            [(0, 5), (1, 10), (2, 12), (3, 10), (4, 6), (5, 12), (6, 8)]
+                .iter()
+                .cloned()
+                .collect();
         node.phase_estimated_minutes = phase_minutes;
 
         let errors = validate_node(&node);
@@ -1415,9 +1643,11 @@ mod tests {
     fn test_estimated_minutes_match_passes() {
         let mut node = make_valid_eqf4_node();
         // node.meta.estimated_minutes is 40; set phases to sum to 40
-        let phase_minutes: HashMap<u8, u16> = [
-            (0, 5), (1, 8), (2, 8), (3, 7), (4, 4), (5, 5), (6, 3)
-        ].iter().cloned().collect(); // sum = 40
+        let phase_minutes: HashMap<u8, u16> =
+            [(0, 5), (1, 8), (2, 8), (3, 7), (4, 4), (5, 5), (6, 3)]
+                .iter()
+                .cloned()
+                .collect(); // sum = 40
         node.phase_estimated_minutes = phase_minutes;
 
         let errors = validate_node(&node);
@@ -1786,5 +2016,310 @@ mod tests {
         assert_eq!(meta.effective_tier(), Tier::School);
         assert_eq!(meta.node_type, "concept");
         assert_eq!(meta.depth_tier, "trunk");
+    }
+
+    // ===== v1.3: the `relaxation` switch (M10a F4, Gate 7 D-G7c) =====
+
+    /// The full cross-product the field exists to control: both relaxation
+    /// values against every tier and every phase.
+    ///
+    /// The only cell that differs from the v1.2 table is
+    /// (graduate, off, phase 2|3), which turns Advisory into Strict. Nothing
+    /// else moves, and in particular nothing anywhere becomes *less* strict.
+    #[test]
+    fn test_phase_gate_relaxation_cross_product() {
+        for tier in [Tier::School, Tier::Undergraduate, Tier::Graduate] {
+            for relaxation in [Relaxation::On, Relaxation::Off] {
+                for n in 0u8..=6 {
+                    let expected = if tier == Tier::Graduate
+                        && relaxation == Relaxation::On
+                        && (n == 2 || n == 3)
+                    {
+                        PhaseGate::Advisory
+                    } else {
+                        PhaseGate::Strict
+                    };
+                    assert_eq!(
+                        phase_gate_with_relaxation(tier, relaxation, n),
+                        expected,
+                        "tier {:?}, relaxation {:?}, phase {n}",
+                        tier,
+                        relaxation
+                    );
+                }
+            }
+        }
+    }
+
+    /// `relaxation: off` withdraws the advisory gate at graduate tier; the four
+    /// phases that never reverse with expertise stay strict either way.
+    #[test]
+    fn test_graduate_relaxation_off_makes_phases_2_and_3_strict() {
+        assert_eq!(
+            phase_gate_with_relaxation(Tier::Graduate, Relaxation::Off, 2),
+            PhaseGate::Strict
+        );
+        assert_eq!(
+            phase_gate_with_relaxation(Tier::Graduate, Relaxation::Off, 3),
+            PhaseGate::Strict
+        );
+        for n in [0u8, 1, 4, 5, 6] {
+            assert_eq!(
+                phase_gate_with_relaxation(Tier::Graduate, Relaxation::Off, n),
+                PhaseGate::Strict,
+                "phase {n} is strict at every tier and under either relaxation"
+            );
+        }
+    }
+
+    /// `relaxation: on` reproduces the v1.2 policy exactly, and the v1.2
+    /// two-argument `phase_gate` is that same policy: the two must not drift.
+    #[test]
+    fn test_phase_gate_delegates_to_relaxation_on() {
+        for tier in [Tier::School, Tier::Undergraduate, Tier::Graduate] {
+            for n in 0u8..=6 {
+                assert_eq!(
+                    phase_gate(tier, n),
+                    phase_gate_with_relaxation(tier, Relaxation::On, n),
+                    "phase_gate must equal the relaxation-on policy at {:?}, phase {n}",
+                    tier
+                );
+            }
+        }
+    }
+
+    /// The `NodeMeta` convenience reads both switches, including their defaults.
+    #[test]
+    fn test_node_meta_phase_gate_reads_both_switches() {
+        let mut node = make_valid_graduate_node();
+
+        // Absent field → On → the v1.2 graduate policy.
+        assert_eq!(node.meta.relaxation, None);
+        assert_eq!(node.meta.effective_relaxation(), Relaxation::On);
+        assert_eq!(node.meta.phase_gate(2), PhaseGate::Advisory);
+        assert_eq!(node.meta.phase_gate(3), PhaseGate::Advisory);
+        assert_eq!(node.meta.phase_gate(4), PhaseGate::Strict);
+
+        node.meta.relaxation = Some(Relaxation::Off);
+        assert_eq!(node.meta.phase_gate(2), PhaseGate::Strict);
+        assert_eq!(node.meta.phase_gate(3), PhaseGate::Strict);
+        assert_eq!(node.meta.phase_gate(4), PhaseGate::Strict);
+
+        // A school node is strict throughout however the switch is set.
+        let mut school = make_valid_eqf4_node();
+        school.meta.relaxation = Some(Relaxation::Off);
+        for n in 0u8..=6 {
+            assert_eq!(school.meta.phase_gate(n), PhaseGate::Strict);
+        }
+    }
+
+    /// Absent → default `on`; both spellings parse; anything else is a parse
+    /// error rather than a silent fallback (`deny_unknown_fields` covers the
+    /// key, the enum covers the value).
+    #[test]
+    fn test_relaxation_serde() {
+        fn meta_json(extra: &str) -> String {
+            format!(
+                r#"{{
+                    "concept_id": "kinematics",
+                    "title": "Kinematics",
+                    "eqf_level": 7,
+                    "bloom_minimum": "apply",
+                    "prerequisites": ["vectors"],
+                    "misconceptions": ["one", "two"],
+                    "domain_of_applicability": ["classical"],
+                    "esco_tags": [],
+                    "estimated_minutes": 63,
+                    "derivation_required": true,
+                    "phases": []{extra}
+                }}"#
+            )
+        }
+
+        let absent: NodeMeta =
+            serde_json::from_str(&meta_json("")).expect("a node.yaml without the key must parse");
+        assert_eq!(absent.relaxation, None);
+        assert_eq!(absent.effective_relaxation(), Relaxation::On);
+
+        let on: NodeMeta = serde_json::from_str(&meta_json(r#", "relaxation": "on""#))
+            .expect("relaxation: on must parse");
+        assert_eq!(on.relaxation, Some(Relaxation::On));
+
+        let off: NodeMeta = serde_json::from_str(&meta_json(r#", "relaxation": "off""#))
+            .expect("relaxation: off must parse");
+        assert_eq!(off.relaxation, Some(Relaxation::Off));
+        assert_eq!(off.effective_relaxation(), Relaxation::Off);
+
+        assert!(
+            serde_json::from_str::<NodeMeta>(&meta_json(r#", "relaxation": "false""#)).is_err(),
+            "an unknown relaxation value must be a parse error, not a default"
+        );
+        assert!(
+            serde_json::from_str::<NodeMeta>(&meta_json(r#", "relaxation": "OFF""#)).is_err(),
+            "the enum is snake_case; an uppercase value must not parse"
+        );
+        assert!(
+            serde_json::from_str::<NodeMeta>(&meta_json(r#", "relaxation": true"#)).is_err(),
+            "a boolean must not parse as the relaxation enum"
+        );
+    }
+
+    /// Serde round-trip: `on` and `off` are the wire spellings.
+    #[test]
+    fn test_relaxation_wire_format() {
+        assert_eq!(serde_json::to_string(&Relaxation::On).unwrap(), r#""on""#);
+        assert_eq!(serde_json::to_string(&Relaxation::Off).unwrap(), r#""off""#);
+        assert_eq!(Relaxation::default(), Relaxation::On);
+        assert!(Relaxation::On.is_on());
+        assert!(!Relaxation::Off.is_on());
+        assert_eq!(Relaxation::Off.name(), "off");
+    }
+
+    /// `relaxation` at a non-graduate tier is inert, so it warns — and a warning
+    /// is not an error: `validate_node()` must still pass the node.
+    #[test]
+    fn test_relaxation_at_non_graduate_tier_warns_but_does_not_fail() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.relaxation = Some(Relaxation::Off);
+
+        let errors = validate_node(&node);
+        assert!(
+            errors.is_empty(),
+            "an inert relaxation must not fail validation, got: {:?}",
+            errors
+        );
+
+        let warnings = validate_node_warnings(&node);
+        assert!(
+            warnings.iter().any(|w| matches!(
+                w,
+                ValidationWarning::RelaxationAtNonGraduateTier { tier, relaxation }
+                    if tier == "school" && relaxation == "off"
+            )),
+            "expected RelaxationAtNonGraduateTier, got: {:?}",
+            warnings
+        );
+    }
+
+    /// The warning fires on the *effective* tier, not only on a declared one,
+    /// and `undergraduate` is a non-graduate tier for this purpose too.
+    #[test]
+    fn test_relaxation_warning_uses_effective_tier() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.tier = Some(Tier::Undergraduate);
+        node.meta.relaxation = Some(Relaxation::On);
+        assert!(
+            validate_node_warnings(&node).iter().any(|w| matches!(
+                w,
+                ValidationWarning::RelaxationAtNonGraduateTier { tier, .. } if tier == "undergraduate"
+            )),
+            "undergraduate is not graduate; the field is inert there"
+        );
+
+        // EQF 7 with no declared tier derives graduate — no warning.
+        let mut derived = make_valid_graduate_node();
+        derived.meta.tier = None;
+        derived.meta.relaxation = Some(Relaxation::Off);
+        assert!(
+            validate_node_warnings(&derived).is_empty(),
+            "a tier derived as graduate must not warn"
+        );
+    }
+
+    /// No `relaxation` key → no warning, at any tier. The rule is about the
+    /// field being *declared* where it cannot act, not about its value.
+    #[test]
+    fn test_absent_relaxation_never_warns() {
+        for node in [make_valid_eqf4_node(), make_valid_graduate_node()] {
+            assert_eq!(node.meta.relaxation, None);
+            assert!(
+                validate_node_warnings(&node).is_empty(),
+                "an absent relaxation field must produce no warning"
+            );
+        }
+    }
+
+    /// A graduate node with `relaxation: off` is fully valid and silent — this
+    /// is the shape every S0.5 node takes.
+    #[test]
+    fn test_graduate_relaxation_off_validates_clean() {
+        let mut node = make_valid_graduate_node();
+        node.meta.relaxation = Some(Relaxation::Off);
+
+        assert!(
+            validate_node(&node).is_empty(),
+            "relaxation: off at graduate tier must validate clean"
+        );
+        assert!(
+            validate_node_warnings(&node).is_empty(),
+            "relaxation: off at graduate tier must not warn"
+        );
+        assert_eq!(node.meta.phase_gate(2), PhaseGate::Strict);
+    }
+
+    /// `off` is a **boolean** in YAML 1.1. This test pins the field against the
+    /// parser the `validate` and `ingest` binaries actually use, because a
+    /// parser that resolved `off` to `false` would fail this field with a type
+    /// error — and the failure would look like a schema bug, not a YAML-version
+    /// one. `serde_json` cannot answer this question.
+    #[test]
+    fn test_relaxation_parses_from_real_yaml_despite_yaml_1_1_booleans() {
+        fn node_yaml(relaxation_line: &str) -> String {
+            format!(
+                "concept_id: free-scalar\n\
+                 title: Free Scalar\n\
+                 eqf_level: 7\n\
+                 bloom_minimum: analyze\n\
+                 prerequisites: []\n\
+                 misconceptions: [one, two]\n\
+                 domain_of_applicability: [free field]\n\
+                 esco_tags: []\n\
+                 estimated_minutes: 150\n\
+                 derivation_required: true\n\
+                 tier: graduate\n\
+                 phases: []\n\
+                 {relaxation_line}"
+            )
+        }
+
+        let off: NodeMeta = serde_saphyr::from_str(&node_yaml("relaxation: off\n"))
+            .expect("`relaxation: off` must not be swallowed as a YAML 1.1 boolean");
+        assert_eq!(off.relaxation, Some(Relaxation::Off));
+        assert_eq!(off.phase_gate(2), PhaseGate::Strict);
+        assert_eq!(off.phase_gate(3), PhaseGate::Strict);
+
+        // `on` is the same hazard in the other direction.
+        let on: NodeMeta = serde_saphyr::from_str(&node_yaml("relaxation: on\n"))
+            .expect("`relaxation: on` must not be swallowed as a YAML 1.1 boolean");
+        assert_eq!(on.relaxation, Some(Relaxation::On));
+        assert_eq!(on.phase_gate(2), PhaseGate::Advisory);
+
+        // Absent → the v1.2 behaviour, from real YAML.
+        let absent: NodeMeta = serde_saphyr::from_str(&node_yaml(""))
+            .expect("a node.yaml with no relaxation key must parse");
+        assert_eq!(absent.relaxation, None);
+        assert_eq!(absent.phase_gate(2), PhaseGate::Advisory);
+
+        // Unknown value and unknown key both stay hard parse errors.
+        assert!(
+            serde_saphyr::from_str::<NodeMeta>(&node_yaml("relaxation: maybe\n")).is_err(),
+            "an unknown relaxation value must be a parse error"
+        );
+        assert!(
+            serde_saphyr::from_str::<NodeMeta>(&node_yaml("relaxation_mode: off\n")).is_err(),
+            "deny_unknown_fields must still reject a misspelled key"
+        );
+    }
+
+    /// Warnings share the error Display contract (`file:field  description`).
+    #[test]
+    fn test_validation_warning_display() {
+        let warning = ValidationWarning::RelaxationAtNonGraduateTier {
+            tier: "school".into(),
+            relaxation: "off".into(),
+        };
+        let text = warning.to_string();
+        assert!(text.starts_with("node.yaml:relaxation"), "got: {text}");
+        assert!(text.contains("no effect at tier school"), "got: {text}");
     }
 }

@@ -17,9 +17,7 @@ use web_sys::HtmlElement;
 /// - Styles the link as sky-teal with underline on hover
 #[cfg(target_arch = "wasm32")]
 pub fn hydrate_concept_links(container: &HtmlElement) {
-    let links_nl = container
-        .query_selector_all("[data-concept-link]")
-        .ok();
+    let links_nl = container.query_selector_all("[data-concept-link]").ok();
     let links_nl = match links_nl {
         Some(nl) => nl,
         None => return,
@@ -36,9 +34,7 @@ pub fn hydrate_concept_links(container: &HtmlElement) {
 
 #[cfg(target_arch = "wasm32")]
 fn wire_concept_link(el: HtmlElement) {
-    let description = el
-        .get_attribute("data-description")
-        .unwrap_or_default();
+    let description = el.get_attribute("data-description").unwrap_or_default();
 
     // Style the link
     let _ = el.class_list().add_1("text-sky-teal");

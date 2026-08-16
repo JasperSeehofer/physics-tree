@@ -6,8 +6,8 @@ use leptos::web_sys;
 /// POSTs to /api/auth/login on submit; navigates to /dashboard on success.
 #[component]
 pub fn LoginForm() -> impl IntoView {
-    let auth_user = use_context::<LocalResource<Option<User>>>()
-        .expect("auth context required in LoginForm");
+    let auth_user =
+        use_context::<LocalResource<Option<User>>>().expect("auth context required in LoginForm");
     let email = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
     let email_error: RwSignal<Option<String>> = RwSignal::new(None);
@@ -81,9 +81,7 @@ pub fn LoginForm() -> impl IntoView {
                             ));
                         }
                         _ => {
-                            error.set(Some(
-                                "Something went wrong. Please try again.".to_string(),
-                            ));
+                            error.set(Some("Something went wrong. Please try again.".to_string()));
                         }
                     }
                 });
