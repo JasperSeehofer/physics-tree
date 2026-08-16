@@ -2659,4 +2659,322 @@ mod tests {
         assert!(text.starts_with("node.yaml:relaxation"), "got: {text}");
         assert!(text.contains("no effect at tier school"), "got: {text}");
     }
+
+    // ===== v1.4 probe sidecar: checks 16-22 and W-2 =====
+
+    /// A graduate node carrying a minimal, valid `probe.yaml`.
+    ///
+    /// Deliberately built from YAML rather than from struct literals: the point
+    /// of every check below is that a *file* an author wrote is rejected, and a
+    /// struct literal cannot express the shapes an author actually gets wrong.
+    fn graduate_node_with_probe(probe_yaml: &str) -> ParsedNode {
+        let mut node = make_valid_graduate_node();
+        node.meta.relaxation = Some(Relaxation::Off);
+        node.probe =
+            Some(serde_saphyr::from_str(probe_yaml).expect("test fixture probe must parse"));
+        node
+    }
+
+    fn valid_probe_yaml() -> String {
+        r#"
+spec_version: "1.4"
+concept_id: parallel-transport
+items:
+  - {id: "1", summary: one}
+  - id: "2"
+    summary: two
+    correctness: {wrong_if: "names the wrong object"}
+rules:
+  - id: R1
+    kind: fluency
+    when: {all: [{items: ["1"], score: {eq: 0}}]}
+    then: {}
+    text: advice
+  - id: R2
+    kind: correctness
+    when: {all: [{items: ["2"], correct: false}]}
+    then: {mandate_phases: [2]}
+    text: the gate
+"#
+        .to_string()
+    }
+
+    fn probe_errors(node: &ParsedNode) -> Vec<ValidationError> {
+        validate_node(node)
+    }
+
+    #[test]
+    fn test_a_valid_probe_adds_no_errors() {
+        let node = graduate_node_with_probe(&valid_probe_yaml());
+        assert!(
+            probe_errors(&node).is_empty(),
+            "got: {:?}",
+            probe_errors(&node)
+        );
+    }
+
+    #[test]
+    fn test_a_node_without_a_probe_runs_no_probe_checks() {
+        // The pre-v1.4 shape, and the shape of every school node forever.
+        let node = make_valid_graduate_node();
+        assert!(node.probe.is_none());
+        assert!(validate_node(&node).is_empty());
+        assert!(validate_node_warnings(&node).is_empty());
+    }
+
+    /// Check 16 — `spec_version` is validated, not decorative, so a v1.5 file
+    /// cannot be half-read by a v1.4 binary.
+    #[test]
+    fn test_check_16_rejects_a_future_spec_version() {
+        let yaml = valid_probe_yaml().replace(r#""1.4""#, r#""1.5""#);
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeSpecVersion { found, .. } if found == "1.5"
+        )));
+    }
+
+    /// Check 16 — the sidecar must name the node it sits next to.
+    #[test]
+    fn test_check_16_rejects_a_concept_id_mismatch() {
+        let yaml =
+            valid_probe_yaml().replace("concept_id: parallel-transport", "concept_id: other");
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeConceptIdMismatch { .. })));
+    }
+
+    /// Check 17 — a duplicate id makes every rule referencing it ambiguous.
+    #[test]
+    fn test_check_17_rejects_duplicate_item_ids() {
+        let yaml =
+            valid_probe_yaml().replace(r#"{id: "1", summary: one}"#, r#"{id: "2", summary: one}"#);
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeDuplicateItemId { id } if id == "2"
+        )));
+    }
+
+    /// Check 17 — 2-8 items, the graduate misconception range reused.
+    #[test]
+    fn test_check_17_rejects_a_one_item_probe() {
+        let yaml = r#"
+spec_version: "1.4"
+concept_id: parallel-transport
+items:
+  - {id: "1", summary: one}
+rules: []
+"#;
+        let node = graduate_node_with_probe(yaml);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeItemCount {
+                count: 1,
+                min: 2,
+                max: 8
+            }
+        )));
+    }
+
+    /// Check 18 — a rule naming an item this node does not declare.
+    #[test]
+    fn test_check_18_rejects_an_unknown_item_reference() {
+        let yaml = valid_probe_yaml().replace(r#"items: ["1"], score"#, r#"items: ["4c"], score"#);
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeUnknownItemRef { item, .. } if item == "4c"
+        )));
+    }
+
+    /// Check 18 — an atom naming another `node:` is out of this file's reach and
+    /// must not be resolved against this node's items.
+    #[test]
+    fn test_check_18_exempts_cross_node_atoms() {
+        let yaml = r#"
+spec_version: "1.4"
+concept_id: parallel-transport
+items:
+  - {id: "1", summary: one}
+  - {id: "2", summary: two}
+rules:
+  - id: R1
+    kind: fluency
+    when: {all: [{items: ["1a", "1b"], node: some-other-node, score: {eq: 0}}]}
+    then: {}
+    text: cross-node advice
+"#;
+        let node = graduate_node_with_probe(yaml);
+        assert!(!probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeUnknownItemRef { .. })));
+    }
+
+    /// Check 19 — a phase outside 0-6 in any action field.
+    #[test]
+    fn test_check_19_rejects_a_phase_out_of_range() {
+        let yaml = valid_probe_yaml().replace("mandate_phases: [2]", "mandate_phases: [7]");
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeInvalidPhase { phase: 7, .. })));
+    }
+
+    /// Check 20 — the narrowing rule, half one: only phases 2 and 3 are ever
+    /// advisory, so nothing else may be granted a skip.
+    #[test]
+    fn test_check_20_rejects_a_skip_of_a_strict_phase() {
+        let yaml = valid_probe_yaml()
+            .replace(
+                "concept_id: parallel-transport",
+                "concept_id: parallel-transport",
+            )
+            .replace("then: {}", "then: {allow_skip_phases: [4]}");
+        let mut node = graduate_node_with_probe(&yaml);
+        node.meta.relaxation = Some(Relaxation::On);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeSkipOutsideAdvisory { phase: 4, .. }
+        )));
+    }
+
+    /// Check 20 — the narrowing rule, half two: under `relaxation: off` there is
+    /// no skip to grant, so a grant is a contradiction between two files.
+    #[test]
+    fn test_check_20_rejects_a_skip_under_relaxation_off() {
+        let yaml = valid_probe_yaml().replace("then: {}", "then: {allow_skip_phases: [2]}");
+        let node = graduate_node_with_probe(&yaml);
+        assert!(probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeSkipUnderRelaxationOff { .. })));
+    }
+
+    /// Check 20 — and the same grant is fine once the node says `relaxation: on`.
+    #[test]
+    fn test_check_20_allows_a_phase_2_skip_under_relaxation_on() {
+        let yaml = valid_probe_yaml().replace("then: {}", "then: {allow_skip_phases: [2, 3]}");
+        let mut node = graduate_node_with_probe(&yaml);
+        node.meta.relaxation = Some(Relaxation::On);
+        assert!(
+            probe_errors(&node).is_empty(),
+            "got: {:?}",
+            probe_errors(&node)
+        );
+    }
+
+    /// Check 21 — an `internal` route target must exist; `external` is exempt,
+    /// mirroring G-4's rule for prerequisites.
+    #[test]
+    fn test_check_21_resolves_internal_route_targets_only() {
+        let internal = valid_probe_yaml().replace(
+            "then: {}",
+            "then: {route_to: {concept_id: nowhere, status: internal}}",
+        );
+        let mut node = graduate_node_with_probe(&internal);
+        node.known_concept_ids = vec!["parallel-transport".into(), "smooth-manifolds".into()];
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeUnknownRouteTarget { concept_id, .. } if concept_id == "nowhere"
+        )));
+
+        let external = valid_probe_yaml().replace(
+            "then: {}",
+            "then: {route_to: {concept_id: nowhere, status: external}}",
+        );
+        let mut node = graduate_node_with_probe(&external);
+        node.known_concept_ids = vec!["parallel-transport".into()];
+        assert!(!probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeUnknownRouteTarget { .. })));
+    }
+
+    /// Check 21 — an empty corpus list means "not supplied", so the existence
+    /// half is skipped rather than failing every node.
+    #[test]
+    fn test_check_21_skips_when_the_corpus_is_not_supplied() {
+        let yaml = valid_probe_yaml().replace(
+            "then: {}",
+            "then: {route_to: {concept_id: nowhere, status: internal}}",
+        );
+        let node = graduate_node_with_probe(&yaml);
+        assert!(node.known_concept_ids.is_empty());
+        assert!(!probe_errors(&node)
+            .iter()
+            .any(|e| matches!(e, ValidationError::ProbeUnknownRouteTarget { .. })));
+    }
+
+    /// Check 22 — a gated item no correctness rule reads is a gate that never
+    /// fires.
+    #[test]
+    fn test_check_22_rejects_a_gated_item_no_rule_reads() {
+        let yaml = valid_probe_yaml().replace("kind: correctness", "kind: fluency");
+        let node = graduate_node_with_probe(&yaml);
+        let errors = probe_errors(&node);
+        assert!(errors.iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeUngatedCorrectnessItem { item } if item == "2"
+        )));
+    }
+
+    /// Check 22, the other direction — a correctness rule reading an ungated
+    /// item is a gate with no criterion.
+    #[test]
+    fn test_check_22_rejects_a_correctness_rule_with_no_criterion() {
+        let yaml = r#"
+spec_version: "1.4"
+concept_id: parallel-transport
+items:
+  - {id: "1", summary: one}
+  - {id: "2", summary: two}
+rules:
+  - id: R1
+    kind: correctness
+    when: {all: [{items: ["1"], correct: false}]}
+    then: {mandate_phases: [2]}
+    text: a gate with no criterion
+"#;
+        let node = graduate_node_with_probe(yaml);
+        assert!(probe_errors(&node).iter().any(|e| matches!(
+            e,
+            ValidationError::ProbeCorrectnessRuleWithoutItem { rule } if rule == "R1"
+        )));
+    }
+
+    /// W-2 — a probe below graduate tier is inert, and is warned about rather
+    /// than rejected. Mirrors W-1's shape and reasoning exactly.
+    #[test]
+    fn test_w2_warns_on_a_probe_at_non_graduate_tier() {
+        let mut node = graduate_node_with_probe(&valid_probe_yaml());
+        node.meta.tier = Some(Tier::School);
+        node.meta.relaxation = None;
+        let warnings = validate_node_warnings(&node);
+        assert!(warnings
+            .iter()
+            .any(|w| matches!(w, ValidationWarning::ProbeAtNonGraduateTier { .. })));
+
+        // And it never warns where the probe can actually act.
+        let graduate = graduate_node_with_probe(&valid_probe_yaml());
+        assert!(!validate_node_warnings(&graduate)
+            .iter()
+            .any(|w| matches!(w, ValidationWarning::ProbeAtNonGraduateTier { .. })));
+    }
+
+    /// Warnings and errors share the `file:field  description` Display contract.
+    #[test]
+    fn test_probe_diagnostics_display_in_the_standard_format() {
+        let error = ValidationError::ProbeUnknownItemRef {
+            rule: "R3".into(),
+            item: "4c".into(),
+        };
+        let text = error.to_string();
+        assert!(text.starts_with("probe.yaml:rules[R3].when"), "got: {text}");
+        assert!(text.contains("Unknown item id '4c'"), "got: {text}");
+
+        let warning = ValidationWarning::ProbeAtNonGraduateTier {
+            tier: "school".into(),
+        };
+        assert!(warning.to_string().starts_with("probe.yaml:"));
+    }
 }
