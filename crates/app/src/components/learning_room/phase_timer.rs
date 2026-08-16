@@ -246,11 +246,13 @@ pub fn PhaseTimer(
     /// a new one.
     #[prop(into)]
     phase_number: Signal<i16>,
-    /// The phase's estimated minutes, when the caller knows them. The Learning
-    /// Room API does not carry per-phase estimates today, so the strip renders
-    /// without the `(est. N)` clause rather than inventing one.
+    /// The open phase's estimated minutes, from `node_phases.estimated_minutes`
+    /// (v1.4 / G-14) by way of the Learning Room response. A signal rather than
+    /// a value because it changes with the open phase. `None` — a node ingested
+    /// before the column existed — renders the strip without the `(est. N)`
+    /// clause rather than inventing one.
     #[prop(optional)]
-    estimated_minutes: Option<u16>,
+    estimated_minutes: Signal<Option<u16>>,
 ) -> impl IntoView {
     let measured_seconds: RwSignal<i64> = RwSignal::new(0);
     let manual_seconds: RwSignal<i64> = RwSignal::new(0);
@@ -393,7 +395,7 @@ pub fn PhaseTimer(
                             phase_number.get(),
                             measured_seconds.get(),
                             manual_seconds.get(),
-                            estimated_minutes,
+                            estimated_minutes.get(),
                         )
                     }}
                     <span class="ml-2 text-xs text-mist">

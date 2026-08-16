@@ -41,6 +41,10 @@ pub struct PhaseData {
     pub html: String,
     pub sections: Vec<String>,
     pub simulations: Vec<String>,
+    /// The phase's authored estimate. Absent on a response from a server that
+    /// predates v1.4, hence `serde(default)` rather than a required field.
+    #[serde(default)]
+    pub estimated_minutes: Option<i16>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -495,6 +499,14 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                 .get(active_phase.get())
                                                 .map(|p: &PhaseData| p.phase_number)
                                                 .unwrap_or(0)
+                                        })
+                                        estimated_minutes=Signal::derive(move || {
+                                            phases_signal
+                                                .get()
+                                                .get(active_phase.get())
+                                                .and_then(|p: &PhaseData| p.estimated_minutes)
+                                                .filter(|m| *m >= 0)
+                                                .map(|m| m as u16)
                                         })
                                     />
                                 </div>

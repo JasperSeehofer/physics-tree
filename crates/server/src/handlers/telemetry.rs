@@ -87,7 +87,9 @@ pub struct PacePhaseRow {
 pub struct PaceReport {
     pub branch: String,
     pub nodes: Vec<PaceNodeRow>,
-    /// Factor per node in slug order — the sparkline's series.
+    /// Factor per node, in the order the nodes were first worked — the
+    /// sparkline's series. `branch_pace` supplies that order; a factor series
+    /// plotted against an alphabetical axis would not be a trend.
     pub trend: Vec<f64>,
     pub aggregate: PaceAggregate,
     pub per_phase: Vec<PacePhaseRow>,

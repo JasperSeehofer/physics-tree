@@ -215,7 +215,20 @@ pub async fn branch_pace(
             GROUP BY node_id, phase_number
         ) t ON t.node_id = n.id AND t.phase_number = np.phase_number
         WHERE n.branch = $2
-        ORDER BY n.slug, np.phase_number
+        -- Nodes come back in the order they were *worked*, not alphabetically.
+        -- The dashboard draws a factor-per-node sparkline off this order and
+        -- calls it a trend (design §6d, D-G6c "let per-node logging re-derive
+        -- continuously"); a trend plotted against an alphabetical axis is not a
+        -- trend. `nodes` carries no curriculum-order column, so the honest key
+        -- is the first moment the learner logged time against the node. Nodes
+        -- with nothing logged have no factor and never reach the sparkline;
+        -- they sort last, by slug, so the table stays deterministic.
+        ORDER BY
+            (SELECT MIN(ps.started_at)
+               FROM phase_sessions ps
+              WHERE ps.node_id = n.id AND ps.user_id = $1) ASC NULLS LAST,
+            n.slug,
+            np.phase_number
         "#,
     )
     .bind(user_id)
