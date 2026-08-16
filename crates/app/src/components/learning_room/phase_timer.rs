@@ -54,7 +54,14 @@ pub fn provenance_label(measured_seconds: i64, manual_seconds: i64) -> Option<&'
     Provenance::classify(measured_seconds, manual_seconds).map(|p| p.name())
 }
 
-/// The strip's text: `Phase 2 · 41 min (est. 40) · measured`.
+/// The strip's text: `Phase 2 · 41 min this visit (est. 40) · measured`.
+///
+/// **"This visit" is not decoration.** The component's counters start at zero on
+/// every mount and every phase change, so the figure is the current sitting's
+/// accrual, while `est.` is the phase's whole budget. Saying so is the
+/// difference between a strip that under-reports on a return visit and one that
+/// is simply reporting something else; the phase's cumulative actual, which is
+/// what the estimate is really compared against, is the pace dashboard's column.
 ///
 /// The estimate is omitted when the caller does not have one, and the
 /// provenance suffix is omitted when nothing is logged — an empty phase should
@@ -66,7 +73,7 @@ pub fn strip_text(
     estimated_minutes: Option<u16>,
 ) -> String {
     let minutes = seconds_to_minutes(measured_seconds + manual_seconds);
-    let mut line = format!("Phase {phase_number} \u{00b7} {minutes} min");
+    let mut line = format!("Phase {phase_number} \u{00b7} {minutes} min this visit");
     if let Some(est) = estimated_minutes {
         line.push_str(&format!(" (est. {est})"));
     }
@@ -490,15 +497,15 @@ mod tests {
     fn strip_reads_phase_minutes_estimate_and_provenance() {
         assert_eq!(
             strip_text(2, 41 * 60, 0, Some(40)),
-            "Phase 2 \u{00b7} 41 min (est. 40) \u{00b7} measured"
+            "Phase 2 \u{00b7} 41 min this visit (est. 40) \u{00b7} measured"
         );
         assert_eq!(
             strip_text(0, 0, 35 * 60, Some(15)),
-            "Phase 0 \u{00b7} 35 min (est. 15) \u{00b7} manual"
+            "Phase 0 \u{00b7} 35 min this visit (est. 15) \u{00b7} manual"
         );
         assert_eq!(
             strip_text(3, 10 * 60, 20 * 60, None),
-            "Phase 3 \u{00b7} 30 min \u{00b7} mixed"
+            "Phase 3 \u{00b7} 30 min this visit \u{00b7} mixed"
         );
     }
 
@@ -508,7 +515,7 @@ mod tests {
     fn an_empty_phase_carries_no_provenance() {
         assert_eq!(
             strip_text(1, 0, 0, Some(25)),
-            "Phase 1 \u{00b7} 0 min (est. 25)"
+            "Phase 1 \u{00b7} 0 min this visit (est. 25)"
         );
         assert_eq!(provenance_label(0, 0), None);
     }
