@@ -67,6 +67,8 @@ eqf_level: 7
 # misconception cap of 8, the mandatory calibration probe, and the phase gate,
 # which Gate 6 ratified OFF for S0.5 and which is overridden in content here.
 tier: graduate
+# Gate-8 retrofit: v1.3 mechanism for the module-wide Tier-C policy (Gate 6 D-G6b).
+relaxation: off
 
 # Floor, not profile. `remember` for the diagonal H, `apply` for the
 # normal-ordering operation, `analyze` for "which infinity is which",

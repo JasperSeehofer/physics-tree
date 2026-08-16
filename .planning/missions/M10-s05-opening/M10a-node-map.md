@@ -753,3 +753,14 @@ Condition (a) alone is *expected* under Tier-C and must not trigger on its own �
 ---
 
 *M10a — S0.5 node map. Plan artifact; no teaching content. Orchestrator checkpoint required before M10b dispatch.*
+
+---
+
+## 8. Gate-8 amendments (ratified 2026-08-16, binding on all S0.5 authoring and review)
+
+1. **`bloom_minimum` convention: literal floor** — the lowest Bloom level any retrieval item in the node genuinely requires, not the characteristic level of the central claim. Existing nodes stand; reviews audit against this reading from M13 onward.
+2. **Word budget: authors ship at ≤ 14,800 words/node; 15,000 is the hard gate** — the 200-word reserve is review headroom so corrections are never traded for omissions. Overruns beyond 15,000 are a MAJOR.
+3. **Inline vault citations on [MEASURED] prose** — every on-ramp or misconception claim tagged [MEASURED] carries its vault source inline (probe ID or `qg-knowledge-state.md` section). Proven fix: the drift path (F-3.4/F-4.2) fired twice in on-ramp prose without citations and zero times where citations were inline.
+4. **D10 reviewer protocol gains a Phase-0 self-consistency step** — check the Wonder Hook and Phase-0 framing against the node's own Derivation/Abstract conclusions, node by node. Both of node 5's MAJORs were of this class and invisible to equation re-derivation.
+5. **Convention rows close in the map** — when a node closes a convention row, the final value is recorded here. Closed so far: **state normalization = (S, C) = (√2E_k, (2π)³) — Peskin slot, |k⟩_R = √2E_k a†_k|0⟩** (node 5); ladder commutator [a,a†] = (2π)³δ³ forced by the CCR (node 2).
+6. Known benign artefact: draft-path `prerequisite_existence` failures resolve on staging in dependency order (thrice reproduced); a `--draft-root` teach-in is queued for a future tooling mission alongside the pre-existing `--features ssr` compile failure.

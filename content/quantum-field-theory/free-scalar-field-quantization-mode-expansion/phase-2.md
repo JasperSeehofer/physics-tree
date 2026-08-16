@@ -195,7 +195,7 @@ Four derivations in dependency order. **D1** diagonalizes the classical Hamilton
 
 ### Conventions
 
-**This table fixes the conventions of the entire `quantum-field-theory` branch.** Nodes 2 through 24 inherit it unchanged and none of them re-opens it; node 5 extends it with the state-normalization row this node leaves blank. Nothing here is forced — every row is a choice, the literature is split on most of them, and copying a formula across a convention boundary without checking is the most productive source of factor errors in free-field QFT.
+**This table fixes the conventions of the entire `quantum-field-theory` branch.** Nodes 2 through 24 inherit it unchanged and none of them re-opens it; node 5 extends it with the state-normalization row this node leaves blank. Most rows are choices the literature is split on — though not all: the ladder-commutator row is fixed by the CCR (node 2 proves it) and the state-normalization row is forced once covariance is demanded (node 5 proves it). Either way, copying a formula across a convention boundary without checking is the most productive source of factor errors in free-field QFT.
 
 | Object | This branch | Also common, and incompatible |
 |---|---|---|

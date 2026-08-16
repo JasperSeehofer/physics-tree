@@ -61,6 +61,8 @@ eqf_level: 7
 # routing instrument), and the phase gate — which Gate 6 has ratified OFF for
 # S0.5 and which is therefore overridden in content. See the header.
 tier: graduate
+# Gate-8 retrofit: v1.3 mechanism for the module-wide Tier-C policy (Gate 6 D-G6b).
+relaxation: off
 
 # Floor, not profile. `remember` for the statement of the equal-time CCR,
 # `apply` for either direction of the equivalence, `analyze` for "postulate or
