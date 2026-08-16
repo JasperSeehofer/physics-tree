@@ -102,7 +102,7 @@ The first:
 
 $$\hat{A}\lvert\psi\rangle = \sum_{n}\hat{A}\lvert\varphi_{n}\rangle\langle\varphi_{n}\lvert\psi\rangle = \sum_{n}a_{n}\hat{A}\lvert\varphi_{n}\rangle$$
 
-Clean, correct, produced without hesitation, recorded at grading as **a fluent genuine production** — one of exactly three in the whole five-block assessment, alongside the Levi-Civita formula and the geometric-trinity triangle. Whatever four years away from this material cost, it did not cost you Dirac notation.
+Clean, correct, produced without hesitation, recorded at grading as **a fluent genuine production** — one of only three across the whole assessment record, alongside the Levi-Civita formula and the geometric-trinity triangle. Whatever four years away from this material cost, it did not cost you Dirac notation.
 
 The second, on being asked in what sense $\lvert x\rangle$ fails to be a vector in the Hilbert space:
 

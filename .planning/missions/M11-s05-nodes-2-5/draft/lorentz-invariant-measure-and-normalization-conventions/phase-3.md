@@ -56,7 +56,7 @@ and since the phase-space integral and the flux factor were set up for the *corr
 
 $$\prod_{i=1}^{4}2E_{i} = (90\ \mathrm{GeV})^{4} = 6.6\times10^{7}\ \mathrm{GeV}^{4}.$$
 
-**Three properties of that error are worth naming, because together they are why this node exists.** It is *large*. It is *energy-dependent*, so it changes between beam energies and cannot be absorbed into an overall constant and blamed on something else. And it **does not fail a dimensional check cleanly**: the same mismatch shifts the mass dimension of $\mathcal{M}$ by exactly as much as it shifts the cross section, so a calculation that also imports the source's definition of $\mathcal{M}$ is dimensionally self-consistent and numerically wrong. Compare node 2's mixed pair, which produced a smooth respectable function where a delta belonged — same disease, one node later, and further from where you would look.
+**Three properties of that error are worth naming, because together they are why this node exists.** It is *large*. It is *energy-dependent*, so it changes between beam energies and cannot be absorbed into an overall constant and blamed on something else. And it is *dimensionful*: $\prod_{i}2E_{i}$ carries mass dimension four, so what comes out is not a cross section, and a dimensional check on the final answer **does** catch it — the defence node 1 named — while nothing anywhere on the page looks wrong. Detection is cheap; **localization is what costs you**, and Step 5 is the check that localizes. Compare node 2's mixed pair, which produced a smooth respectable function where a delta belonged — same disease, one node later, and further from where you would look.
 
 **Step 5 — (d) the check.** Given any imported pair of a state definition and a ladder commutator:
 

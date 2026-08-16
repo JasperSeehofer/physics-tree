@@ -11,7 +11,7 @@ estimated_minutes: 15
 <!-- items 3+6, C5 oral lapse) and >=1 pQCD-basin distractor (4 firings: B1 -->
 <!-- freedom/flatness, C4 mu/Lambda, node-probe item 6, D1 oral Wick reach). -->
 <!-- The map MANDATES the geometry-basin distractor "invariant measure as -->
-<!-- sqrt(-g)" on this node; it appears in items 1, 3 and 5. In S0.5 the pQCD -->
+<!-- sqrt(-g)" on this node; it appears in all six items. In S0.5 the pQCD -->
 <!-- basin is NATIVE, so those options are near-misses one symbol away and -->
 <!-- carry the harder errors. -->
 <!-- Quiz design per content-spec v1.2 section 6: NO tensor-valued or -->
@@ -85,7 +85,7 @@ difficulty: analyze
 type: multiple_choice
 prompt: 'You import an amplitude computed with relativistically normalized external states into a phase-space integral set up for $\lvert\mathbf{k}\rangle = a^{\dagger}_{\mathbf{k}}\lvert0\rangle$. What happens?'
 options:
-  - 'The cross section is too large by $\prod_{i}2E_{i}$ over the external legs — a large, energy-dependent factor that no symbol in the calculation reveals and that a dimensional check does not cleanly catch, because the same mismatch shifts the dimension of $\mathcal{M}$ by the same amount'
+  - 'The cross section is too large by $\prod_{i}2E_{i}$ over the external legs — a large, energy-dependent, dimensionful factor that no symbol in the calculation reveals, so what comes out is not even a cross section and a dimensional check on the final answer is the one cheap thing that catches it'
   - 'Nothing: normalization factors cancel between the amplitude and the phase space, which is why every textbook obtains the same cross section from different conventions'
   - 'The integral develops a spurious divergence at large momentum, which is removed by the same counterterms that renormalize the coupling'
   - 'The result acquires a coordinate dependence, since the mismatch is equivalent to omitting $\sqrt{-g}$ in one of the two momentum integrations'

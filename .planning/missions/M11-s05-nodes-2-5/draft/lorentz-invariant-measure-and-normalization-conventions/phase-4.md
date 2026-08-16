@@ -35,7 +35,7 @@ Finish with one sentence: **this node has no correctness gate, unlike nodes 1, 2
 
 1. **One degree of freedom, spent three ways.** Node 2 proved $P^{2}C\omega_{\mathbf{k}} = \tfrac{1}{2}(2\pi)^{-3}$; this node proved $\lvert S\rvert^{2}C = (2\pi)^{3}2E_{\mathbf{k}}$.
 
-   (i) Two equations, three unknowns: one free choice remains. Which quantity do the three standard conventions actually differ in, and is there a *fourth* consistent convention nobody uses? Construct one or argue that the freedom is already exhausted. (ii) The completeness measure came out independent of the choice. Is that an accident of these two equations, or would you expect it on general grounds? (iii) Node 1's convention table had nine rows and this node added one. Which of the ten are forced and which are free? **Sort the whole table**; the answer is not "one forced, nine free".
+   (i) Two equations, three unknowns: one free choice remains. Which quantity do the three standard conventions actually differ in, and is there a *fourth* consistent convention nobody uses? Construct one or argue that the freedom is already exhausted. (ii) The completeness measure came out independent of the choice. Is that an accident of these two equations, or would you expect it on general grounds? (iii) Node 1's convention table had ten rows, one of them — the state normalization — deliberately left blank, and this node is what fills it. Which of the ten are forced and which are free? **Sort the whole table**; the answer is not "one forced, nine free".
 
 2. **The metric answer, examined rather than dismissed.** "An invariant measure is $\sqrt{-g}\,d^{n}x$" is a correct statement in the context it belongs to.
 

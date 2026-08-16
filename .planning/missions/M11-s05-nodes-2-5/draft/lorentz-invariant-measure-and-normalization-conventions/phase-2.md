@@ -50,7 +50,7 @@ Three frames, three numbers, one physical situation. Now the same quantity with 
 
 $$\prod_{i=1}^{4}\left(2E_{i}\right) = (90\ \mathrm{GeV})^{4} = 6.6\times10^{7}\ \mathrm{GeV}^{4}.$$
 
-**Nothing in the calculation looks wrong.** No symbol is misplaced, no integral diverges, no sign flips. The output is a number that disagrees with the measured cross section by seven orders of magnitude, and — because the factor is energy-dependent — it disagrees by a *different* amount at every beam energy, so it cannot even be absorbed into an overall constant and blamed on a normalization elsewhere.
+**Nothing in the calculation looks wrong.** No symbol is misplaced, no integral diverges, no sign flips. And yet the output is not a cross section at all: it carries four extra powers of mass, and at these energies it exceeds the right answer by that entire factor. Because the factor is energy-dependent, it is a *different* factor at every beam energy, so it cannot even be absorbed into an overall constant and blamed on a normalization elsewhere. **The mass dimension is what gives it away** — and only if you carry dimensions to the end instead of substituting numbers early.
 
 **Number 4 — the formula you already own.** Your 2022 phase-space integral contained, once per final-state particle,
 
