@@ -1,0 +1,251 @@
+# =============================================================================
+# NODE 5 OF THE `quantum-field-theory` BRANCH — content-spec v1.2,
+# tier: graduate. Module S0.5 "Canonical QM & free-field QFT reactivation".
+#
+# TIER-C: relaxation OFF (Gate 6 D-G6b)
+#
+# ^^ The module-wide greppable marker, inherited from nodes 1-4. Gate 6
+# ratified expertise-reversal relaxation OFF for all of S0.5, and the spec has
+# no per-node or per-module mechanism to express it (M10a FINDING F4):
+# `phase_gate(tier, n)` is a pure function of `tier` alone, and NodeMeta is
+# #[serde(deny_unknown_fields)], so any new key here is a hard parse error
+# rather than a forward-compatible annotation. The policy therefore lives in
+# exactly two places, both of them content: this comment, and the Phase-0
+# routing table, which grants no skip of Phase 2 or Phase 3 at any
+# self-rating. Do not "fix" this by adding a field.
+#
+# THIS NODE HAS NO CORRECTNESS GATE, per the map (section 4, node 5), and the
+# absence is deliberate rather than an omission: there is no single wrong
+# answer whose presence changes the route. What the map specifies instead is
+# stronger and is written into the routing table — **phases 2 and 3 are both
+# taken at any score**, because this is the module's designated
+# convention-table node and skipping it is what produces silent factor errors
+# five nodes later. A reviewer should read the missing gate together with that
+# sentence.
+#
+# Authored by mission M11b (2026-08-16) against the ratified node map
+# .planning/missions/M10-s05-opening/M10a-node-map.md, node 5. Register,
+# structure, probe design and the Tier-C declaration wording follow node 1
+# (M10b) and nodes 2-4 (M11a, M11b).
+#
+# CONVENTIONS: this node COMPLETES the branch table rather than inheriting it
+# passively. Node 1 fixed signature (+,-,-,-), positive frequency e^{-ikx},
+# (2*pi)^3 with every d^3k, 1/sqrt(2*omega_k) inside the mode expansion, and
+# left the STATE-NORMALIZATION row explicitly blank. Node 2 added the row
+# fixing the (2*pi)^3 in the ladder commutator and proved it is not free.
+# Node 4 added the one-particle resolution of the identity. **This node fills
+# node 1's blank row and closes the table**: it derives the invariant measure,
+# proves which state normalization is Lorentz covariant, and gives the single
+# consistency identity |S|^2 C = 2*omega_k*(2*pi)^3 that ties all three
+# together. Nothing after this node re-opens any of it.
+#
+# SIGNATURE: (+,-,-,-)
+#
+# Measured learner evidence: wiki/meta/qg-knowledge-state.md. The on-ramp is
+# the 2022 BA thesis, which HAND-DERIVED a 2->3 invariant phase-space integral
+# with mass-dependent traces (confirmed at full ingest) — every factor of this
+# node's measure was written out by this learner four years ago without the
+# derivation. That is a used-vs-understood node in the exact sense probe C4
+# was built to detect ("used alpha_s(mu) daily in the BA thesis -> used, not
+# understood"). The declared convention_trap sits in a MEASURED class: three
+# source-interference convention traps have already fired (asymptotic
+# freedom/flatness B1, Fourier/Legendre C1, mu/Lambda_QCD C4). Block C mean
+# 0.85 sets the module's Tier-C routing.
+#
+# NOTE on misconception types (M10a FINDING F5): the vault ledger types some
+# items as `inversion`, which is NOT one of the six schema values and would
+# fail as "data did not match any variant of untagged enum Misconception".
+# No such item lands on this node; the module-wide convention (encode a ledger
+# `inversion` as `belief`) is restated here for branch consistency.
+# =============================================================================
+
+concept_id: lorentz-invariant-measure-and-normalization-conventions
+title: 'The Invariant Measure and Where the Square Root of 2E Goes'
+
+# EQF 7. The node assumes nodes 1, 2 and 4 plus a physics master's worth of
+# special relativity, and builds on neither beyond master's level.
+eqf_level: 7
+
+# Declared, not inferred, for the same three reasons nodes 1-4 declare it: the
+# misconception cap of 8, the mandatory calibration probe (this module's
+# routing instrument), and the phase gate — which Gate 6 has ratified OFF for
+# S0.5 and which is therefore overridden in content. See the header.
+tier: graduate
+
+# Floor, not profile. `remember` for the invariant measure, `apply` for the
+# on-shell-delta derivation, `analyze` for "which of these three sources can
+# be mixed with which", `evaluate` for "a convention is only wrong when it is
+# mixed". The per-learner profile is what the Phase-0 probe measures.
+bloom_minimum: analyze
+
+prerequisites:
+  # Hard, internal. The mode expansion, the measure d^3k/(2*pi)^3 that node 1
+  # said in its own Abstract Stage is NOT Lorentz invariant, and the
+  # convention table whose blank row this node fills.
+  - id: free-scalar-field-quantization-mode-expansion
+    kind: hard
+    status: internal
+  # Hard, internal. The ladder commutator whose (2*pi)^3 is one of the three
+  # quantities in this node's consistency identity, and node 2's proof that
+  # the three are not independently choosable.
+  - id: equal-time-commutators-and-the-ladder-algebra
+    kind: hard
+    status: internal
+  # Hard, internal. Node 4 established that |k> is improper, delta-normalized
+  # and only ever used under an integral; this node asks which delta
+  # normalization is covariant. Without node 4 the question "what is the
+  # normalization of a state that has infinite norm" is not even well posed.
+  - id: hilbert-space-for-fields-and-continuum-normalization
+    kind: hard
+    status: internal
+  # Hard, external, and genuinely hard here rather than recall: the node's
+  # first derivation is a statement about the invariance of d^4k, of
+  # delta(k^2-m^2) and of theta(k^0) under proper orthochronous
+  # transformations, and its second is an explicit boost of a three-volume.
+  # Neither is readable if four-vectors are only a notation.
+  - id: special-relativity-four-vectors
+    kind: hard
+    status: external
+
+# Four, under the graduate cap of eight, and exactly the four the M10a map
+# places on this node. Two are traceable to measured classes on the ledger;
+# the geometry-basin one is a measured attractor with five firings.
+misconceptions:
+  # [MEASURED class] Three source-interference convention traps have fired on
+  # the assessment ledger. This is the branch's most expensive one, because
+  # unlike the others it produces no wrong-looking symbol: a mixed pair gives
+  # a perfectly sensible formula that is wrong by a factor of 2E per leg.
+  # Treated with the master convention table and the mechanical identity
+  # |S|^2 C = 2*omega_k*(2*pi)^3, which is checkable in fifteen seconds.
+  - type: convention_trap
+    statement: 'Normalization conventions are cosmetic, so a formula from one source can be dropped into a calculation set up with another source conventions'
+  # [MEASURED attractor, geometry basin, 5 firings: A5 "Lie derivative needs
+  # the metric", C5 written "measure = ds^2", node-probe item 6 "bundle metric
+  # = Minkowski", node-probe item 3 "connection axioms -> geometric trinity",
+  # C5 oral "the measure is the lapse"]. The word "invariant measure" is the
+  # trigger: in this learner's geometry past an invariant measure IS
+  # sqrt(-g) d^4x. Here it is a measure on the mass shell in momentum space,
+  # the background is flat, and sqrt(-g) = 1 identically. Treated by explicit
+  # contrast in Phase 2 and as a distractor in every relevant quiz item.
+  - type: conflation
+    statement: 'The Lorentz-invariant measure is a metric determinant: the factor accompanying the momentum integral is the sqrt(-g) that makes a volume element coordinate-independent'
+  # Standard, and the precise failure the derivation is built to expose:
+  # delta functions are not automatically invariant, because a delta carries
+  # the inverse Jacobian of whatever it is a delta of. The three-dimensional
+  # delta is not invariant; 2E times it is.
+  - type: false_generalisation
+    statement: 'The three-momentum delta function is Lorentz invariant because delta functions are defined by an integral and integrals are invariant'
+  # [MEASURED on-ramp, inverted into a target] The BA thesis hand-derived a
+  # 2->3 invariant phase-space integral, so the measure is recognisable on
+  # sight; the derivation from the on-shell delta is what was never done.
+  # Treated by timed closed-book reconstruction in Phases 3 and 6, per the
+  # spec's `fluency_gap` treatment — not by re-explanation.
+  - type: fluency_gap
+    statement: 'Can recognise the invariant measure on sight and use it in a phase-space integral, but cannot derive it from the on-shell delta function or say which of its factors are forced'
+
+domain_of_applicability:
+  - 'Massive, on-shell, positive-energy states: the derivation solves k^2 = m^2 for k^0 and keeps the positive root via theta(k^0). For m = 0 the hyperboloid degenerates to the light cone and the measure still works, but the vertex k = 0 is a genuinely singular point of the orbit and the massless little group is different — node 7 and module B1'
+  - 'Proper orthochronous Lorentz transformations only. Invariance of theta(k^0) uses the preservation of the sign of the energy, which fails for time reversal, and invariance of d^4k uses |det Lambda| = 1, which holds for all four components but is only half the story'
+  - 'Flat Minkowski spacetime. The invariance proved here is invariance under a global symmetry group of the background. In a curved spacetime there is no such group, no preferred mass shell in a global sense, and the whole notion of a covariantly normalized one-particle state is what module S2.1 questions'
+  - 'Free field. The mass shell is the exact support of the one-particle states only for a free theory; for an interacting field the spectral density is broader than a delta and the pole picks up a residue Z, which is node 22 and module S1.2'
+  - 'A convention statement, not a physics statement. Every choice below is a choice; what is NOT a choice is consistency, and the node claims only that. Any source obeying the identity |S|^2 C = 2 omega_k (2 pi)^3 with its own S and C is as correct as this branch'
+
+esco_tags: []
+
+# 150 min, inside the EQF 7-8 band of 120-240 and equal to the M10a map's
+# per-node planning figure. Per-phase sum: 15+25+40+30+15+15+10 = 150.
+#
+# STANDING GATE-6 REQUIREMENT: log actual wall-clock time per phase against
+# these figures. The module's planning factor is x2.0, so ~300 min actual is
+# the expected outcome and is not a signal. **This is the fifth node, so the
+# M10a section 6 escalation decision is taken immediately after it**: the
+# trigger needs both (a) every probe item on nodes 1-5 at 0 or 1 with none at
+# 3, and (b) a logged actual/estimated ratio above 2.5x across those five
+# nodes. Condition (b) is unevaluable without these numbers.
+estimated_minutes: 150
+
+derivation_required: true
+
+# On the module's hard spine, and unusually widely depended on: nodes 6, 8, 9,
+# 12, 16 and 23 all use the measure or the state normalization fixed here, and
+# node 23 re-opens the table by name.
+node_type: concept
+depth_tier: trunk
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — d^3k is not Lorentz invariant and d^3k/2E is; that
+# one fact fixes the measure in every momentum integral in the rest of the
+# module; the freedom to move the sqrt(2E) between the state, the operator and
+# the measure is exactly the freedom in which sources differ; and a convention
+# is wrong only when it is mixed.
+#
+# Six novel elements relative to the declared prerequisites: (1) the on-shell
+# delta identity and the invariant measure derived from it, (2) the
+# non-invariance of d^3k and of delta^3, with the compensating 2E computed
+# from an explicit boost, (3) relativistic state normalization and the
+# covariant resolution of the identity, (4) <0|phi(x)|k> = e^{-ikx} as the
+# statement that fixes which normalization deserves the name, (5) the single
+# consistency identity |S|^2 C = 2 omega_k (2 pi)^3 relating all three
+# convention slots, (6) invariant n-body phase space as the object the
+# learner already hand-derived in 2022.
+#
+# Splitting was considered and rejected. The natural seam (derivation of the
+# measure | full source-convention comparison) is exactly escalation node E3
+# in the M10a map, and it fires on probe evidence — any two convention errors
+# logged across nodes 1-5 — not on authoring taste. The node's phases are
+# built around one question, "which of these can be mixed with which", which
+# Phase 1 poses numerically and Phase 3 answers as a table.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # Carries two routing rules and NO correctness gate (see header). The
+      # Tier-C fluency table grants no skip of Phase 2 or 3 at any
+      # self-rating, and routing rule 2 states the map's stronger per-node
+      # reason: this is the designated convention-table node, so phases 2 and
+      # 3 are both taken at any score.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      # Optional at graduate tier (spec v1.2 section 4). Declared because the
+      # node's real claim — that the mass shell is a group orbit and the
+      # measure is the unique invariant measure on it — is a statement about
+      # homogeneous spaces with no physics in it, and it is the honest
+      # forward link to node 7, where the orbits and their stabilizers become
+      # the definition of "particle".
+      - structural_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem

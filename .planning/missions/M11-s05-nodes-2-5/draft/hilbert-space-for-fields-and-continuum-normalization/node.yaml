@@ -1,0 +1,253 @@
+# =============================================================================
+# NODE 4 OF THE `quantum-field-theory` BRANCH — content-spec v1.2,
+# tier: graduate. Module S0.5 "Canonical QM & free-field QFT reactivation".
+#
+# TIER-C: relaxation OFF (Gate 6 D-G6b)
+#
+# ^^ The module-wide greppable marker, inherited from node 1
+# (free-scalar-field-quantization-mode-expansion) and node 2
+# (equal-time-commutators-and-the-ladder-algebra). Gate 6 ratified
+# expertise-reversal relaxation OFF for all of S0.5, and the spec has no
+# per-node or per-module mechanism to express it (M10a FINDING F4):
+# `phase_gate(tier, n)` is a pure function of `tier` alone, and NodeMeta is
+# #[serde(deny_unknown_fields)], so any new key here is a hard parse error
+# rather than a forward-compatible annotation. The policy therefore lives in
+# exactly two places, both of them content: this comment, and the Phase-0
+# routing table, which grants no skip of Phase 2 or Phase 3 at any
+# self-rating. Do not "fix" this by adding a field.
+#
+# Authored by mission M11b (2026-08-16) against the ratified node map
+# .planning/missions/M10-s05-opening/M10a-node-map.md, node 4. Register,
+# structure, probe design and the Tier-C declaration wording follow node 1
+# (M10b) and nodes 2-3 (M11a); node 1 in turn follows the adopted graduate
+# exemplars content/general-relativity/{parallel-transport-covariant-
+# derivative, lie-vs-covariant-derivative}.
+#
+# CONVENTIONS ARE INHERITED, NOT RE-DERIVED. Signature (+,-,-,-); positive
+# frequency e^{-ikx} multiplying the annihilation operator; (2*pi)^3 with
+# every d^3k and in the ladder commutator; 1/sqrt(2*omega_k) inside the mode
+# expansion. The branch's convention table is
+# content/quantum-field-theory/free-scalar-field-quantization-mode-expansion/
+# phase-2.md, under Derivation > Conventions; node 2 added the row fixing the
+# (2*pi)^3 in the ladder commutator. This node CITES both and adds one row —
+# the continuum resolution of the identity on the one-particle sector, whose
+# measure is forced by the ladder commutator it is built from. It does NOT
+# fix the state normalization: node 5 owns that row, and this node writes
+# a_k-dagger|0> and leaves the naming to it.
+#
+# SIGNATURE: (+,-,-,-)
+#
+# Measured learner evidence: wiki/meta/qg-knowledge-state.md, Block E probe E2
+# (rubric 1, self 2 — the assessment's largest self-overrating, jointly with
+# E1). E2 contains BOTH this node's best on-ramp and its declared targets, one
+# step apart: the completeness insertion A|psi> = sum_n A|phi_n><phi_n|psi>
+# was produced FLUENTLY and is on the assessment's short list of clean
+# productions, while the spectrum of x-hat was answered "we use the
+# energy-eigenstates as spectrum?" and |x> not in H was justified "because it
+# is 4D". Block C mean 0.85 sets the module's Tier-C routing; Block E mean
+# 0.56 is B2's business, not this node's — see the scope fence below.
+#
+# SCOPE FENCE, ratified by Gate 6 on the E1/E2 oral of 2026-08-16: this node
+# does NOT teach domains, deficiency indices, or self-adjoint extensions. That
+# material is module B2, taught cold and just-in-time before S2.1, and the
+# oral hardened its yellow flag to firm ("domain concept at true zero"). This
+# node forward-links B2 and stops. It teaches non-normalizability, the
+# continuum completeness relation, and the distinction between a spectrum and
+# an eigenbasis — all of which are needed to read the rest of S0.5 and none of
+# which needs a domain.
+#
+# NOTE on misconception types (M10a FINDING F5): the vault ledger types some
+# items as `inversion`, which is NOT one of the six schema values and would
+# fail as "data did not match any variant of untagged enum Misconception".
+# The module-wide convention (encode a ledger `inversion` as `belief`) is
+# restated here for branch consistency. Misconception 1 below is a ledger
+# `belief` already and needs no translation.
+# =============================================================================
+
+concept_id: hilbert-space-for-fields-and-continuum-normalization
+title: 'Hilbert Space for Fields: Improper States, Delta-Normalization, and Why a Momentum Eigenstate Is Not a Vector in H'
+
+# EQF 7. The node assumes nodes 1-2 and a physics master's worth of
+# Dirac-notation quantum mechanics; it builds on neither beyond master's
+# level, and it deliberately stops short of the functional analysis (B2).
+eqf_level: 7
+
+# Declared, not inferred, for the same three reasons nodes 1-3 declare it: the
+# misconception cap of 8, the mandatory calibration probe (this module's
+# routing instrument), and the phase gate — which Gate 6 has ratified OFF for
+# S0.5 and which is therefore overridden in content. See the header.
+tier: graduate
+
+# Floor, not profile. `remember` for the continuum completeness relation,
+# `apply` for building a normalized wave packet, `analyze` for "spectrum
+# versus eigenbasis", `evaluate` for "what is a plane wave good for, given
+# that it is not a state". The per-learner profile is what the Phase-0 probe
+# measures.
+bloom_minimum: analyze
+
+prerequisites:
+  # Hard, internal. The mode expansion, the vacuum, and the operators a_k
+  # whose status this node interrogates. Node 1 wrote a_k-dagger|0> and
+  # explicitly declined to say what it is; this node says.
+  - id: free-scalar-field-quantization-mode-expansion
+    kind: hard
+    status: internal
+  # Hard, internal. Every norm computed here is computed from the ladder
+  # algebra proved there, and the delta_3(0) that node 3 quarantined is the
+  # same object read as a normalization rather than as an energy.
+  - id: equal-time-commutators-and-the-ladder-algebra
+    kind: hard
+    status: internal
+  # Recall, external, and measured SPLIT: the finite-dimensional machinery is
+  # alive (E2's completeness insertion is a clean production), the continuum
+  # version of the same move is not. This node reactivates the first and
+  # instructs the second — which is why the prerequisite is `recall` and not
+  # `hard` despite carrying the node's whole substrate.
+  - id: dirac-notation-and-hilbert-space
+    kind: recall
+    status: external
+
+# Four, under the graduate cap of eight, and exactly the four the M10a map
+# places on this node (section 4 node 4, and section 5 rows 8 and 9). Three
+# are traceable to a graded sheet; the fourth is a standard graduate error
+# that the third makes near-certain here.
+misconceptions:
+  # [MEASURED] E2 verbatim. The answer is non-normalizability: <x|x> is not
+  # finite, so |x> is not a vector in a space whose vectors have finite norm.
+  # "Four-dimensional" is a category error about the label, not about the
+  # state. M10a section 5 row 8; ledger-typed as a belief already, so no F5
+  # translation is needed. This misconception carries the correctness gate in
+  # Phase 0.
+  - type: belief
+    statement: 'A position eigenstate is not in the Hilbert space because it is four-dimensional — the objection is about the dimensionality of the label rather than about the norm of the state'
+  # [MEASURED] E2 verbatim: the spectrum of x-hat answered as "we use the
+  # energy-eigenstates as spectrum?". The spectrum of x-hat is the real line,
+  # it is continuous, and it contains no eigenvalues at all in the strict
+  # sense. Treated by explicit contrast in Phase 2's Structural Stage, where
+  # spectrum is defined as the support of a measure and eigenbasis as its
+  # atomic part. M10a section 5 row 9.
+  - type: conflation
+    statement: 'The spectrum of an operator is the eigenbasis of whichever operator you happen to be working in — so the spectrum of the position operator can be given as the energy eigenstates'
+  # Standard, and forced by the previous one: if spectrum and eigenbasis are
+  # the same thing, then every self-adjoint operator must have an eigenbasis.
+  # Refuted by counterexample (the hydrogen Hamiltonian's continuum, and the
+  # position operator, which has no eigenvectors in H whatsoever) in Phase 3's
+  # Mostly Faded Example.
+  - type: false_generalisation
+    statement: 'Every self-adjoint operator has an orthonormal eigenbasis of normalizable states, because that is what the spectral theorem says in finite dimensions'
+  # [MEASURED] E2, and the module's declared profile signature (recognition
+  # intact, production gone) in its purest form: the discrete insertion was
+  # produced fluently and the continuum one was not produced at all. Treated
+  # by timed closed-book reconstruction in Phases 3 and 6, per the spec's
+  # `fluency_gap` treatment — not by re-explanation.
+  - type: fluency_gap
+    statement: 'Can insert a discrete completeness relation instantly and correctly, but cannot write the continuum resolution of the identity with its measure and its delta normalization'
+
+domain_of_applicability:
+  - 'Free field, and only the one-particle sector of it. Everything below is computed in the sector spanned by a_k-dagger|0>, where the ladder algebra of node 2 fixes every inner product. The direct-sum structure over all particle numbers, the meaning of the vacuum as a state rather than as a label, and what "particle" is a name for are node 6 and are deliberately not built here'
+  - 'Continuum normalization, i.e. infinite spatial volume. In a finite box every state below is an honest normalizable vector and this node has no subject: the improper states are an artefact of the infinite-volume limit, not of quantum mechanics. The Concrete Stage runs the box first for exactly that reason'
+  - 'Says nothing about the domain of any operator. Whether a symmetric operator is self-adjoint, what a deficiency index is, and which boundary conditions are self-adjoint extensions are module B2, taught cold before S2.1 (Gate 6, E1/E2 oral). The distinction this node teaches — spectrum versus eigenbasis — is prior to all of that and does not need it'
+  - 'Assumes the rigged-triple construction is available, i.e. that there is a nuclear test-function space on which the generalized eigenvectors act. For the free field in Minkowski space there is; the statement that this survives in a general curved background is not made here and is module S2.1'
+  - 'The state normalization used below is the naive one, |k> = a_k-dagger|0>, inherited from node 1 which deliberately left the row blank. It is NOT Lorentz covariant, and the covariant alternative differs by sqrt(2 omega_k) per state. Node 5 fixes the row for the branch; every inner product below carries its convention explicitly so that nothing has to be silently re-scaled when it does'
+
+esco_tags: []
+
+# 150 min, inside the EQF 7-8 band of 120-240 and equal to the M10a map's
+# per-node planning figure. Per-phase sum: 15+25+40+30+15+15+10 = 150.
+#
+# STANDING GATE-6 REQUIREMENT: log actual wall-clock time per phase against
+# these figures. The module's planning factor is x2.0, so ~300 min actual is
+# the expected outcome and is not a signal. Note that this is the fourth of
+# the five nodes on which the M10a section 6 escalation decision is taken, so
+# the numbers from this node are load-bearing for that decision and not merely
+# for the record.
+estimated_minutes: 150
+
+derivation_required: true
+
+# On the module's hard spine: nodes 5, 6 and 12 all gate on this one, and node
+# 6 cannot be built without it. Not a terminal elaboration of anything.
+node_type: concept
+depth_tier: trunk
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — the finite-dimensional Dirac machinery extends to a
+# continuous label only through a rigged Hilbert space; momentum and position
+# eigenstates are non-normalizable improper vectors living outside H; the
+# completeness insertion becomes an integral with a measure fixed by the
+# ladder algebra; and therefore every physical statement is about wave
+# packets, with the plane wave a distribution one computes with and never a
+# state one prepares.
+#
+# Six novel elements relative to the declared prerequisites: (1) improper
+# states and the Gelfand triple Phi in H in Phi', (2) the continuum resolution
+# of the identity with its measure, derived from the box, (3) delta
+# normalization and the finite quantity <k|k> = V that hides behind the
+# infinity, (4) continuous spectrum without eigenvectors, and the approximate-
+# eigenvector sense in which a spectral value is still a spectral value,
+# (5) wave packets as the physical states, with the plane wave demoted to a
+# computational kernel, (6) a_k and phi(x) as operator-valued distributions,
+# honest operators only after smearing.
+#
+# Splitting was considered and rejected. The natural seam (improper states |
+# continuum completeness) is exactly escalation node E12 in the M10a map — a
+# NEW prerequisite node prepended before this one — and it fires on probe
+# evidence, item 1 at 0, not on authoring taste. E12 is also a premise signal
+# rather than an ordinary escalation: item 1 at 0 means the assessment's
+# "clean productions" list has lost a member, which belongs in the vault
+# record before it belongs in the node count. Phase 0's routing says so.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # Carries three routing rules: the Tier-C fluency table, which grants
+      # no skip of Phase 2 or 3 at any self-rating; a correctness gate on
+      # item 2 (any reason for |x> not in H other than non-normalizability),
+      # which forces Phase 2 before Phase 3; and the E12 escalation flag on
+      # item 1, which is a premise signal and is reported rather than acted
+      # on. M9a precedent, generalised module-wide by M10a section 2.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      # Optional at graduate tier (spec v1.2 section 4). Declared because the
+      # node's actual claim — that "spectrum" is the support of a measure and
+      # "eigenbasis" is only its atomic part — is a measure-theoretic
+      # statement with no physics in it, and it is the sharpest available
+      # treatment of the declared `conflation`. It is also where the discrete
+      # and continuous cases stop being two topics and become one.
+      - structural_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
