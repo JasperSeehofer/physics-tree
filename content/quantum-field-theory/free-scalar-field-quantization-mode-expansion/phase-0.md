@@ -30,7 +30,7 @@ write the conjugate momentum $\pi = \partial\mathcal{L}/\partial\dot{\varphi}$, 
 
 ## Calibration Probe
 
-Score the four items yourself on the standard scale, honestly, and write the numbers down. Then read all three routing rules. This node has more than one, and they do not all point the same way.
+Score the four items yourself on the standard scale, honestly, and write the numbers down. **Score item 4's two parts separately** — 4(a) and 4(b) each get their own number, because the routing rules below read them individually. Then read all three routing rules. This node has more than one, and they do not all point the same way.
 
 | Rating | Meaning | What this node does for you |
 |:---:|---|---|

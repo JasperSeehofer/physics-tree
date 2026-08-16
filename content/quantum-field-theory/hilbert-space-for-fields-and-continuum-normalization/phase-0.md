@@ -34,7 +34,7 @@ Write your start and stop times at the top. The per-node actual-versus-estimated
 
 ## Calibration Probe
 
-Score the three items yourself on the standard scale, honestly, and write the numbers down. Then read all four routing rules; the second overrides the first, and the third is a flag rather than a route.
+Score the three items yourself on the standard scale, honestly, and write the numbers down. **Score each lettered sub-part separately** — 1(a), 1(b), 2(a) and 2(b) each get their own number, because the routing rules below read them individually. Then read all four routing rules; the second overrides the first, and the third is a flag rather than a route.
 
 | Rating | Meaning | What this node does for you |
 |:---:|---|---|

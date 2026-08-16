@@ -1,0 +1,110 @@
+# Structured mirror of phase-0.md "## Calibration Probe". The prose is
+# authoritative for the learner; this file is authoritative for the app.
+# TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
+#
+# Items are sub-part atoms (M13a section 8 Q2, option (i)): the prose's three
+# items carry five scored parts, and the routing reads 1(a), 1(b) and 2(b)
+# individually. The probe prose carries the matching score-separately line.
+spec_version: 1.4
+concept_id: hilbert-space-for-fields-and-continuum-normalization
+
+items:
+  - id: "1a"
+    label: "1(a)"
+    summary: "Discrete completeness: the resolution of the identity, then the insertion into Â|ψ⟩"
+  - id: "1b"
+    label: "1(b)"
+    summary: "The same for a continuous basis |x⟩ — resolution, insertion, orthonormality, all three with the measure"
+  - id: "2a"
+    label: "2(a)"
+    summary: "The spectrum of x̂ — name the set"
+  - id: "2b"
+    label: "2(b)"
+    summary: "In what precise sense |x⟩ is not a vector in H — one sentence, about the state rather than the label"
+    correctness:
+      wrong_if: >
+        The sentence gives any reason other than non-normalizability — the number
+        of dimensions, the number of components, "it is a distribution" without
+        saying what fails, or anything about the label x rather than the norm of
+        the state.
+      basin: geometry
+  - id: "3"
+    summary: "Is ⟨k|k⟩ finite for |k⟩ = a†_k|0⟩? Compute it, or say in one line why you cannot"
+
+rules:
+  # Routing rule 1 — the fluency gate.
+  - id: R1-item1a-substrate
+    kind: fluency
+    when: {all: [{items: ["1a"], score: {eq: 0}}]}
+    then: {}
+    text: >
+      A 0 on item 1(a) — the discrete insertion. Stop, and read routing rule 3
+      before doing anything else. This outcome is not expected, and if it occurs
+      it is more informative than anything else on the page.
+
+  - id: R2-item3-algebra
+    kind: fluency
+    when:
+      all:
+        - {items: ["3"], score: {eq: 0}}
+        - {items: ["1a", "1b"], score: {gte: 1}}
+    then: {}
+    text: >
+      A 0 on item 3 with item 1 above 0 — the gap is node 2's algebra rather than
+      this node's subject. Re-read node 2's Abstract Stage; item 3 is a one-line
+      consequence of a relation you should already have.
+
+  - id: R3-item1b-expected
+    kind: fluency
+    when:
+      all:
+        - {items: ["1b"], score: {lte: 1}}
+        - {items: ["1a"], score: {gte: 2}}
+    then: {}
+    text: >
+      A 0 or 1 on item 1(b) with item 1(a) above 1 — the expected outcome, and
+      the node is calibrated for exactly it. Take the node in order and do Phase
+      2's D1 with a pen rather than reading it.
+
+  # Routing rule 2 — the correctness gate. This one overrides the fluency gate.
+  - id: R4-item2b-normalizability
+    kind: correctness
+    when: {all: [{items: ["2b"], correct: false}]}
+    then:
+      mandate_phases: [2]
+      from_stage: concrete_stage
+      before_phase: 3
+    text: >
+      If your sentence gives any reason other than non-normalizability — the
+      number of dimensions, the number of components, "it is a distribution"
+      without saying what fails, or anything about the label x rather than the
+      norm of the state — then Phase 2 is mandatory for you, is done before
+      Phase 3, and is done in order from the Concrete Stage. A 3 on items 1 and 3
+      does not change this. H is not a space whose membership is decided by
+      counting anything; it is a space of vectors of finite norm, and
+      ⟨x|x⟩ = δ³(0) is not finite.
+
+  # Routing rule 3 — the escalation flag, which is a report and not a route.
+  - id: R5-item1a-premise-signal
+    kind: fluency
+    when: {all: [{items: ["1a"], score: {eq: 0}}]}
+    then:
+      flag_escalation: E12
+      report: true
+    text: >
+      If item 1(a) came out at 0, stop and record it before continuing. It is
+      escalation trigger E12 in the S0.5 node map. Unlike the map's other
+      triggers, this one fires on the loss of something measured present — one of
+      three clean productions in the whole assessment. If it does not reproduce,
+      the finding is about the assessment's premise, not about this node's size.
+      Write it down, flag it in the module log, let the orchestrator decide, then
+      take this node anyway.
+
+  # Routing rule 4 — the ordering rule, which nothing overrides.
+  - id: R6-ordering
+    kind: standing
+    then: {}
+    text: >
+      Phases 4, 5 and 6 are strict at every tier and every score: self-explanation,
+      retrieval and spacing strengthen with expertise rather than reversing. A
+      page of 3s is a reason to go faster through Phase 2, never to skip Phase 4.

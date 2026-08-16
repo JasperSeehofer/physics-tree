@@ -1,0 +1,73 @@
+# Structured mirror of phase-0.md "## Calibration Probe". The prose is
+# authoritative for the learner; this file is authoritative for the app.
+# TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
+#
+# NO CORRECTNESS GATE on this node, per the M10a map: there is no single wrong
+# answer to detect. Item 3 is diagnostic-only and is expected blank.
+spec_version: 1.4
+concept_id: field-hamiltonian-normal-ordering-and-vacuum-energy
+
+items:
+  - id: "1"
+    summary: "What δ³(0) is, why it is not a number, and which step of node 1's derivation produced it"
+  - id: "2"
+    summary: "Why deleting the infinite second term is allowed — the reason, not the procedure"
+  - id: "3"
+    summary: "One context in which the same deletion would not be allowed, and what goes wrong there"
+    gating: false          # expected blank; measures how much of the motivation is already carried
+
+rules:
+  # Routing rule 1 — the fluency gate.
+  - id: R1-items12-expected
+    kind: fluency
+    when: {all: [{items: ["1", "2"], score: {eq: 0}}]}
+    then: {}
+    text: >
+      A 0 on items 1 and 2 together — take the node in full, in order, with a
+      pen. This is the expected outcome and the node is calibrated for it.
+
+  - id: R2-item1-alone
+    kind: fluency
+    when:
+      all:
+        - {items: ["1"], score: {eq: 0}}
+        - {items: ["2"], score: {gte: 1}}
+    then: {}
+    text: >
+      A 0 on item 1 alone — the gap is node 1's Phase 3, where δ³(0) = V/(2π)³
+      was derived from the finite box. Re-read that one step before starting
+      here; everything in this node's Concrete Stage assumes it.
+
+  - id: R3-item2-licence
+    kind: fluency
+    when:
+      all:
+        - {items: ["2"], score: {eq: 0}}
+        - {items: ["1"], score: {gte: 1}}
+    then: {}
+    text: >
+      A 0 on item 2 with item 1 above 0 — you can produce the object but not the
+      licence, which is precisely this node's target. Take Phase 2 in full and do
+      not skim the Derivation's D3, which is the licence and nothing else.
+
+  # Routing rule 2 — the diagnostic, which does not gate.
+  - id: R4-item3-motivation
+    kind: diagnostic
+    then: {}
+    text: >
+      Item 3 is expected to be blank, and a blank answer changes nothing about
+      your route through this node. It is here to measure something other than
+      readiness: how much of this node's motivation you already carry. If you
+      named gravity, the Wonder Hook is telling you something you already know.
+      If you named a curved or accelerating background, you are ahead of the
+      module. And if it came out blank, nothing is wrong — this node exists
+      partly to fill it in.
+
+  # Routing rule 3 — the ordering rule, which nothing overrides.
+  - id: R5-ordering
+    kind: standing
+    then: {}
+    text: >
+      Phases 4, 5 and 6 are strict at every tier and every score: self-explanation,
+      retrieval and spacing strengthen with expertise rather than reversing. A
+      page of 3s is a reason to go faster through Phase 2, never to skip Phase 4.
