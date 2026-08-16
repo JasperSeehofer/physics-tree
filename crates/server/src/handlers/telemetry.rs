@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 use db::content_repo;
 use db::probe_repo;
-use db::telemetry_repo::{self, SessionSource};
+use db::telemetry_repo::{self, NewSession, SessionSource};
 use domain::pace::{
     self, EscalationState, NodePace, PaceAggregate, PhasePace, Projection, ESCALATION_FACTOR,
     PLAN_FACTOR,
@@ -133,13 +133,15 @@ pub async fn open_phase_session(
 
     let session_id = telemetry_repo::open_session(
         &pool,
-        user_id,
-        node_id,
-        body.phase_number,
-        source,
-        active_seconds,
-        body.started_at,
-        body.note.as_deref(),
+        &NewSession {
+            user_id,
+            node_id,
+            phase_number: body.phase_number,
+            source,
+            active_seconds,
+            started_at: body.started_at,
+            note: body.note.clone(),
+        },
     )
     .await
     .map_err(internal)?;

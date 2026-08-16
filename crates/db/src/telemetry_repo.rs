@@ -8,7 +8,7 @@
 use chrono::{DateTime, Utc};
 use domain::pace::{NodePace, PhasePace};
 use serde::{Deserialize, Serialize};
-use sqlx::{PgPool, Row};
+use sqlx::{PgPool, Postgres, Row, Transaction};
 use uuid::Uuid;
 
 /// Where a session's seconds came from.
@@ -54,48 +54,74 @@ pub struct PhaseSessionRow {
     pub note: Option<String>,
 }
 
+/// Everything a session needs at insert time.
+#[derive(Debug, Clone)]
+pub struct NewSession {
+    pub user_id: Uuid,
+    pub node_id: Uuid,
+    pub phase_number: i16,
+    pub source: SessionSource,
+    pub active_seconds: i32,
+    pub started_at: Option<DateTime<Utc>>,
+    pub note: Option<String>,
+}
+
+const INSERT_SESSION: &str = r#"
+    INSERT INTO phase_sessions
+        (user_id, node_id, phase_number, started_at, last_beat_at, closed_at,
+         active_seconds, source, note)
+    VALUES (
+        $1, $2, $3,
+        COALESCE($4::TIMESTAMPTZ, NOW()),
+        NOW(),
+        CASE WHEN $5::BOOLEAN THEN NOW() ELSE NULL END,
+        $6, $7::phase_session_source, $8
+    )
+    RETURNING id
+"#;
+
 /// Open a session. A `manual` session is opened and closed in the same call —
 /// there is nothing to heartbeat.
-#[allow(clippy::too_many_arguments)]
-pub async fn open_session(
-    pool: &PgPool,
-    user_id: Uuid,
-    node_id: Uuid,
-    phase_number: i16,
-    source: SessionSource,
-    active_seconds: i32,
-    started_at: Option<DateTime<Utc>>,
-    note: Option<&str>,
-) -> Result<Uuid, sqlx::Error> {
-    let closed = source == SessionSource::Manual;
-
-    let id: Uuid = sqlx::query_scalar(
-        r#"
-        INSERT INTO phase_sessions
-            (user_id, node_id, phase_number, started_at, last_beat_at, closed_at,
-             active_seconds, source, note)
-        VALUES (
-            $1, $2, $3,
-            COALESCE($4::TIMESTAMPTZ, NOW()),
-            NOW(),
-            CASE WHEN $5::BOOLEAN THEN NOW() ELSE NULL END,
-            $6, $7::phase_session_source, $8
-        )
-        RETURNING id
-        "#,
-    )
-    .bind(user_id)
-    .bind(node_id)
-    .bind(phase_number)
-    .bind(started_at)
-    .bind(closed)
-    .bind(active_seconds)
-    .bind(source.name())
-    .bind(note)
-    .fetch_one(pool)
-    .await?;
-
+pub async fn open_session(pool: &PgPool, session: &NewSession) -> Result<Uuid, sqlx::Error> {
+    let id: Uuid = bind_session(sqlx::query_scalar(INSERT_SESSION), session)
+        .fetch_one(pool)
+        .await?;
     Ok(id)
+}
+
+/// Open a session inside an existing transaction.
+///
+/// This exists for exactly one caller: the probe entry form's `paper_minutes`
+/// writes a `manual` Phase-0 session, and it must land with the sitting or not
+/// at all. A sitting recorded without its paper time would silently move the
+/// pace factor's denominator, and a paper session recorded without its sitting
+/// would be time attributed to a probe that was never entered.
+pub async fn open_session_tx(
+    tx: &mut Transaction<'_, Postgres>,
+    session: &NewSession,
+) -> Result<Uuid, sqlx::Error> {
+    let id: Uuid = bind_session(sqlx::query_scalar(INSERT_SESSION), session)
+        .fetch_one(&mut **tx)
+        .await?;
+    Ok(id)
+}
+
+fn bind_session<'q>(
+    query: sqlx::query::QueryScalar<'q, Postgres, Uuid, sqlx::postgres::PgArguments>,
+    session: &'q NewSession,
+) -> sqlx::query::QueryScalar<'q, Postgres, Uuid, sqlx::postgres::PgArguments> {
+    // A manual entry is closed on arrival: it describes work that is already
+    // finished, so there is nothing to heartbeat.
+    let closed = session.source == SessionSource::Manual;
+    query
+        .bind(session.user_id)
+        .bind(session.node_id)
+        .bind(session.phase_number)
+        .bind(session.started_at)
+        .bind(closed)
+        .bind(session.active_seconds)
+        .bind(session.source.name())
+        .bind(session.note.as_deref())
 }
 
 /// Heartbeat or close a session.

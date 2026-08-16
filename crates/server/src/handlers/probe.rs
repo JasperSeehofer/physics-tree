@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use db::content_repo;
 use db::probe_repo::{self, ItemScoreInput, NewSitting, ProbeSittingView};
-use db::telemetry_repo::{self, SessionSource};
+use db::telemetry_repo::{self, NewSession, SessionSource};
 use domain::probe::{evaluate, ItemOutcome, ProbeSpec, ProbeVerdict, SittingScores};
 
 /// GET response: the spec (or `null`) and the learner's latest sitting.
@@ -204,26 +204,29 @@ pub async fn post_probe(
     let sitting_id = probe_repo::insert_sitting(&mut tx, &new_sitting, &verdict)
         .await
         .map_err(internal)?;
-    tx.commit().await.map_err(internal)?;
 
-    // The paper minutes are a Phase-0 `manual` session. The probe is closed-book
-    // work on paper: without this the timer would report Phase 0 as a few
-    // minutes of screen time and the pace factor would be measured against the
-    // wrong denominator.
+    // The paper minutes are a Phase-0 `manual` session, written in the same
+    // transaction as the sitting. The probe is closed-book work on paper, and
+    // without this the timer would see Phase 0 as a few minutes of screen time
+    // and the pace factor would be computed against the wrong denominator.
     if let Some(minutes) = body.paper_minutes.filter(|m| *m > 0) {
-        telemetry_repo::open_session(
-            &pool,
-            user_id,
-            node_id,
-            0,
-            SessionSource::Manual,
-            i32::from(minutes) * 60,
-            None,
-            Some("probe sitting (paper)"),
+        telemetry_repo::open_session_tx(
+            &mut tx,
+            &NewSession {
+                user_id,
+                node_id,
+                phase_number: 0,
+                source: SessionSource::Manual,
+                active_seconds: i32::from(minutes) * 60,
+                started_at: None,
+                note: Some("probe sitting (paper)".to_string()),
+            },
         )
         .await
         .map_err(internal)?;
     }
+
+    tx.commit().await.map_err(internal)?;
 
     Ok((
         StatusCode::CREATED,
