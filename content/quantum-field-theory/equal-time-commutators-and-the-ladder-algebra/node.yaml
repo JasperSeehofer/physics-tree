@@ -1,0 +1,226 @@
+# =============================================================================
+# NODE 2 OF THE `quantum-field-theory` BRANCH — content-spec v1.2,
+# tier: graduate. Module S0.5 "Canonical QM & free-field QFT reactivation".
+#
+# TIER-C: relaxation OFF (Gate 6 D-G6b)
+#
+# ^^ The module-wide greppable marker, inherited from node 1
+# (free-scalar-field-quantization-mode-expansion). Gate 6 ratified
+# expertise-reversal relaxation OFF for all of S0.5, and the spec has no
+# per-node or per-module mechanism to express it (M10a FINDING F4):
+# `phase_gate(tier, n)` is a pure function of `tier` alone, and NodeMeta is
+# #[serde(deny_unknown_fields)], so any new key here is a hard parse error
+# rather than a forward-compatible annotation. The policy therefore lives in
+# exactly two places, both of them content: this comment, and the Phase-0
+# routing table, which grants no skip of Phase 2 or Phase 3 at any
+# self-rating. Do not "fix" this by adding a field.
+#
+# Authored by mission M11a (2026-08-16) against the ratified node map
+# .planning/missions/M10-s05-opening/M10a-node-map.md, node 2. Register,
+# structure, probe design and the Tier-C declaration wording follow node 1 as
+# authored by M10b; node 1 in turn follows the adopted graduate exemplars
+# content/general-relativity/{parallel-transport-covariant-derivative,
+# lie-vs-covariant-derivative}.
+#
+# CONVENTIONS ARE INHERITED, NOT RE-DERIVED. Signature (+,-,-,-); positive
+# frequency e^{-ikx} multiplying the annihilation operator; (2*pi)^3 with
+# every d^3k and in the ladder commutator; 1/sqrt(2*omega_k) inside the mode
+# expansion. The branch's convention table is
+# content/quantum-field-theory/free-scalar-field-quantization-mode-expansion/
+# phase-2.md, under Derivation > Conventions. This node CITES it and extends
+# it with one row only — the (2*pi)^3 placement in the ladder commutator,
+# which is this node's declared `convention_trap` — and re-opens nothing else.
+#
+# SIGNATURE: (+,-,-,-)
+#
+# Measured learner evidence: wiki/meta/qg-knowledge-state.md, Block C (mean
+# 0.85, the lowest of the assessment's three physics blocks and below the 1.2
+# Tier-C threshold), probe C1 (score 1, "non-fluent" — verbatim: knows "the
+# commutator is important" and writes [phi-hat(x), phi-hat(y)], but not the
+# equal-time [phi,pi] = i delta^3), and the D1 oral re-probe of 2026-08-16
+# (reached for (anti)commutator / Wick machinery unprompted under uncertainty
+# — the machinery is loaded, the statement is not). Every misconception below
+# marked [MEASURED] is traceable to a graded sheet or a recorded oral.
+#
+# NOTE on misconception types (M10a FINDING F5): the vault ledger types some
+# items as `inversion`, which is NOT one of the six schema values and would
+# fail as "data did not match any variant of untagged enum Misconception".
+# No such item lands on this node; the module-wide convention (encode a
+# ledger `inversion` as `belief`) is restated here for branch consistency.
+# =============================================================================
+
+concept_id: equal-time-commutators-and-the-ladder-algebra
+title: 'Equal-Time Canonical Commutators and Why They Are the Ladder Algebra'
+
+# EQF 7. The node assumes node 1's construction and a physics master's worth
+# of canonical quantization; it builds on neither beyond master's level.
+eqf_level: 7
+
+# Declared, not inferred, for the same three reasons node 1 declares it: the
+# misconception cap of 8, the mandatory calibration probe (this module's
+# routing instrument), and the phase gate — which Gate 6 has ratified OFF for
+# S0.5 and which is therefore overridden in content. See the header.
+tier: graduate
+
+# Floor, not profile. `remember` for the statement of the equal-time CCR,
+# `apply` for either direction of the equivalence, `analyze` for "postulate or
+# result", `evaluate` for "what would a covariant postulate have to be, and
+# why is there no such thing". The per-learner profile is what the Phase-0
+# probe measures.
+bloom_minimum: analyze
+
+prerequisites:
+  # Hard, internal, and the whole substrate. This node's two derivations both
+  # start from node 1's mode expansion and its inversion; nothing here is
+  # readable without them. Node 1 proved one direction of the equivalence
+  # (postulate => algebra) inside its D2; this node proves both, in the
+  # continuum, and says what the equivalence means.
+  - id: free-scalar-field-quantization-mode-expansion
+    kind: hard
+    status: internal
+  # Recall, not instruction, and measured intact as far as the single
+  # oscillator goes. Needed for exactly one thing: that [a, a-dagger] = 1 is
+  # what makes a a ladder operator, so that the field's (2*pi)^3 delta^3 is
+  # recognisable as the same statement with a continuous label.
+  - id: harmonic-oscillator-ladder-operators
+    kind: recall
+    status: external
+
+# Four, under the graduate cap of eight, and exactly the four the M10a map
+# places on this node. Two are traceable to graded evidence; two are standard
+# graduate errors that this learner's measured profile makes likely here.
+misconceptions:
+  # [MEASURED] C1 verbatim: "knows the commutator is important and writes
+  # [phi-hat(x), phi-hat(y)], but not the equal-time [phi,pi] = i delta^3;
+  # creation/annihilation operators named, never constructed." The declared
+  # profile signature (recognition intact, production gone). Treated by timed
+  # closed-book reconstruction in Phases 3 and 6, per the spec's `fluency_gap`
+  # treatment — not by re-explanation.
+  - type: fluency_gap
+    statement: 'Can say that the commutator is the important structure, but cannot write the equal-time canonical relation between the field and its conjugate momentum with its delta function and its indices'
+  # The covariant-looking guess. Structurally forced by what was actually
+  # written on the C1 sheet — a general two-argument field commutator — plus a
+  # correct instinct that a relativistic theory should have relativistic
+  # postulates. Refuted twice in Phase 2: the equal-time restriction of the
+  # LHS vanishes identically while delta^4 does not, and the mass dimensions
+  # do not match. Covariance is RECOVERED here, not imposed.
+  - type: belief
+    statement: 'The canonical postulate for a relativistic field must itself be written covariantly, so it is the four-dimensional relation with a delta^4(x-y) on the right-hand side'
+  # The node's central target. The two relations look like independent inputs
+  # because they are usually presented in sequence with only one direction
+  # derived. Both directions are proved in Phase 2's D1 and D2, and Phase 3's
+  # Full Example does the converse a second time with nothing assumed.
+  - type: conflation
+    statement: 'The equal-time field commutator and the ladder-operator commutator are two independent postulates of the theory, one in position space and one in momentum space'
+  # [MEASURED class] Three source-interference convention traps already fired
+  # on the assessment ledger (asymptotic freedom/flatness B1, Fourier/Legendre
+  # C1, mu/Lambda_QCD C4). This is the branch's most consequential one: the
+  # (2*pi)^3 in the ladder commutator is not independent of the Fourier
+  # convention or of the normalization, and mixing sources propagates the
+  # error into every later normalization. Treated with a convention table.
+  - type: convention_trap
+    statement: 'The factor of (2 pi)^3 in the ladder commutator is a separate convention that can be adopted or dropped independently of the Fourier convention and of the normalization of the mode expansion'
+
+domain_of_applicability:
+  - 'Free field only. The equivalence proved here is between the equal-time canonical postulate and the ladder algebra of the modes of a quadratic Hamiltonian. With an interaction the equal-time postulate stands unchanged — it is a statement about the phase space, not about the dynamics — but the operators a_k defined from it are no longer eigenoperators of H, and the mode expansion is at best the asymptotic input to LSZ'
+  - 'Bosonic fields. The postulate quantized here is a commutator, and it is the correct choice because the free scalar Hamiltonian is bounded below with commutators and unbounded below with anticommutators. For a spin-1/2 field the opposite holds and the postulate is an anticommutator; the argument that decides which is the spin-statistics theorem, and it is not made here'
+  - 'Equal times, on a spacelike slice of flat Minkowski spacetime. The postulate is a statement about a canonical phase space at one instant, and it presupposes a global time function and a global inertial frame. It does not by itself say anything about operators at different times: the unequal-time commutator is a derived quantity'
+  - 'Unconstrained systems. The passage from Poisson bracket to commutator assumes the phase space has no constraints relating the fields and their momenta. It fails as written for the electromagnetic field, where the primary constraint pi^0 = 0 makes the naive equal-time postulate inconsistent, and for any gauge theory'
+  - 'Says nothing about whether a representation of this algebra is unique, about the domains on which these unbounded operators are defined, or about the sense in which an operator-valued distribution can be commuted with an integral. Those are functional-analysis questions, and they belong to node 4 and to module B2'
+
+esco_tags: []
+
+# 150 min, inside the EQF 7-8 band of 120-240 and equal to the M10a map's
+# per-node planning figure. Per-phase sum: 15+25+40+30+15+15+10 = 150.
+#
+# STANDING GATE-6 REQUIREMENT: log actual wall-clock time per phase against
+# these figures. The module's planning factor is x2.0, so ~300 min actual is
+# the expected outcome and is not a signal. The escalation trigger in M10a
+# section 6 (E2: split this node at the two directions of the equivalence)
+# fires on probe item 3 at 0, and the 2.5x time trigger cannot be evaluated at
+# all unless the numbers are written down.
+estimated_minutes: 150
+
+derivation_required: true
+
+# On the module's hard spine: node 1 -> 2 -> 3 -> ... Twenty of the module's
+# twenty-four nodes sit on this one through a hard chain, and it is not a
+# terminal elaboration of anything.
+node_type: concept
+depth_tier: trunk
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — canonical quantization is a statement about a phase
+# space at one instant, so the postulate is equal-time; that one postulate,
+# rewritten in the mode basis node 1 built, IS the ladder algebra, and the
+# equivalence holds in both directions; therefore there is one postulate here
+# and not two, and everything about the theory at unequal times is a
+# consequence rather than an input.
+#
+# Six novel elements relative to the declared prerequisites: (1) the
+# equal-time CCR as the field version of [q,p] = i and why "equal-time" is
+# forced rather than convenient, (2) the inversion a_k = a functional of phi
+# and pi on one time slice, (3) postulate => algebra in the continuum,
+# (4) algebra => postulate, the converse, (5) the vanishing of the equal-time
+# [phi,phi] as a cancellation rather than a triviality, (6) the unequal-time
+# commutator as a computable c-number function, named and handed to node 8.
+#
+# Splitting was considered and rejected. The natural seam (CCR postulate |
+# ladder-algebra equivalence) is exactly escalation node E2 in the M10a map,
+# and it fires on probe evidence — item 3 at 0 — not on authoring taste. The
+# node's phases are built around a single question, "postulate or result",
+# which Phase 1 poses and Phase 2 answers; splitting it would put the
+# question in one node and its answer in another.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # Carries two routing rules: the Tier-C fluency table, which grants no
+      # skip of Phase 2 or 3 at any self-rating; and a correctness gate on
+      # item 2 (the general commutator answered "postulate"), which forces
+      # Phase 2 before Phase 3 and names the misconception to the learner.
+      # M9a precedent, generalised module-wide by M10a section 2.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      # Optional at graduate tier (spec v1.2 section 4). Declared because the
+      # node's actual claim — that two relations which look like two
+      # postulates are one statement in two bases — is a claim about a Lie
+      # algebra and its representations, and it is invisible while the
+      # discussion stays inside field theory.
+      - structural_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
