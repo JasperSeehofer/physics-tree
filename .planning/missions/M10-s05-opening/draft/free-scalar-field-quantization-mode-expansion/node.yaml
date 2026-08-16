@@ -1,0 +1,251 @@
+# =============================================================================
+# FIRST NODE OF THE `quantum-field-theory` BRANCH — content-spec v1.2,
+# tier: graduate. Module S0.5 "Canonical QM & free-field QFT reactivation".
+#
+# TIER-C: relaxation OFF (Gate 6 D-G6b)
+#
+# ^^ That string is the greppable marker for the whole module. Gate 6 ratified
+# expertise-reversal relaxation OFF for S0.5, and the spec has no per-node or
+# per-module mechanism to express it (M10a FINDING F4): `phase_gate(tier, n)` is
+# a pure function of `tier` alone, and NodeMeta is #[serde(deny_unknown_fields)],
+# so any new key here is a hard parse error rather than a forward-compatible
+# annotation. The policy therefore lives in exactly two places, both of them
+# content: this comment, and the Phase-0 routing table, which grants no skip of
+# Phase 2 or Phase 3 at any self-rating. Do not "fix" this by adding a field.
+#
+# Authored by mission M10b (2026-08-16) against the ratified node map
+# .planning/missions/M10-s05-opening/M10a-node-map.md, node 1. Register,
+# structure and probe design follow the adopted graduate exemplars
+# content/general-relativity/{parallel-transport-covariant-derivative,
+# lie-vs-covariant-derivative}; the two-gate probe below is the M9a precedent.
+#
+# Measured learner evidence: wiki/meta/qg-knowledge-state.md, Block C (mean
+# 0.85, the lowest block of the S0.0 assessment and the first below the 1.2
+# Tier-C threshold), probe C1 (score 1, "non-fluent"), Block E probe E2, and
+# the C5/D1 oral follow-ups of 2026-08-16. Every misconception marked
+# [MEASURED] below is traceable to a graded sheet or a recorded oral; the one
+# marked [PREDICTED] is authoring judgment and is labelled as such in the node
+# text as well as here.
+#
+# NOTE on misconception types (M10a FINDING F5): the vault ledger types two
+# items as `inversion`, which is NOT one of the six schema values and would
+# fail as "data did not match any variant of untagged enum Misconception".
+# No such item lands on this node, but the convention adopted module-wide is
+# to encode a ledger `inversion` as `belief`. Recorded here so the branch is
+# consistent from its first node.
+#
+# THIS NODE FIXES THE BRANCH'S CONVENTIONS. Signature (+,-,-,-); positive
+# frequency e^{-ikx}; (2*pi)^3 with every d^3k and in the ladder commutator;
+# 1/sqrt(2*omega_k) inside the mode expansion. The full table, with the
+# Peskin-vs-Srednicki trap called out, is in phase-2.md under Conventions and
+# is restated closed-book in phase-6.md. Every later node in
+# content/quantum-field-theory/ inherits it.
+# =============================================================================
+
+concept_id: free-scalar-field-quantization-mode-expansion
+title: 'Canonical Quantization of the Free Real Scalar: Field to Oscillators to Mode Expansion'
+
+# EQF 7. The node assumes a physics master's worth of analytical mechanics,
+# Fourier analysis and single-particle quantum mechanics, and builds on none of
+# it beyond master's level. Reserve 8 for nodes that sit on research literature.
+eqf_level: 7
+
+# Declared, not inferred. The EQF-7 inference would agree, but three
+# tier-dependent rules read this field and the node leans on all three: the
+# misconception cap of 8 (five are declared, two of which the school cap could
+# not hold), the mandatory calibration probe (which is this module's entry
+# instrument, not a formality), and the phase gate — which Gate 6 has ratified
+# OFF for S0.5 and which is therefore overridden in content. See the header.
+tier: graduate
+
+# Floor, not profile. `remember` for the dispersion relation, `apply` for the
+# Fourier diagonalization and the ladder construction, `analyze` for "which
+# transform does which job and why", `evaluate` for "what would break if the
+# system were not translation-invariant". The per-learner profile is what the
+# Phase-0 probe measures; a single scalar cannot carry it.
+bloom_minimum: analyze
+
+prerequisites:
+  # Hard, and the one most likely to be quietly weak: the learner needs the
+  # Lagrangian density, the Euler-Lagrange equation for a field, and the
+  # functional derivative definition of the conjugate momentum density. Probe
+  # item 2 measures exactly this.
+  - id: classical-field-theory-lagrangian-density
+    kind: hard
+    status: external
+  # Hard, and the load-bearing one. The entire node is "do this, once per
+  # momentum". Probe item 3 measures it, and a 0 there routes out of the node
+  # entirely — it is also escalation trigger E11 in the M10a map (promote this
+  # prerequisite from external to an authored internal node).
+  - id: harmonic-oscillator-ladder-operators
+    kind: hard
+    status: external
+  # Hard. Not the formula but the *meaning*: that the Fourier transform is the
+  # change of basis diagonalizing translation-invariant operators. The measured
+  # C1 misconception ("momentum space via a Legendre transform") is a failure
+  # at exactly this level, not at the level of the integral.
+  - id: fourier-transforms
+    kind: hard
+    status: external
+  # Recall, not instruction. Needed only for k^mu = (omega_k, k), for kx as a
+  # Lorentz scalar, and for reading omega_k = sqrt(k^2 + m^2) as the on-shell
+  # relativistic energy rather than as a dispersion relation someone invented.
+  - id: special-relativity-four-vectors
+    kind: recall
+    status: external
+  # Recall, and measured intact: probe E2 produced a fluent completeness
+  # insertion. The ladder algebra runs on this substrate. What E2 also showed
+  # is that the *continuum* version is not intact — which is node 4's job, not
+  # this one's, and this node's Phase 2 fences it explicitly.
+  - id: dirac-notation-and-hilbert-space
+    kind: recall
+    status: external
+
+# Five, under the graduate cap of eight, and exactly the five the M10a map
+# places on this node. Three are verbatim from probe C1 (2026-08-16); one is a
+# standard graduate error the C1 sheet's framing makes near-certain here; one
+# is predicted and labelled as such wherever it appears in the node text.
+misconceptions:
+  # [MEASURED] C1 verbatim: momentum space reached "via Legendre transform".
+  # The Fourier<->Legendre term collision, one of three convention traps in the
+  # assessment ledger, all three of them QCD-past source interference. Treated
+  # with a two-row table separating the transforms by which variable each one
+  # trades away. This misconception carries a correctness gate in Phase 0.
+  - type: convention_trap
+    statement: 'Momentum space is reached from position space by a Legendre transform, the same operation that takes the Lagrangian to the Hamiltonian'
+  # [MEASURED] C1 verbatim framing: "first quantization phi -> phi-hat as
+  # x -> x-hat". Declared here because it is the frame the learner arrives
+  # carrying and this node is where it first does damage; the positive
+  # resolution is node 6 (fock-space-and-the-particle-interpretation), which
+  # this node forward-links rather than pre-empts.
+  - type: conflation
+    statement: 'Quantizing a field is second quantization: you promote phi to an operator the way you promoted x to an operator, so the field is a wavefunction that has been quantized twice'
+  # Predicted-adjacent but structurally forced by the way the expansion is
+  # usually first met (as a solution of the classical Klein-Gordon equation).
+  # The a_k are operators and the expansion is an operator identity; if they
+  # are read as integration constants, nothing in nodes 2-6 can land.
+  - type: belief
+    statement: 'The mode expansion is a solution ansatz for the classical field equation, so the coefficients a_k are integration constants fixed by initial data'
+  # [MEASURED] C1: "creation/annihilation operators named, never constructed".
+  # The declared profile signature of this learner (recognition intact,
+  # production gone). Treated by timed closed-book reconstruction in Phase 3
+  # and Phase 6, per the spec's `fluency_gap` treatment — not by re-explanation.
+  - type: fluency_gap
+    statement: 'Can name the creation and annihilation operators, but cannot write the mode expansion with its measure and its normalization factor from memory'
+  # [PREDICTED]. Not measured on any sheet — but it sits squarely inside this
+  # learner's measured trap class (three source-interference convention traps
+  # already fired) and it is the single most common silent factor error in
+  # free-field QFT. Labelled as predicted in phase-2.md's Conventions table.
+  - type: convention_trap
+    statement: 'The normalization factor in the mode expansion is 1/sqrt(2 omega_k) in every source, so a formula can be copied between textbooks without checking where the sqrt(2 omega) has been absorbed'
+
+domain_of_applicability:
+  - 'Free field only: the Lagrangian is quadratic, so the Heisenberg equations are linear and the mode operators a_k are time-independent up to the phase e^{-i omega_k t}. Any interaction term destroys this — a_k(t) is then not a_k e^{-i omega t}, the number operator is not conserved, and the expansion below is at best an asymptotic input to LSZ'
+  - 'Flat Minkowski spacetime with a global inertial frame: the split of the expansion into positive- and negative-frequency parts uses a globally defined timelike Killing vector to define "frequency". In a general curved spacetime, or for an accelerated observer, no preferred split exists and hence no preferred vacuum — this is the Unruh/Hawking territory of module S2.1 and is not treated here'
+  - 'Spatial translation invariance: the Fourier transform diagonalizes the Hamiltonian because plane waves are the irreducible representations of the translation group the Lagrangian is invariant under. A position-dependent mass or coupling breaks this and no amount of Fourier analysis will decouple the modes'
+  - 'Real (Hermitian) scalar field with m^2 > 0. Real means one operator a_k per momentum rather than two, hence no conserved charge and no distinct antiparticle; m^2 < 0 makes omega_k imaginary for small k, the expansion in these modes is not a valid oscillator basis, and the correct treatment is spontaneous symmetry breaking about a different minimum'
+  - 'Infinite spatial volume with continuum-normalized states. The operators a_k are operator-valued distributions, not operators on the Fock space, and expressions such as delta^3(0) that appear when they are multiplied at coincident momenta are symptoms of that, not of a physical infinity. The finite-box regularization in Phase 3 is the honest way to see which statements survive the limit'
+  - 'Says nothing about superpositions of geometries, about a field on a background that is itself dynamical, or about whether the mode decomposition survives when the spacetime has no global Cauchy slicing'
+
+esco_tags: []
+
+# 150 min, inside the EQF 7-8 band of 120-240 and equal to the M10a map's
+# per-node planning figure. Per-phase sum: 15+25+40+30+15+15+10 = 150.
+#
+# STANDING GATE-6 REQUIREMENT: log actual wall-clock time per phase against
+# these figures. The module's planning factor is x2.0 (four assessment sittings
+# put this learner's pace at 1.7-2.5x), so ~300 min actual is the *expected*
+# outcome and is not a signal. The escalation trigger in M10a section 6 fires
+# only above 2.5x across nodes 1-5, and it cannot be evaluated at all unless
+# the numbers are written down.
+estimated_minutes: 150
+
+derivation_required: true
+
+# Branch entry node: nothing in content/quantum-field-theory/ precedes it, and
+# fifteen of the module's twenty-four nodes sit on it through a hard chain.
+node_type: concept
+depth_tier: trunk
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — a field is a continuum of degrees of freedom that
+# the gradient term couples, so it cannot be quantized point by point; the
+# coupling is translation-invariant, so the Fourier transform (not a Legendre
+# transform) block-diagonalizes it; each block is an ordinary harmonic
+# oscillator with frequency omega_k = sqrt(k^2 + m^2); therefore quantizing the
+# field IS quantizing infinitely many oscillators, and the field operator is
+# the superposition of their ladder operators.
+#
+# Seven novel elements relative to the declared prerequisites: (1) the field as
+# coupled degrees of freedom and the gradient term as the coupling, (2) Fourier
+# as the normal-mode transform, contrasted with Legendre, (3) omega_k =
+# sqrt(k^2+m^2) as a dispersion relation that *is* the relativistic energy,
+# (4) the per-mode ladder operators constructed rather than named, (5) the mode
+# expansion as an operator identity with its measure and normalization, (6) H
+# diagonal in the number operators, (7) the reality constraint
+# phi-tilde(-k) = phi-tilde-dagger(k) and what it does to the naive count of
+# one independent oscillator per k.
+#
+# Splitting was considered and rejected for this node as authored. The natural
+# seam (classical field + conjugate momentum | mode expansion + ladder
+# operators) is exactly escalation node E1 in the M10a map, and it fires on
+# probe evidence — items 2 and 4 both at 0 — not on authoring taste. Splitting
+# it pre-emptively would put the Phase-1 struggle (the continuum does not
+# decouple point by point) in a different node from its own gap reveal (Fourier
+# is what decouples it), which is the one cut the spec's granularity rule names
+# as forbidden.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # Doubles as the S0.5 MODULE probe (M10a section 3; the spec has no
+      # module-level construct — FINDING F7). Item 1 restates vault probe C1
+      # verbatim. Carries three routing rules: the Tier-C fluency table, which
+      # grants no skip of Phase 2 or 3 at any score; a correctness gate on
+      # item 4 (naming "Legendre"), which forces Phase 2's Concrete Stage
+      # first; and an escalation flag on item 3 (M10a trigger E11).
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      # Optional at graduate tier (spec v1.2 section 4). Declared because the
+      # node's real content is a structural claim — Fourier diagonalizes
+      # because plane waves are the irreps of the symmetry group the
+      # Lagrangian respects — and that claim is invisible while the discussion
+      # stays inside physics. It is also the honest forward link to node 7
+      # (Poincare irreps and what labels a particle).
+      - structural_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
