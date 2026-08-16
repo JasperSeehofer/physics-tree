@@ -152,6 +152,7 @@ pub struct SittingSaved {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// POST response shape — mirrors `handlers::probe::RecordSittingResponse`.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 #[derive(Clone, Debug, serde::Deserialize)]
 struct SavedResponse {
     #[allow(dead_code)]

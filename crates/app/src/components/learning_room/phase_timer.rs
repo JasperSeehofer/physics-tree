@@ -98,6 +98,8 @@ pub fn parse_manual_minutes(raw: &str) -> Option<i64> {
 // Fetch helpers (cfg-gated for WASM/SSR)
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Deserialized only on the WASM path; the SSR twin never opens a session.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 #[derive(serde::Deserialize)]
 struct OpenSessionResponse {
     session_id: String,
@@ -172,6 +174,7 @@ async fn beat_session(session_id: String, active_seconds: i64, closed: bool) -> 
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
 async fn beat_session(_session_id: String, _active_seconds: i64, _closed: bool) -> bool {
     false
 }
@@ -182,6 +185,7 @@ fn now_ms() -> f64 {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
 fn now_ms() -> f64 {
     0.0
 }
@@ -195,6 +199,7 @@ fn document_hidden() -> bool {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
 fn document_hidden() -> bool {
     true
 }
@@ -249,6 +254,8 @@ pub fn PhaseTimer(
 ) -> impl IntoView {
     let measured_seconds: RwSignal<i64> = RwSignal::new(0);
     let manual_seconds: RwSignal<i64> = RwSignal::new(0);
+    // Only the WASM half opens or closes a session.
+    #[cfg_attr(not(target_arch = "wasm32"), allow(unused_variables))]
     let session_id: RwSignal<Option<String>> = RwSignal::new(None);
     let running: RwSignal<bool> = RwSignal::new(false);
 

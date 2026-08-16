@@ -222,6 +222,7 @@ async fn fetch_pace(branch: String) -> Result<PaceReport, String> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(dead_code)]
 async fn fetch_pace(_branch: String) -> Result<PaceReport, String> {
     // SSR renders the empty shell; the client fetches on hydration.
     Err("ssr".to_string())
