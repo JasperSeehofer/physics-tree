@@ -52,7 +52,7 @@ The last row is worth reading twice: $1.1\times10^{52}\ \mathrm{kg}$ is about $5
 
 $$\frac{F}{A} = -\frac{\pi^{2}\hbar c}{240\,a^{4}} = -\frac{\pi^{2}}{240}\cdot\frac{3.16\times10^{-26}\ \mathrm{J\,m}}{a^{4}},$$
 
-which at $a = 1\ \mathrm{\mu m}$ is $1.3\times10^{-3}\ \mathrm{Pa}$, attractive — small, but ten thousand times atmospheric pressure divided by $10^{8}$, and measured to a few per cent since 1997.
+which at $a = 1\ \mathrm{\mu m}$ is $1.3\times10^{-3}\ \mathrm{Pa}$, attractive — small, but roughly atmospheric pressure divided by $10^{8}$, and measured to a few per cent since 1997.
 
 **Three numbers, and the whole node is in the relation between them.** Number 1 is infinite. Number 2 is finite only because a cutoff was invented, and at the one cutoff where the theory certainly fails it is wrong against observation by $10^{120}$. Number 3 is finite, small, and *right* — because it is a **difference** between two configurations, in which everything that made Numbers 1 and 2 diverge cancels between the two. The absolute value is unmeasurable and possibly meaningless; the difference is a force you can put a torsion balance on.
 
@@ -147,7 +147,7 @@ $$\boxed{\;H = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\omega_{\mathbf{k}}\left(a^{\dag
 
 With $\delta^{3}(0) = V/(2\pi)^{3}$ (from $(2\pi)^{3}\delta^{3}(\mathbf{k}) = \int d^{3}x\,e^{-i\mathbf{k}\cdot\mathbf{x}}$ at $\mathbf{k} = 0$), the second term is $E_{0} = V\rho_{\rm vac}$ as above.
 
-**Now the same construction for the momentum.** The Noether charge of spatial translation is $P^{i} = -\int d^{3}x\;\pi\,\partial^{i}\varphi$. Substituting the mode expansions and using the orthogonality of the plane waves, the $aa$ and $a^{\dagger}a^{\dagger}$ terms again cancel — this time because their coefficients are odd in $\mathbf{k}$ — and the symmetric form is
+**Now the same construction for the momentum.** The Noether charge of spatial translation is $P^{i} = -\int d^{3}x\;\pi\,\partial_{i}\varphi$. Substituting the mode expansions and using the orthogonality of the plane waves, the $aa$ and $a^{\dagger}a^{\dagger}$ terms again cancel — this time because their coefficients are odd in $\mathbf{k}$ — and the symmetric form is
 
 $$\mathbf{P} = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\frac{\mathbf{k}}{2}\left(a_{\mathbf{k}}a^{\dagger}_{\mathbf{k}} + a^{\dagger}_{\mathbf{k}}a_{\mathbf{k}}\right) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\mathbf{k}\left(a^{\dagger}_{\mathbf{k}}a_{\mathbf{k}} + \tfrac12(2\pi)^{3}\delta^{3}(0)\right).$$
 
@@ -197,7 +197,7 @@ Write $H = \;:\!H\!:\; + E_{0}\mathbb{1}$ and ask what changes if $E_{0}$ is set
 - The eigenstates, exactly (an eigenvector of $H$ is an eigenvector of $H - E_{0}\mathbb{1}$).
 - Every energy **difference** $E_{n}-E_{m}$, hence every spectral line, transition rate and threshold.
 - Every $S$-matrix element up to an overall phase $e^{-iE_{0}T}$, which is common to all processes and cancels from $\lvert\mathcal{M}\rvert^{2}$.
-- Every thermodynamic quantity: $Z' = \mathrm{Tr}\,e^{-\beta(H-E_{0})} = e^{\beta E_{0}}Z$, so $\ln Z' = \ln Z + \beta E_{0}$, and every derivative of $\ln Z$ with respect to $\beta$, $V$ or any coupling — that is, every measurable thermodynamic quantity — is unchanged. (Every derivative *at fixed $E_{0}$*: the caveat matters and is the subject of D4's second failure.)
+- Every thermodynamic quantity but the absolute ones: $Z' = \mathrm{Tr}\,e^{-\beta(H-E_{0})} = e^{\beta E_{0}}Z$, so $\ln Z' = \ln Z + \beta E_{0}$ — entropy, heat capacity and every response function are untouched, while $\langle E\rangle$ and the pressure shift by exactly $E_{0}$ and $\rho_{\rm vac}$: the two absolutes clause (4) says nothing reads.
 
 **Changed:** the number assigned to the absolute energy of every state, uniformly.
 

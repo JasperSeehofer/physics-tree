@@ -13,7 +13,7 @@ estimated_minutes: 15
 <!-- and explicitly does not gate: it measures how much of the QG motivation -->
 <!-- will land, not readiness. -->
 <!-- On-ramp [MEASURED]: B5 (2.5, the assessment's strongest probe) and the -->
-<!-- 2024 master thesis (ch. II, Einstein-Hilbert / GHY from scratch). -->
+<!-- 2024 master thesis (ch. II, EH action + linearized GR from scratch). -->
 
 ## Recall Prompt
 
@@ -89,7 +89,7 @@ Probe results are yours. The node declares the items and the rules; it never rec
 
 ## Wonder Hook
 
-Your entry assessment's strongest single item was probe **B5**, scored 2.5: the geometric trinity, drawn correctly, each vertex naming its one nonzero object — curvature, torsion, non-metricity. And chapter II of your 2024 master's thesis derived the Einstein–Hilbert action and its boundary term from scratch. So you already own, at production level, the one fact this node needs:
+Your entry assessment's strongest single item was probe **B5**, scored 2.5: the geometric trinity, drawn correctly, each vertex naming its one nonzero object — curvature, torsion, non-metricity. And chapter II of your 2024 master's thesis derived the Einstein–Hilbert action and linearized gravity from scratch. So you already own, at production level, the one fact this node needs:
 
 > **In general relativity, everything gravitates.** The right-hand side of $G_{\mu\nu} = 8\pi G\,T_{\mu\nu}$ takes the *whole* stress-energy tensor. Not differences of it. Not "the part above some reference level". All of it.
 
