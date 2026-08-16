@@ -16,6 +16,10 @@ pulldown-cmark = { workspace = true, optional = true }
 # Prerequisite) are exercised by a plain `cargo test --workspace`, not only
 # under --all-features.
 serde_json = { workspace = true }
+# The parser the validate and ingest binaries actually use. Needed in domain's
+# tests because `relaxation: off` (v1.3) is a YAML 1.1 boolean: whether the
+# field survives the real parser is not a question serde_json can answer.
+serde-saphyr = { workspace = true }
 
 [features]
 default = []

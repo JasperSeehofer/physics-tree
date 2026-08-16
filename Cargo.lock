@@ -810,6 +810,7 @@ dependencies = [
  "chrono",
  "pulldown-cmark",
  "serde",
+ "serde-saphyr",
  "serde_json",
  "sqlx",
  "uuid",

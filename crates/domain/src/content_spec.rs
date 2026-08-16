@@ -2169,6 +2169,60 @@ mod tests {
         assert_eq!(node.meta.phase_gate(2), PhaseGate::Strict);
     }
 
+    /// `off` is a **boolean** in YAML 1.1. This test pins the field against the
+    /// parser the `validate` and `ingest` binaries actually use, because a
+    /// parser that resolved `off` to `false` would fail this field with a type
+    /// error — and the failure would look like a schema bug, not a YAML-version
+    /// one. `serde_json` cannot answer this question.
+    #[test]
+    fn test_relaxation_parses_from_real_yaml_despite_yaml_1_1_booleans() {
+        fn node_yaml(relaxation_line: &str) -> String {
+            format!(
+                "concept_id: free-scalar\n\
+                 title: Free Scalar\n\
+                 eqf_level: 7\n\
+                 bloom_minimum: analyze\n\
+                 prerequisites: []\n\
+                 misconceptions: [one, two]\n\
+                 domain_of_applicability: [free field]\n\
+                 esco_tags: []\n\
+                 estimated_minutes: 150\n\
+                 derivation_required: true\n\
+                 tier: graduate\n\
+                 phases: []\n\
+                 {relaxation_line}"
+            )
+        }
+
+        let off: NodeMeta = serde_saphyr::from_str(&node_yaml("relaxation: off\n"))
+            .expect("`relaxation: off` must not be swallowed as a YAML 1.1 boolean");
+        assert_eq!(off.relaxation, Some(Relaxation::Off));
+        assert_eq!(off.phase_gate(2), PhaseGate::Strict);
+        assert_eq!(off.phase_gate(3), PhaseGate::Strict);
+
+        // `on` is the same hazard in the other direction.
+        let on: NodeMeta = serde_saphyr::from_str(&node_yaml("relaxation: on\n"))
+            .expect("`relaxation: on` must not be swallowed as a YAML 1.1 boolean");
+        assert_eq!(on.relaxation, Some(Relaxation::On));
+        assert_eq!(on.phase_gate(2), PhaseGate::Advisory);
+
+        // Absent → the v1.2 behaviour, from real YAML.
+        let absent: NodeMeta = serde_saphyr::from_str(&node_yaml(""))
+            .expect("a node.yaml with no relaxation key must parse");
+        assert_eq!(absent.relaxation, None);
+        assert_eq!(absent.phase_gate(2), PhaseGate::Advisory);
+
+        // Unknown value and unknown key both stay hard parse errors.
+        assert!(
+            serde_saphyr::from_str::<NodeMeta>(&node_yaml("relaxation: maybe\n")).is_err(),
+            "an unknown relaxation value must be a parse error"
+        );
+        assert!(
+            serde_saphyr::from_str::<NodeMeta>(&node_yaml("relaxation_mode: off\n")).is_err(),
+            "deny_unknown_fields must still reject a misspelled key"
+        );
+    }
+
     /// Warnings share the error Display contract (`file:field  description`).
     #[test]
     fn test_validation_warning_display() {
