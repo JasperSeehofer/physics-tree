@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
+use crate::probe::{ProbeSpec, RuleKind, SKIPPABLE_PHASES, SPEC_VERSION};
+
 /// Node-level metadata — deserialization target for node.yaml.
 ///
 /// Every field in node.yaml must be present and correctly typed.
@@ -438,6 +440,16 @@ pub struct ParsedNode {
     /// Phase number → estimated_minutes from phase frontmatter.
     /// Empty map means per-phase minutes were not parsed (no mismatch check performed).
     pub phase_estimated_minutes: HashMap<u8, u16>,
+    /// The parsed `probe.yaml` sidecar, when the node directory has one (v1.4).
+    /// `None` is the pre-v1.4 shape and every check 16–22 is skipped.
+    pub probe: Option<ProbeSpec>,
+    /// Every `concept_id` known in `content/`, used by check 21 to resolve an
+    /// `internal` route target.
+    ///
+    /// Empty means "not supplied" and the existence half of check 21 is skipped
+    /// — the same convention `phase_estimated_minutes` already uses, so a caller
+    /// that cannot cheaply enumerate the corpus is not forced to lie about it.
+    pub known_concept_ids: Vec<String>,
 }
 
 /// A structured validation error produced by `validate_node()`.
@@ -507,6 +519,68 @@ pub enum ValidationError {
         tier: String,
         phase: u8,
         block: String,
+    },
+
+    // ── v1.4 / probe.yaml (checks 16–22) ────────────────────────────────────
+    /// Check 16. `spec_version` is not the one this binary implements.
+    /// Validated rather than decorative, so a v1.5 file cannot be half-read.
+    ProbeSpecVersion {
+        found: String,
+        expected: String,
+    },
+    /// Check 16. `probe.yaml`'s `concept_id` disagrees with `node.yaml`'s.
+    ProbeConceptIdMismatch {
+        probe: String,
+        node: String,
+    },
+    /// Check 17. Two items share an id, so a rule referencing it is ambiguous.
+    ProbeDuplicateItemId {
+        id: String,
+    },
+    /// Check 17. Item count outside 2–8 — the graduate misconception range,
+    /// reused deliberately.
+    ProbeItemCount {
+        count: usize,
+        min: usize,
+        max: usize,
+    },
+    /// Check 18. A rule names an item this node does not declare, and does not
+    /// name another `node:` to read it from.
+    ProbeUnknownItemRef {
+        rule: String,
+        item: String,
+    },
+    /// Check 19. A phase number outside 0–6.
+    ProbeInvalidPhase {
+        rule: String,
+        field: String,
+        phase: u8,
+    },
+    /// Check 20. `allow_skip_phases` outside `{2, 3}` — content-spec §4's
+    /// "a gate may only narrow", checked for the first time.
+    ProbeSkipOutsideAdvisory {
+        rule: String,
+        phase: u8,
+    },
+    /// Check 20. A skip granted on a node whose `relaxation` is `off`, where
+    /// there is no skip to grant.
+    ProbeSkipUnderRelaxationOff {
+        rule: String,
+    },
+    /// Check 21. An `internal` route target that does not exist in `content/`.
+    ProbeUnknownRouteTarget {
+        rule: String,
+        concept_id: String,
+    },
+    /// Check 22. An item carries a `correctness:` block but no `correctness`
+    /// rule reads it.
+    ProbeUngatedCorrectnessItem {
+        item: String,
+    },
+    /// Check 22, the other direction: a `correctness` rule whose condition names
+    /// no correctness-gated item of this node.
+    ProbeCorrectnessRuleWithoutItem {
+        rule: String,
     },
 }
 
@@ -592,6 +666,66 @@ impl fmt::Display for ValidationError {
                     "node.yaml:phases[{phase}]  Missing required block '{block}' for tier {tier}"
                 )
             }
+            ValidationError::ProbeSpecVersion { found, expected } => {
+                write!(
+                    f,
+                    "probe.yaml:spec_version  Found '{found}'; this binary implements '{expected}'"
+                )
+            }
+            ValidationError::ProbeConceptIdMismatch { probe, node } => {
+                write!(
+                    f,
+                    "probe.yaml:concept_id  '{probe}' does not match node.yaml's '{node}'"
+                )
+            }
+            ValidationError::ProbeDuplicateItemId { id } => {
+                write!(f, "probe.yaml:items  Duplicate item id '{id}'")
+            }
+            ValidationError::ProbeItemCount { count, min, max } => {
+                write!(
+                    f,
+                    "probe.yaml:items  Found {count} item(s); required {min}-{max}"
+                )
+            }
+            ValidationError::ProbeUnknownItemRef { rule, item } => {
+                write!(f, "probe.yaml:rules[{rule}].when  Unknown item id '{item}'")
+            }
+            ValidationError::ProbeInvalidPhase { rule, field, phase } => {
+                write!(
+                    f,
+                    "probe.yaml:rules[{rule}].then.{field}  Phase {phase} is outside 0-6"
+                )
+            }
+            ValidationError::ProbeSkipOutsideAdvisory { rule, phase } => {
+                write!(
+                    f,
+                    "probe.yaml:rules[{rule}].then.allow_skip_phases  Phase {phase} is strict at every tier; a gate may only narrow"
+                )
+            }
+            ValidationError::ProbeSkipUnderRelaxationOff { rule } => {
+                write!(
+                    f,
+                    "probe.yaml:rules[{rule}].then.allow_skip_phases  Node declares relaxation: off; there is no skip to grant"
+                )
+            }
+            ValidationError::ProbeUnknownRouteTarget { rule, concept_id } => {
+                write!(
+                    f,
+                    "probe.yaml:rules[{rule}].then.route_to  Unknown internal concept_id '{concept_id}'"
+                )
+            }
+            ValidationError::ProbeUngatedCorrectnessItem { item } => {
+                write!(
+                    f,
+                    "probe.yaml:items[{item}].correctness  Declared but no correctness rule reads it"
+                )
+            }
+            ValidationError::ProbeCorrectnessRuleWithoutItem { rule } => {
+                write!(
+                    f,
+                    "probe.yaml:rules[{rule}]  Correctness rule names no correctness-gated item"
+                )
+            }
         }
     }
 }
@@ -611,6 +745,13 @@ pub enum ValidationWarning {
     /// was meant to be `graduate` too, which is why it is reported rather than
     /// ignored. (Added v1.3 / M10a F4.)
     RelaxationAtNonGraduateTier { tier: String, relaxation: String },
+
+    /// A `probe.yaml` sidecar exists on a node whose effective tier is not
+    /// `graduate`. The structured probe is the graduate routing instrument and
+    /// nothing below that tier reads it, so the file is inert — but, exactly as
+    /// with W-1, an inert probe is nearly always a missing `tier: graduate`
+    /// rather than a deliberate no-op. Non-fatal. (Added v1.4 / M13.)
+    ProbeAtNonGraduateTier { tier: String },
 }
 
 impl fmt::Display for ValidationWarning {
@@ -620,6 +761,12 @@ impl fmt::Display for ValidationWarning {
                 write!(
                     f,
                     "node.yaml:relaxation  '{relaxation}' has no effect at tier {tier}; the gate is advisory only at tier graduate"
+                )
+            }
+            ValidationWarning::ProbeAtNonGraduateTier { tier } => {
+                write!(
+                    f,
+                    "probe.yaml:  A structured probe has no effect at tier {tier}; the calibration probe routes only at tier graduate"
                 )
             }
         }
@@ -643,6 +790,14 @@ pub fn validate_node_warnings(node: &ParsedNode) -> Vec<ValidationWarning> {
                 relaxation: relaxation.name().to_string(),
             });
         }
+    }
+
+    // W-2. A structured probe where the calibration probe is not required.
+    // Mirrors W-1's shape and reasoning exactly (v1.4).
+    if node.probe.is_some() && !tier.is_graduate() {
+        warnings.push(ValidationWarning::ProbeAtNonGraduateTier {
+            tier: tier.name().to_string(),
+        });
     }
 
     warnings
@@ -950,7 +1105,185 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
         }
     }
 
+    // 16–22. The v1.4 probe sidecar. Absent probe = pre-v1.4 shape, nothing runs.
+    if let Some(probe) = &node.probe {
+        check_probe(node, probe, &mut errors);
+    }
+
     errors
+}
+
+/// Checks 16–22 — the structural invariants of a `probe.yaml` sidecar.
+///
+/// All cheap, all structural. They enforce the §4 invariants that were, until
+/// v1.4, "authoring judgment, enforced by review". What they still cannot check
+/// is whether `probe.yaml` *agrees with* the routing prose in `phase-0.md`; that
+/// stays a review obligation, and it is the reason every rule carries its
+/// paragraph verbatim in `text`.
+fn check_probe(node: &ParsedNode, probe: &ProbeSpec, errors: &mut Vec<ValidationError>) {
+    // 16. spec_version and concept_id.
+    if probe.spec_version != SPEC_VERSION {
+        errors.push(ValidationError::ProbeSpecVersion {
+            found: probe.spec_version.clone(),
+            expected: SPEC_VERSION.to_string(),
+        });
+    }
+    if probe.concept_id != node.meta.concept_id {
+        errors.push(ValidationError::ProbeConceptIdMismatch {
+            probe: probe.concept_id.clone(),
+            node: node.meta.concept_id.clone(),
+        });
+    }
+
+    // 17. Item ids unique; 2–8 items (the graduate misconception range, reused).
+    let mut seen: Vec<&str> = Vec::new();
+    for item in &probe.items {
+        if seen.contains(&item.id.as_str()) {
+            errors.push(ValidationError::ProbeDuplicateItemId {
+                id: item.id.clone(),
+            });
+        } else {
+            seen.push(&item.id);
+        }
+    }
+    if !(2..=8).contains(&probe.items.len()) {
+        errors.push(ValidationError::ProbeItemCount {
+            count: probe.items.len(),
+            min: 2,
+            max: 8,
+        });
+    }
+
+    let relaxation = node.meta.effective_relaxation();
+
+    for rule in &probe.rules {
+        // 18. Every item id referenced by a rule exists — unless the atom names
+        // another `node:`, in which case the id belongs to that node's probe and
+        // is out of this file's reach.
+        for atom in rule.atoms() {
+            if atom.node.is_some() {
+                continue;
+            }
+            for item in &atom.items {
+                if !seen.contains(&item.as_str()) {
+                    errors.push(ValidationError::ProbeUnknownItemRef {
+                        rule: rule.id.clone(),
+                        item: item.clone(),
+                    });
+                }
+            }
+        }
+
+        // 19. Every phase named by an action is in 0–6.
+        for phase in &rule.then.mandate_phases {
+            if *phase > 6 {
+                errors.push(ValidationError::ProbeInvalidPhase {
+                    rule: rule.id.clone(),
+                    field: "mandate_phases".to_string(),
+                    phase: *phase,
+                });
+            }
+        }
+        for phase in &rule.then.allow_skip_phases {
+            if *phase > 6 {
+                errors.push(ValidationError::ProbeInvalidPhase {
+                    rule: rule.id.clone(),
+                    field: "allow_skip_phases".to_string(),
+                    phase: *phase,
+                });
+            }
+        }
+        if let Some(target) = &rule.then.route_to {
+            if let Some(phase) = target.phase {
+                if phase > 6 {
+                    errors.push(ValidationError::ProbeInvalidPhase {
+                        rule: rule.id.clone(),
+                        field: "route_to.phase".to_string(),
+                        phase,
+                    });
+                }
+            }
+        }
+        if let Some(phase) = rule.then.before_phase {
+            if phase > 6 {
+                errors.push(ValidationError::ProbeInvalidPhase {
+                    rule: rule.id.clone(),
+                    field: "before_phase".to_string(),
+                    phase,
+                });
+            }
+        }
+
+        // 20. Narrowing. `allow_skip_phases` may only ever name the two advisory
+        // phases, and may name nothing at all under `relaxation: off`.
+        for phase in &rule.then.allow_skip_phases {
+            if *phase <= 6 && !SKIPPABLE_PHASES.contains(phase) {
+                errors.push(ValidationError::ProbeSkipOutsideAdvisory {
+                    rule: rule.id.clone(),
+                    phase: *phase,
+                });
+            }
+        }
+        if !rule.then.allow_skip_phases.is_empty() && relaxation == Relaxation::Off {
+            errors.push(ValidationError::ProbeSkipUnderRelaxationOff {
+                rule: rule.id.clone(),
+            });
+        }
+
+        // 21. An `internal` route target must exist in `content/`; `external` is
+        // exempt, mirroring G-4's rule for prerequisites.
+        if let Some(target) = &rule.then.route_to {
+            if target.status == PrerequisiteStatus::Internal
+                && !node.known_concept_ids.is_empty()
+                && !node.known_concept_ids.contains(&target.concept_id)
+            {
+                errors.push(ValidationError::ProbeUnknownRouteTarget {
+                    rule: rule.id.clone(),
+                    concept_id: target.concept_id.clone(),
+                });
+            }
+        }
+    }
+
+    // 22. Correctness items and correctness rules must name each other.
+    let gated_by_rule: Vec<&str> = probe
+        .rules
+        .iter()
+        .filter(|r| r.kind == RuleKind::Correctness)
+        .flat_map(|r| r.atoms())
+        .filter(|a| a.node.is_none())
+        .flat_map(|a| a.items.iter().map(|s| s.as_str()))
+        .collect();
+
+    for item in &probe.items {
+        if item.correctness.is_some() && !gated_by_rule.contains(&item.id.as_str()) {
+            errors.push(ValidationError::ProbeUngatedCorrectnessItem {
+                item: item.id.clone(),
+            });
+        }
+    }
+    for rule in probe
+        .rules
+        .iter()
+        .filter(|r| r.kind == RuleKind::Correctness)
+    {
+        let names_a_gated_item = rule
+            .atoms()
+            .iter()
+            .filter(|a| a.node.is_none())
+            .flat_map(|a| a.items.iter())
+            .any(|id| {
+                probe
+                    .item(id)
+                    .map(|i| i.correctness.is_some())
+                    .unwrap_or(false)
+            });
+        if !names_a_gated_item {
+            errors.push(ValidationError::ProbeCorrectnessRuleWithoutItem {
+                rule: rule.id.clone(),
+            });
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1166,6 +1499,8 @@ mod tests {
             phase_files_found,
             phase_headings,
             phase_estimated_minutes: HashMap::new(),
+            probe: None,
+            known_concept_ids: Vec::new(),
         }
     }
 
@@ -1259,6 +1594,8 @@ mod tests {
             phase_files_found,
             phase_headings,
             phase_estimated_minutes: HashMap::new(),
+            probe: None,
+            known_concept_ids: Vec::new(),
         }
     }
 

@@ -42,10 +42,6 @@ pub fn api_routes(pool: PgPool) -> Router {
             axum::routing::get(handlers::progress::get_dashboard),
         )
         .route(
-            "/api/progress/event",
-            axum::routing::post(handlers::progress::record_event),
-        )
-        .route(
             "/api/progress/award-xp",
             axum::routing::post(handlers::progress::award_xp),
         )
@@ -81,6 +77,27 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/learning-room/{slug}/progress",
             axum::routing::get(handlers::learning_room::get_phase_progress)
                 .post(handlers::learning_room::post_phase_progress),
+        )
+        // Probe capture (content-spec v1.4). GET degrades for anonymous users
+        // the way `.../progress` does; POST is 401.
+        .route(
+            "/api/learning-room/{slug}/probe",
+            axum::routing::get(handlers::probe::get_probe).post(handlers::probe::post_probe),
+        )
+        // Time telemetry. Node-scoped work is addressed by slug in the body
+        // rather than in the path, because a session is a cross-node object the
+        // pace report reads in one query.
+        .route(
+            "/api/telemetry/phase-session",
+            axum::routing::post(handlers::telemetry::open_phase_session),
+        )
+        .route(
+            "/api/telemetry/phase-session/{id}",
+            axum::routing::post(handlers::telemetry::beat_phase_session),
+        )
+        .route(
+            "/api/telemetry/pace",
+            axum::routing::get(handlers::telemetry::get_pace),
         )
         .with_state(pool)
 }

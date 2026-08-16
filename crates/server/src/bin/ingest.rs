@@ -4,9 +4,10 @@
 
 use clap::Parser;
 use db::create_pool;
-use domain::content_spec::{extract_h2_headings, validate_node, BloomLevel, NodeMeta, ParsedNode};
+use db::probe_repo;
+use domain::content_spec::{validate_node, BloomLevel, ParsedNode};
+use server::content_fs::{discover_node_dirs, load_probe, parse_node_dir, read_phase_content};
 use sqlx::PgPool;
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process;
 
@@ -37,93 +38,10 @@ fn bloom_to_str(b: &BloomLevel) -> &'static str {
     }
 }
 
-/// Discover node directories from a path argument.
-/// - If path/node.yaml exists: return [path] as a single-node list.
-/// - Otherwise: scan immediate children for dirs containing node.yaml.
-fn discover_node_dirs(path: &str) -> Vec<PathBuf> {
-    let base = PathBuf::from(path);
-
-    if base.join("node.yaml").exists() {
-        return vec![base];
-    }
-
-    let mut dirs = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&base) {
-        for entry in entries.flatten() {
-            let child = entry.path();
-            if child.is_dir() && child.join("node.yaml").exists() {
-                dirs.push(child);
-            }
-        }
-    }
-    dirs.sort(); // deterministic order
-    dirs
-}
-
-/// Parse a node directory into a ParsedNode — mirrors the validate.rs pattern.
-fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
-    // Step 1: Read node.yaml
-    let yaml_path = dir.join("node.yaml");
-    let yaml_str = std::fs::read_to_string(&yaml_path)
-        .map_err(|_| format!("node.yaml: file not found at {}", yaml_path.display()))?;
-
-    // Step 2: Parse node.yaml with serde_saphyr
-    let meta: NodeMeta =
-        serde_saphyr::from_str(&yaml_str).map_err(|e| format!("node.yaml:parse  {e}"))?;
-
-    // Step 3: Read each phase file
-    let mut phase_files_found: Vec<u8> = Vec::new();
-    let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
-    let mut phase_estimated_minutes: HashMap<u8, u16> = HashMap::new();
-
-    for n in 0u8..=6 {
-        let phase_path = dir.join(format!("phase-{n}.md"));
-        if let Ok(content) = std::fs::read_to_string(&phase_path) {
-            phase_files_found.push(n);
-
-            let matter = gray_matter::Matter::<gray_matter::engine::YAML>::new();
-            let parsed = matter.parse::<serde_json::Value>(&content);
-
-            // Extract per-phase estimated_minutes from frontmatter if present
-            if let Ok(ref p) = parsed {
-                if let Some(mins) = p
-                    .data
-                    .as_ref()
-                    .and_then(|d| d.get("estimated_minutes"))
-                    .and_then(|v| v.as_u64())
-                {
-                    phase_estimated_minutes.insert(n, mins as u16);
-                }
-            }
-
-            let body = parsed.map(|p| p.content).unwrap_or(content);
-
-            let headings = extract_h2_headings(&body);
-            phase_headings.insert(n, headings);
-        }
-    }
-
-    Ok(ParsedNode {
-        meta,
-        phase_files_found,
-        phase_headings,
-        phase_estimated_minutes,
-    })
-}
-
-/// Read the raw content (including frontmatter) of a phase file.
-fn read_phase_content(dir: &Path, phase_number: u8) -> Option<String> {
-    let path = dir.join(format!("phase-{phase_number}.md"));
-    std::fs::read_to_string(path).ok()
-}
-
 /// Infer the branch name from the directory path.
 /// Expects a structure like content/<branch>/<node>/, returns <branch>.
 /// Falls back to "unknown" if the structure doesn't match.
 fn infer_branch(dir: &Path) -> String {
-    // Walk up: dir = .../content/classical-mechanics/kinematics
-    // parent = .../content/classical-mechanics
-    // parent.file_name() = "classical-mechanics"
     dir.parent()
         .and_then(|p| p.file_name())
         .and_then(|n| n.to_str())
@@ -132,9 +50,8 @@ fn infer_branch(dir: &Path) -> String {
 }
 
 /// Upsert a single node directory into the database in its own transaction.
-async fn ingest_node_dir(pool: &PgPool, dir: &Path, dry_run: bool) -> Result<String, String> {
-    // Parse and validate
-    let parsed = parse_node_dir(dir)?;
+async fn ingest_node_dir(pool: &PgPool, dir: &Path) -> Result<String, String> {
+    let parsed: ParsedNode = parse_node_dir(dir)?;
 
     let errors = validate_node(&parsed);
     if !errors.is_empty() {
@@ -143,11 +60,6 @@ async fn ingest_node_dir(pool: &PgPool, dir: &Path, dry_run: bool) -> Result<Str
     }
 
     let slug = parsed.meta.concept_id.clone();
-
-    if dry_run {
-        return Ok(format!("  {slug:<36} OK (dry run)"));
-    }
-
     let branch = infer_branch(dir);
     let meta = &parsed.meta;
 
@@ -197,17 +109,26 @@ async fn ingest_node_dir(pool: &PgPool, dir: &Path, dry_run: bool) -> Result<Str
     .await
     .map_err(|e| format!("    nodes upsert: {e}"))?;
 
-    // Upsert node_phases rows (D-08)
+    // Upsert node_phases rows (D-08).
+    //
+    // `estimated_minutes` per phase has been parsed and validated since v1.1
+    // (check 14) and dropped on the floor ever since; M13 gives it a column, so
+    // the pace dashboard can compare per phase rather than only per node.
     for phase in &meta.phases {
         let content_body = read_phase_content(dir, phase.number).unwrap_or_default();
+        let phase_minutes = parsed
+            .phase_estimated_minutes
+            .get(&phase.number)
+            .map(|m| *m as i16);
 
         sqlx::query(
             r#"
-            INSERT INTO node_phases (node_id, phase_number, phase_type, content_body)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO node_phases (node_id, phase_number, phase_type, content_body, estimated_minutes)
+            VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (node_id, phase_number) DO UPDATE SET
                 phase_type = EXCLUDED.phase_type,
                 content_body = EXCLUDED.content_body,
+                estimated_minutes = EXCLUDED.estimated_minutes,
                 updated_at = NOW()
             "#,
         )
@@ -215,16 +136,45 @@ async fn ingest_node_dir(pool: &PgPool, dir: &Path, dry_run: bool) -> Result<Str
         .bind(phase.number as i16)
         .bind(phase.phase_type.name())
         .bind(&content_body)
+        .bind(phase_minutes)
         .execute(&mut *tx)
         .await
         .map_err(|e| format!("    node_phases upsert phase {}: {e}", phase.number))?;
+    }
+
+    // Upsert the probe sidecar (content-spec v1.4). Removing a probe.yaml from a
+    // node directory removes the stored spec too, so a re-ingest cannot leave a
+    // routing rule live that the content no longer declares.
+    let probe = load_probe(dir)?;
+    let mut probe_note = "";
+    match probe {
+        Some(loaded) => {
+            let spec_json = serde_json::to_value(&loaded.spec)
+                .map_err(|e| format!("    probe.yaml serialize: {e}"))?;
+            probe_repo::upsert_probe(
+                &mut tx,
+                node_id,
+                &loaded.spec,
+                &spec_json,
+                &loaded.digest,
+                meta.effective_relaxation(),
+            )
+            .await
+            .map_err(|e| format!("    node_probes upsert: {e}"))?;
+            probe_note = " (+probe)";
+        }
+        None => {
+            probe_repo::delete_probe(&mut tx, node_id)
+                .await
+                .map_err(|e| format!("    node_probes delete: {e}"))?;
+        }
     }
 
     tx.commit()
         .await
         .map_err(|e| format!("    transaction commit: {e}"))?;
 
-    Ok(format!("  {slug:<36} OK"))
+    Ok(format!("  {slug:<36} OK{probe_note}"))
 }
 
 #[tokio::main]
@@ -275,7 +225,7 @@ async fn main() {
     for dir in &node_dirs {
         let pool_ref = pool_opt.as_ref();
         let result = if let Some(pool) = pool_ref {
-            ingest_node_dir(pool, dir, false).await
+            ingest_node_dir(pool, dir).await
         } else {
             // dry_run: parse+validate only, no DB
             ingest_node_dir_dry(dir)
@@ -319,5 +269,10 @@ fn ingest_node_dir_dry(dir: &Path) -> Result<String, String> {
         return Err(messages.join("\n"));
     }
     let slug = &parsed.meta.concept_id;
-    Ok(format!("  {slug:<36} OK (dry run)"))
+    let probe_note = if parsed.probe.is_some() {
+        " (+probe)"
+    } else {
+        ""
+    };
+    Ok(format!("  {slug:<36} OK{probe_note} (dry run)"))
 }
