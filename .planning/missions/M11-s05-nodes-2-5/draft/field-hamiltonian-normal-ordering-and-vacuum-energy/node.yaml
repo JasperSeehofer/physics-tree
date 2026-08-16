@@ -1,0 +1,221 @@
+# =============================================================================
+# NODE 3 OF THE `quantum-field-theory` BRANCH — content-spec v1.2,
+# tier: graduate. Module S0.5 "Canonical QM & free-field QFT reactivation".
+#
+# TIER-C: relaxation OFF (Gate 6 D-G6b)
+#
+# ^^ The module-wide greppable marker, inherited from node 1
+# (free-scalar-field-quantization-mode-expansion) and node 2
+# (equal-time-commutators-and-the-ladder-algebra). Gate 6 ratified
+# expertise-reversal relaxation OFF for all of S0.5, and the spec has no
+# per-node or per-module mechanism to express it (M10a FINDING F4):
+# `phase_gate(tier, n)` is a pure function of `tier` alone, and NodeMeta is
+# #[serde(deny_unknown_fields)], so any new key here is a hard parse error
+# rather than a forward-compatible annotation. The policy therefore lives in
+# exactly two places, both content: this comment, and the Phase-0 routing
+# table, which grants no skip of Phase 2 or Phase 3 at any self-rating.
+# Do not "fix" this by adding a field.
+#
+# NO CORRECTNESS GATE ON THIS NODE. The M10a map places one on nodes 1, 2, 4,
+# 6, 10, 11, 12, 14 and 23; this node's probe has none, and probe item 3
+# ("name one context where the subtraction is not allowed") is EXPECTED BLANK
+# and explicitly does not gate — it measures how much of the quantum-gravity
+# motivation will land, not readiness. Recorded here so a reviewer does not
+# read the absence as an omission.
+#
+# Authored by mission M11a (2026-08-16) against the ratified node map
+# .planning/missions/M10-s05-opening/M10a-node-map.md, node 3. Register,
+# structure, probe design and the Tier-C declaration wording follow node 1 as
+# authored by M10b.
+#
+# CONVENTIONS ARE INHERITED, NOT RE-DERIVED. Signature (+,-,-,-); positive
+# frequency e^{-ikx} multiplying the annihilation operator; (2*pi)^3 with
+# every d^3k and in the ladder commutator; 1/sqrt(2*omega_k) inside the mode
+# expansion. The branch's convention table is
+# content/quantum-field-theory/free-scalar-field-quantization-mode-expansion/
+# phase-2.md under Derivation > Conventions; node 2 added the ladder-commutator
+# row. This node CITES both and re-opens neither.
+#
+# SIGNATURE: (+,-,-,-)
+#
+# Measured learner evidence: wiki/meta/qg-knowledge-state.md. The on-ramp is
+# Block B — probe B5 (score 2.5, the strongest probe of the whole assessment:
+# the geometric trinity drawn correctly, curvature / torsion / non-metricity
+# each naming its one nonzero object) and the 2024 master thesis, whose
+# chapter II derived the Einstein-Hilbert / GHY material from scratch. The
+# learner already owns "in general relativity everything gravitates", which is
+# what makes this node's cosmological-constant hook a genuine payoff rather
+# than a decoration. Block C (mean 0.85) and probe C1 (score 1, non-fluent)
+# supply the Tier-C justification as on every S0.5 node.
+#
+# NOTE on misconception types (M10a FINDING F5): the vault ledger types some
+# items as `inversion`, which is NOT one of the six schema values. None lands
+# here; the module-wide convention (encode a ledger `inversion` as `belief`)
+# is restated for branch consistency.
+# =============================================================================
+
+concept_id: field-hamiltonian-normal-ordering-and-vacuum-energy
+title: 'The Field Hamiltonian, Normal Ordering, and the Zero-Point Divergence'
+
+# EQF 7. Assumes nodes 1 and 2 plus a physics master's worth of statistical
+# and analytical mechanics; builds on none of it beyond master's level.
+eqf_level: 7
+
+# Declared, not inferred, for the same three reasons as nodes 1 and 2: the
+# misconception cap of 8, the mandatory calibration probe, and the phase gate,
+# which Gate 6 ratified OFF for S0.5 and which is overridden in content here.
+tier: graduate
+
+# Floor, not profile. `remember` for the diagonal H, `apply` for the
+# normal-ordering operation, `analyze` for "which infinity is which",
+# `evaluate` for "what licenses the subtraction and where does the licence
+# stop". The per-learner profile is what the Phase-0 probe measures.
+bloom_minimum: evaluate
+
+prerequisites:
+  # Hard, internal. The mode expansion, the diagonalization of H, and the
+  # explicit appearance of the divergent c-number in its D3 are all node 1's.
+  # This node begins where that derivation stopped.
+  - id: free-scalar-field-quantization-mode-expansion
+    kind: hard
+    status: internal
+  # Hard, internal. The reordering that produces the c-number IS the ladder
+  # commutator, evaluated at coincident momenta — so the object being
+  # subtracted here is node 2's right-hand side used outside its domain, and
+  # the delta^3(0) cannot be read honestly without node 2.
+  - id: equal-time-commutators-and-the-ladder-algebra
+    kind: hard
+    status: internal
+  # Recall, not instruction. Needed for two things: that H is the Noether
+  # charge of time translation (so a c-number shift in H is a shift of the
+  # conserved quantity, not of the symmetry), and that the same construction
+  # gives P, whose would-be c-number vanishes by parity — the contrast that
+  # shows the anomaly is specific to the energy.
+  - id: noethers-theorem
+    kind: recall
+    status: external
+
+# Four, under the graduate cap of eight, and exactly the four the M10a map
+# places on this node. None is verbatim-measured; all four are standard
+# graduate errors, and two of them (the first and second) are made more
+# likely, not less, by this learner's genuine general-relativity substrate.
+misconceptions:
+  # The commonest reaction to normal ordering, and the one this learner's GR
+  # background makes almost inevitable: if everything gravitates, subtracting
+  # an energy looks like cheating. Refuted by the precise statement of what
+  # the subtraction changes (nothing observable in a non-gravitating theory)
+  # and by the observation that the Casimir effect measures a DIFFERENCE.
+  - type: belief
+    statement: 'Normal ordering removes a real physical energy that is actually there, so the zero-point energy is being swept under the rug by a choice of notation'
+  # The mirror error, and the one that costs more later. Normal ordering is
+  # defined relative to a chosen set of a_k, i.e. relative to a chosen vacuum,
+  # and a background with no preferred vacuum has no preferred normal ordering.
+  # Treated by domain_of_applicability and forward-linked to S2.1.
+  - type: scope_violation
+    statement: 'Normal ordering is always available: any divergent vacuum contribution in any theory or background can be removed by defining it away'
+  # True INSIDE the normal-ordering symbol and false outside it, which is
+  # exactly the structure that makes it dangerous. Treated with the
+  # counterexample phi(x)phi(y) = :phi(x)phi(y): + <0|phi(x)phi(y)|0>, whose
+  # second term is the seed of Wick's theorem (node 19).
+  - type: false_generalisation
+    statement: 'Normal-ordered products are symmetric, :AB: = :BA:, so operator ordering never matters once normal ordering has been introduced'
+  # The node's sharpest distinction. This divergence is an ADDITIVE c-number,
+  # removable once and for all by a definition, and it does not renormalize any
+  # coupling or field. The divergences of S1.2 are none of those things.
+  # Treated with an explicit contrast table.
+  - type: conflation
+    statement: 'The zero-point divergence removed by normal ordering is the same kind of divergence that renormalization deals with in loop diagrams'
+
+domain_of_applicability:
+  - 'Free field only. For a quadratic Hamiltonian the vacuum contribution is exactly an additive c-number and normal ordering removes all of it once. With interactions the vacuum energy receives further contributions order by order, normal ordering the interaction term does not remove them, and the statement that survives is only that the vacuum energy is unobservable in a non-gravitating theory'
+  - 'Non-gravitating physics. The subtraction is legitimate precisely because nothing in this theory couples to the absolute value of the energy, only to differences. Gravity couples to the full stress-energy tensor, so the same c-number that is invisible here is a source term in the Einstein equations, and no argument given in this node survives that step'
+  - 'A background with a preferred vacuum. Normal ordering is defined relative to a chosen split of the field into positive- and negative-frequency parts, which is a choice of the operators a_k, which is a choice of vacuum. In a general curved spacetime or for an accelerated observer no such choice is preferred, so ":" is observer-dependent and there is no invariant vacuum energy to subtract'
+  - 'Additive, c-number divergences only. What is removed here is a multiple of the identity, fixed once, requiring no redefinition of any coupling, field or mass. It says nothing about the multiplicative divergences of loop corrections, and nothing about the renormalization of composite operators at coincident points'
+  - 'Says nothing about whether the vacuum energy is "really there". The node establishes what the theory predicts, what is measurable, and where the question becomes physical again; it does not settle the interpretation, and the honest position is that the cosmological-constant problem is open'
+
+esco_tags: []
+
+# 150 min, inside the EQF 7-8 band of 120-240 and equal to the M10a map's
+# per-node planning figure. Per-phase sum: 15+25+40+30+15+15+10 = 150.
+#
+# STANDING GATE-6 REQUIREMENT: log actual wall-clock time per phase against
+# these figures. The module's planning factor is x2.0, so ~300 min actual is
+# expected and is not a signal; the escalation trigger in M10a section 6 fires
+# only above 2.5x across nodes 1-5 and cannot be evaluated without the numbers.
+estimated_minutes: 150
+
+derivation_required: true
+
+# On the module's hard spine (1 -> 2 -> 3 -> ...), and a hard prerequisite of
+# nodes 6 and 14. Not a terminal elaboration of anything.
+node_type: concept
+depth_tier: trunk
+
+# Granularity (spec v1.2 section 1): one coherent concept, several formulas.
+# The single argument is — substituting the mode expansion into H produces a
+# sensible operator plus a divergent c-number; the c-number is a multiple of
+# the identity, so subtracting it changes no commutator, no equation of motion
+# and no energy difference; therefore the subtraction is legitimate EXACTLY
+# WHEN only differences couple to anything, and the one interaction that
+# couples to the absolute value is gravity — which is why the most trivially
+# removable infinity in the theory becomes, once the background is allowed to
+# respond, the worst quantitative failure in physics.
+#
+# Six novel elements relative to the declared prerequisites: (1) the c-number
+# isolated and identified as an energy density times a volume, two logically
+# separate infinities; (2) delta^3(0) = V/(2pi)^3 as the volume in disguise;
+# (3) the normal-ordering operation and :H:; (4) the contrast with the momentum
+# operator, whose would-be c-number vanishes by parity, showing the anomaly is
+# specific to the energy; (5) the identity phi phi = :phi phi: + <0|phi phi|0>
+# and its consequence for ordering; (6) the exact domain of the subtraction
+# licence, and its failure under gravity.
+#
+# Splitting was considered and rejected. The natural seam (the derivation of
+# the divergence | the justification of the subtraction) puts the Phase-1
+# struggle in one node and its resolution in another, which is the one cut the
+# spec's granularity rule names as forbidden — and the whole point of the node
+# is that the two halves are the same question asked twice.
+phases:
+  - number: 0
+    phase_type: schema_activation
+    requires:
+      - recall_prompt
+      # No correctness gate (see the header). The routing is the Tier-C
+      # fluency table plus one explicitly NON-gating diagnostic on item 3.
+      - calibration_probe
+      - linkage_map
+      - wonder_hook
+  - number: 1
+    phase_type: productive_struggle
+    requires:
+      - struggle_problem
+      - solution_capture
+      - gap_reveal
+  - number: 2
+    phase_type: concreteness_fading
+    requires:
+      - concrete_stage
+      - bridging_stage
+      - abstract_stage
+      - derivation
+  - number: 3
+    phase_type: worked_examples
+    requires:
+      - full_example
+      - partially_faded_example
+      - mostly_faded_example
+  - number: 4
+    phase_type: self_explanation
+    requires:
+      - self_explanation_prompt
+      - reflection_questions
+  - number: 5
+    phase_type: retrieval_check
+    requires:
+      - quiz
+      - transfer_problem
+  - number: 6
+    phase_type: spaced_return
+    requires:
+      - spaced_prompt
+      - interleaving_problem
