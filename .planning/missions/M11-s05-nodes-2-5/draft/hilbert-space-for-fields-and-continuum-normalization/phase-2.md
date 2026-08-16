@@ -127,7 +127,7 @@ A self-adjoint $\hat{A}$ comes with a **spectral measure**: a rule assigning to 
 | Particle on a ring, $\hat{L}_{z}$ | $\mathbb{Z}$, countable | $\sum_{\ell}$ | $\delta_{\ell\ell'}$ | yes | all |
 | Particle on a line, $\hat{x}$ | $\mathbb{R}$, continuous | $\int dx$ | $\delta(x-x')$ | **no** | **none** |
 | Free field, $\hat{\mathbf{P}}$ on $\mathcal{H}_{1}$ | $\mathbb{R}^{3}$, continuous | $\int\frac{d^{3}k}{(2\pi)^{3}}$ | $(2\pi)^{3}\delta^{3}$ | **no** | **none** |
-| Hydrogen, $\hat{H}$ | $\{-13.6/n^{2}\}\cup[0,\infty)$ | $\sum_{n} + \int dE$ | both | **partly** | **some** |
+| Hydrogen, $\hat{H}$ | $\{-13.6\,\mathrm{eV}/n^{2}\}\cup[0,\infty)$ | $\sum_{n} + \int dE$ | both | **partly** | **some** |
 
 **The last row is the one to keep.** Hydrogen's Hamiltonian is one self-adjoint operator whose spectral measure has an atomic part — the bound states, honest normalizable vectors — and a continuous part, the scattering states, $\delta$-normalized and not in $\mathcal{H}$. Nobody calls that two operators. **A single familiar example therefore refutes both of this node's structural misconceptions at once**: "the spectrum is the eigenbasis" (no eigenbasis above threshold, yet the spectrum continues), and "every self-adjoint operator has an eigenbasis of normalizable states" (this one does not, and it is the operator whose spectrum you learned first).
 
