@@ -340,6 +340,19 @@ fragile mechanism for a cosmetic gain. The seam used instead is the one
 `PhaseQuiz` already uses for the Phase-5 quiz, so the pattern is not new to this
 codebase. Reading order is unchanged — prose first, then the form.
 
+### D12 — three small UI adaptations inside §6(a) and §6(c)
+
+1. **A digit on a correctness-gated item does not advance; `c`/`w` does.**
+   §6(a) says `0`–`3` "set the score **and advance**" *and* that on a gated item
+   "after the digit, `c` = correct / `w` = wrong, then advance". Advancing on the
+   digit would move focus away before the letter could be typed, and would make
+   the section's own arithmetic — *"node 1 is therefore 5 digits + one letter +
+   Enter — seven keystrokes"* — impossible. Digits advance on ungated items;
+   on gated ones the letter advances.
+2. **`Tab`/`Shift-Tab` are left to native focus order** rather than intercepted.
+   The behaviour §6(a) asks for is what the browser already does.
+3. **The timer strip omits the `(est. N)` clause** — see L8.
+
 ---
 
 ## 4. Known limitations
@@ -394,6 +407,20 @@ the app displays it rather than paraphrasing, and checks 16–22 catch structura
 drift. Whether `when: {items:["4a"], correct:false}` still means what the
 paragraph above it says cannot be checked by any tool. That is M13c's
 probe-agreement review step.
+
+### L8 — the timer strip cannot show `(est. N)` yet
+
+§6(c) specifies the strip as `Phase 2 · 41 min (est. 40)`. The estimate now
+exists in the database (`node_phases.estimated_minutes`, G-14), but the
+Learning-Room API does not carry it: `LearningRoomContent`/`PhaseContent` and
+`content_repo::get_phases_by_node_id` both predate the column and select only
+`phase_number`, `phase_type` and `content_body`. The strip therefore shows actual
+minutes and provenance, and the component takes an `estimated_minutes` prop that
+is not yet supplied. Closing this is one column in one `SELECT` plus one field on
+two structs — deliberately not done here, because widening the Learning-Room
+response is a change to an existing, working API that the design did not ask for
+and M13c has not reviewed. The pace dashboard, which reads its own endpoint, does
+show the per-phase estimates.
 
 ### L7 — the pace projection understates while S0.5 is 5 nodes of 24
 
@@ -494,5 +521,11 @@ the measured / plan / band rows and the logged-time split. Linked from
 41 new tests across the four files (12 + 9 + 7 + 13), all on pure helpers:
 headline formatting, the keystroke → (score, advance) mapping, blank-vs-zero,
 the save-enabled predicate, provenance labels, sparkline point projection, and
-the escalation tri-state. Nothing needs a browser or a live database, and
+the escalation tri-state.
+
+**Worth a reviewer's eye:** `save_enabled` in `probe_form.rs`. A gated item that
+has been scored but not yet judged `c`/`w` blocks the save; an item explicitly
+marked blank does not. That is the reading of §6(a)'s *"once every gating item
+has a value"* which treats a half-entered correctness judgement as incomplete
+rather than as absent — defensible, and not something the design settles. Nothing needs a browser or a live database, and
 `learning_room_integration.rs` was not un-stubbed (Q7).
