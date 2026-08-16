@@ -307,7 +307,7 @@ pub async fn latest_scores_by_slug(
             ORDER BY node_id, entered_at DESC
         ) latest ON latest.id = s.sitting_id
         JOIN nodes n ON n.id = latest.node_id
-        WHERE n.slug = ANY($2)
+        WHERE n.slug = ANY($2::TEXT[])
         "#,
     )
     .bind(user_id)
@@ -357,7 +357,7 @@ pub async fn latest_verdicts_by_slug(
             ORDER BY node_id, entered_at DESC
         ) latest
         JOIN nodes n ON n.id = latest.node_id
-        WHERE n.slug = ANY($2)
+        WHERE n.slug = ANY($2::TEXT[])
         "#,
     )
     .bind(user_id)

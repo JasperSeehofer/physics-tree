@@ -76,9 +76,9 @@ pub async fn open_session(
              active_seconds, source, note)
         VALUES (
             $1, $2, $3,
-            COALESCE($4, NOW()),
+            COALESCE($4::TIMESTAMPTZ, NOW()),
             NOW(),
-            CASE WHEN $5 THEN NOW() ELSE NULL END,
+            CASE WHEN $5::BOOLEAN THEN NOW() ELSE NULL END,
             $6, $7::phase_session_source, $8
         )
         RETURNING id
@@ -115,7 +115,7 @@ pub async fn beat_session(
         UPDATE phase_sessions
         SET active_seconds = $3,
             last_beat_at   = NOW(),
-            closed_at      = CASE WHEN $4 THEN NOW() ELSE closed_at END
+            closed_at      = CASE WHEN $4::BOOLEAN THEN NOW() ELSE closed_at END
         WHERE id = $1 AND user_id = $2
         "#,
     )
