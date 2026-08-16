@@ -8,3 +8,6 @@ pub mod phase_content;
 pub mod phase_layout;
 pub mod phase_quiz;
 pub mod phase_tab;
+pub mod phase_timer;
+pub mod probe_form;
+pub mod probe_verdict;

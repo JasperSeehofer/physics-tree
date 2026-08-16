@@ -16,6 +16,11 @@ use crate::components::learning_room::mark_complete::MarkCompleteButton;
 use crate::components::learning_room::phase_content::PhaseContentArea;
 use crate::components::learning_room::phase_quiz::{extract_quiz_yaml_from_html, PhaseQuiz};
 use crate::components::learning_room::phase_tab::PhaseTab;
+use crate::components::learning_room::phase_timer::PhaseTimer;
+use crate::components::learning_room::probe_form::{ProbeEntryForm, SittingSaved};
+use crate::components::learning_room::probe_verdict::{phase_annotation, ProbeVerdictCard};
+use domain::probe::{ProbeSpec, ProbeVerdict};
+use domain::user::User;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API response types
@@ -42,6 +47,36 @@ pub struct PhaseData {
 pub struct PhaseProgressData {
     pub phase_number: i16,
     pub format_pref: String,
+}
+
+/// GET `/api/learning-room/:slug/probe` — mirrors `handlers::probe::ProbeResponse`.
+///
+/// `spec: None` is the normal case for every node without a `probe.yaml`, and
+/// for a node whose `probe.yaml` has not been re-ingested yet (design §8 Q8).
+#[derive(Clone, Debug, Deserialize)]
+pub struct ProbeData {
+    pub spec: Option<ProbeSpec>,
+    pub latest: Option<ProbeSittingData>,
+    #[serde(default)]
+    pub latest_is_stale: bool,
+}
+
+/// The learner's latest sitting, as the API returns it.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ProbeSittingData {
+    pub sat_on: String,
+    pub verdict: ProbeVerdict,
+    #[serde(default)]
+    pub items: Vec<ProbeItemScoreData>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ProbeItemScoreData {
+    pub item_id: String,
+    #[serde(default)]
+    pub score: Option<i16>,
+    #[serde(default)]
+    pub correct: Option<bool>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,6 +214,23 @@ async fn post_phase_complete(_slug: &str, _phase_number: i16, _format_pref: &str
     false
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn fetch_probe(slug: &str) -> Option<ProbeData> {
+    let resp = gloo_net::http::Request::get(&format!("/api/learning-room/{}/probe", slug))
+        .send()
+        .await
+        .ok()?;
+    if resp.status() != 200 {
+        return None;
+    }
+    resp.json::<ProbeData>().await.ok()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn fetch_probe(_slug: &str) -> Option<ProbeData> {
+    None
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LearningRoomPage component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -195,6 +247,22 @@ pub fn LearningRoomPage() -> impl IntoView {
     let completed_phases: RwSignal<Vec<i16>> = RwSignal::new(vec![]);
     let mark_complete_visible: RwSignal<bool> = RwSignal::new(false);
     let login_nudge: RwSignal<bool> = RwSignal::new(false);
+
+    // ── Probe state (M13 §6(a)/(b)) ─────────────────────────────────────────
+    // The spec is `None` for every node without an ingested `probe.yaml`, which
+    // is most of them; the whole block simply does not render then.
+    let probe_spec: RwSignal<Option<ProbeSpec>> = RwSignal::new(None);
+    let probe_sitting: RwSignal<Option<SittingSaved>> = RwSignal::new(None);
+    let probe_stale: RwSignal<bool> = RwSignal::new(false);
+    let probe_entry_open: RwSignal<bool> = RwSignal::new(false);
+
+    let auth_user = use_context::<LocalResource<Option<User>>>();
+    let authenticated = move || {
+        auth_user
+            .as_ref()
+            .map(|resource| resource.get().map(|user| user.is_some()).unwrap_or(false))
+            .unwrap_or(false)
+    };
 
     // ── Celebration state (D-23) ─────────────────────────────────────────────
     let show_celebration: RwSignal<bool> = RwSignal::new(false);
@@ -220,6 +288,34 @@ pub fn LearningRoomPage() -> impl IntoView {
             let progress = fetch_progress(&slug_val).await;
             let completed: Vec<i16> = progress.iter().map(|p| p.phase_number).collect();
             completed_phases.set(completed);
+
+            // The probe, fetched after content for the same reason progress is:
+            // sequentially, so a slow node page does not race three requests.
+            if let Some(probe) = fetch_probe(&slug_val).await {
+                probe_stale.set(probe.latest_is_stale);
+                let has_latest = probe.latest.is_some();
+                if let Some(latest) = probe.latest {
+                    probe_sitting.set(Some(SittingSaved {
+                        verdict: latest.verdict,
+                        sat_on: latest.sat_on,
+                        items: latest
+                            .items
+                            .into_iter()
+                            .map(|item| {
+                                (
+                                    item.item_id,
+                                    item.score.map(|s| s.clamp(0, 3) as u8),
+                                    item.correct,
+                                )
+                            })
+                            .collect(),
+                    }));
+                }
+                // A node with a spec and no sitting opens straight into the form;
+                // one with a sitting opens on its verdict until "record another".
+                probe_entry_open.set(!has_latest);
+                probe_spec.set(probe.spec);
+            }
         });
     });
 
@@ -389,6 +485,20 @@ pub fn LearningRoomPage() -> impl IntoView {
                                     {title}
                                 </h1>
 
+                                // ── Phase time strip (M13 §6(c)) ──────────────
+                                <div class="mb-4">
+                                    <PhaseTimer
+                                        slug=slug()
+                                        phase_number=Signal::derive(move || {
+                                            phases_signal
+                                                .get()
+                                                .get(active_phase.get())
+                                                .map(|p: &PhaseData| p.phase_number)
+                                                .unwrap_or(0)
+                                        })
+                                    />
+                                </div>
+
                                 // ── Phase progress bar (D-04) ─────────────────
                                 {move || {
                                     let completed = completed_phases.get();
@@ -458,6 +568,14 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                 let name = phase_name(&phase.phase_type).to_string();
                                                 let accent = phase_accent_class(phase.phase_number).to_string();
                                                 let phase_num = phase.phase_number;
+                                                // Verdict annotation — display only. The tab's
+                                                // state above still comes from compute_unlock_state.
+                                                let annotation = probe_sitting
+                                                    .get()
+                                                    .and_then(|s| {
+                                                        phase_annotation(&s.verdict, phase_num)
+                                                            .map(|a| a.to_string())
+                                                    });
 
                                                 view! {
                                                     <PhaseTab
@@ -466,6 +584,7 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                         accent_color=accent
                                                         state=state
                                                         active=is_active
+                                                        annotation=annotation
                                                         on_click=Callback::new(move |p: i16| {
                                                             active_phase.set(p as usize);
                                                             mark_complete_visible.set(false);
@@ -612,6 +731,78 @@ pub fn LearningRoomPage() -> impl IntoView {
                                         }
                                     } else {
                                         view! { <div /> }.into_any()
+                                    }
+                                }}
+
+                                // ── Phase-0 probe: entry form / verdict card ───
+                                //
+                                // Known deviation from design §6(a): the form is
+                                // rendered *below* the phase-0 content rather than
+                                // inside the `phase-section--probe` block. That
+                                // block arrives as an opaque server-rendered HTML
+                                // string, so no Leptos component can nest inside
+                                // it without DOM injection. This is the same seam
+                                // PhaseQuiz uses for phase 5.
+                                {move || {
+                                    let active_idx = active_phase.get();
+                                    let phases = phases_signal.get();
+                                    let phase_num = phases
+                                        .get(active_idx)
+                                        .map(|p| p.phase_number)
+                                        .unwrap_or(-1);
+                                    let spec = probe_spec.get();
+
+                                    if phase_num != 0 || spec.is_none() {
+                                        return view! { <div /> }.into_any();
+                                    }
+                                    let spec = spec.expect("checked above");
+
+                                    if !authenticated() {
+                                        return view! {
+                                            <div class="mt-6 rounded-card border border-bark-light bg-bark-dark p-4">
+                                                <p class="text-sm text-mist">
+                                                    <a href="/login" class="text-sky-teal hover:underline font-bold">"Log in"</a>
+                                                    " to record this probe sitting and get its routing verdict."
+                                                </p>
+                                            </div>
+                                        }.into_any();
+                                    }
+
+                                    let sitting = probe_sitting.get();
+                                    let show_form = probe_entry_open.get() || sitting.is_none();
+
+                                    if show_form {
+                                        view! {
+                                            <div class="mt-6">
+                                                <ProbeEntryForm
+                                                    spec=spec
+                                                    slug=slug()
+                                                    on_saved=Callback::new(move |saved: SittingSaved| {
+                                                        // A fresh sitting is judged under the spec
+                                                        // now ingested, so it is never stale.
+                                                        probe_stale.set(false);
+                                                        probe_sitting.set(Some(saved));
+                                                        probe_entry_open.set(false);
+                                                    })
+                                                />
+                                            </div>
+                                        }.into_any()
+                                    } else {
+                                        let saved = sitting.expect("checked above");
+                                        view! {
+                                            <div class="mt-6">
+                                                <ProbeVerdictCard
+                                                    verdict=saved.verdict.clone()
+                                                    slug=slug()
+                                                    sat_on=saved.sat_on.clone()
+                                                    items=saved.items.clone()
+                                                    stale=probe_stale.get()
+                                                    on_record_another=Callback::new(move |_| {
+                                                        probe_entry_open.set(true);
+                                                    })
+                                                />
+                                            </div>
+                                        }.into_any()
                                     }
                                 }}
 

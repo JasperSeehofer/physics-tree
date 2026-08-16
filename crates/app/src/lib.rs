@@ -12,6 +12,7 @@ use pages::graph_explorer::GraphExplorerPage;
 use pages::landing::LandingPage;
 use pages::learning_room::LearningRoomPage;
 use pages::login::LoginPage;
+use pages::pace::PacePage;
 use pages::register::RegisterPage;
 use pages::review::ReviewPage;
 
@@ -256,6 +257,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/login") view=LoginPage />
                     <Route path=path!("/register") view=RegisterPage />
                     <Route path=path!("/dashboard") view=DashboardPage />
+                    <Route path=path!("/pace") view=PacePage />
                     <Route path=path!("/review") view=ReviewPage />
                 </Routes>
             </main>

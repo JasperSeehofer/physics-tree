@@ -139,6 +139,22 @@ pub fn DashboardPage() -> impl IntoView {
                                 <ReviewWidget />
                             </div>
 
+                            // Pace dashboard link — actual vs estimated time per
+                            // node, per phase, against the plan of record (M13 §6(d)).
+                            <div class="mt-4 rounded-card border border-bark-light bg-bark-dark p-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                        <h3 class="text-base font-bold text-petal-white">"Pace"</h3>
+                                        <p class="text-sm text-mist">
+                                            "Actual against estimated time, per node and per phase."
+                                        </p>
+                                    </div>
+                                    <a href="/pace" class="text-sm text-sky-teal hover:underline">
+                                        "Open the pace dashboard"
+                                    </a>
+                                </div>
+                            </div>
+
                             // Mini tree section
                             <section class="mt-8">
                                 <h2 class="text-xl font-bold text-petal-white mb-2">"Your Knowledge Tree"</h2>
