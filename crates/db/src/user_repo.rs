@@ -39,10 +39,7 @@ pub async fn create_user(
 }
 
 /// Find a user by email. Returns None if not found.
-pub async fn find_by_email(
-    pool: &PgPool,
-    email: &str,
-) -> Result<Option<UserRecord>, sqlx::Error> {
+pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRecord>, sqlx::Error> {
     let row = sqlx::query(
         r#"
         SELECT id, email, password_hash, display_name, email_verified, created_at

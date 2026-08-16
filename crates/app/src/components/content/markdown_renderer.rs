@@ -4,7 +4,7 @@
 #[derive(Debug, Clone)]
 pub struct RenderedContent {
     pub html: String,
-    pub sections: Vec<String>,    // e.g. ["motivation", "derivation", "intuition"]
+    pub sections: Vec<String>, // e.g. ["motivation", "derivation", "intuition"]
     pub simulations: Vec<String>, // e.g. ["projectile"]
 }
 
@@ -58,8 +58,7 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
     });
 
     // ::misconception[statement]{reveal=explanation}
-    let misc_re =
-        Regex::new(r"::misconception\[([^\]]+)\]\{reveal=([^}]+)\}").unwrap();
+    let misc_re = Regex::new(r"::misconception\[([^\]]+)\]\{reveal=([^}]+)\}").unwrap();
     let content = misc_re.replace_all(&content, |caps: &regex::Captures| {
         let statement = html_attr_escape(&caps[1]);
         let reveal = html_attr_escape(&caps[2]);
@@ -84,9 +83,8 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
 
     // :::fenced-div blocks pre-pass
     // Handles: :::definition, :::collapse TITLE, :::figure
-    let fenced_re = Regex::new(
-        r"(?m)^:::(definition|collapse|figure)\s*(.*?)\n([\s\S]*?)\n:::\s*$",
-    ).unwrap();
+    let fenced_re =
+        Regex::new(r"(?m)^:::(definition|collapse|figure)\s*(.*?)\n([\s\S]*?)\n:::\s*$").unwrap();
     let content = fenced_re.replace_all(&content, |caps: &regex::Captures| {
         let kind = &caps[1];
         let title = caps[2].trim();
@@ -128,8 +126,8 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
 
     let mut opts = Options::empty();
     opts.insert(Options::ENABLE_MATH);
-    opts.insert(Options::ENABLE_GFM);               // GFM alerts + strikethrough + tasklists
-    opts.insert(Options::ENABLE_TABLES);             // NOT included in ENABLE_GFM per Pitfall 6
+    opts.insert(Options::ENABLE_GFM); // GFM alerts + strikethrough + tasklists
+    opts.insert(Options::ENABLE_TABLES); // NOT included in ENABLE_GFM per Pitfall 6
     opts.insert(Options::ENABLE_FOOTNOTES);
     opts.insert(Options::ENABLE_HEADING_ATTRIBUTES);
     opts.insert(Options::ENABLE_DEFINITION_LIST);
@@ -354,7 +352,9 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
 }
 
 #[cfg(feature = "ssr")]
-fn blockquote_kind_to_admonition(kind: pulldown_cmark::BlockQuoteKind) -> (&'static str, &'static str) {
+fn blockquote_kind_to_admonition(
+    kind: pulldown_cmark::BlockQuoteKind,
+) -> (&'static str, &'static str) {
     use pulldown_cmark::BlockQuoteKind;
     match kind {
         BlockQuoteKind::Note => ("admonition-note", "Note"),
@@ -401,12 +401,10 @@ fn highlight_code_block(code: &str, lang: &str) -> String {
     let mut highlighted_html = String::new();
     for line in syntect::util::LinesWithEndings::from(code) {
         match highlighter.highlight_line(line, ss) {
-            Ok(ranges) => {
-                match styled_line_to_highlighted_html(&ranges, IncludeBackground::No) {
-                    Ok(html) => highlighted_html.push_str(&html),
-                    Err(_) => highlighted_html.push_str(&html_escape(line)),
-                }
-            }
+            Ok(ranges) => match styled_line_to_highlighted_html(&ranges, IncludeBackground::No) {
+                Ok(html) => highlighted_html.push_str(&html),
+                Err(_) => highlighted_html.push_str(&html_escape(line)),
+            },
             Err(_) => highlighted_html.push_str(&html_escape(line)),
         }
     }
@@ -459,10 +457,12 @@ pub fn extract_latex_placeholders(input: &str) -> String {
         format!(r#"<div data-latex="{latex}" data-display="true"></div>"#)
     });
     let inline_re = Regex::new(r"\$([^$\n]+)\$").unwrap();
-    inline_re.replace_all(&s, |caps: &regex::Captures| {
-        let latex = html_attr_escape(caps[1].trim());
-        format!(r#"<span data-latex="{latex}" data-display="false"></span>"#)
-    }).to_string()
+    inline_re
+        .replace_all(&s, |caps: &regex::Captures| {
+            let latex = html_attr_escape(caps[1].trim());
+            format!(r#"<span data-latex="{latex}" data-display="false"></span>"#)
+        })
+        .to_string()
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -499,8 +499,14 @@ mod tests {
     fn test_strip_yaml_frontmatter() {
         let input = "---\ntitle: Test\n---\n## Content";
         let result = strip_yaml_frontmatter(input);
-        assert!(!result.contains("title: Test"), "Frontmatter should be stripped");
-        assert!(result.contains("Content"), "'Content' should remain after stripping frontmatter");
+        assert!(
+            !result.contains("title: Test"),
+            "Frontmatter should be stripped"
+        );
+        assert!(
+            result.contains("Content"),
+            "'Content' should remain after stripping frontmatter"
+        );
     }
 
     #[test]
@@ -524,8 +530,7 @@ mod tests {
     fn test_misconception_directive_parse() {
         use regex::Regex;
         let input = "::misconception[Heavy falls faster]{reveal=All fall same}";
-        let misc_re =
-            Regex::new(r"::misconception\[([^\]]+)\]\{reveal=([^}]+)\}").unwrap();
+        let misc_re = Regex::new(r"::misconception\[([^\]]+)\]\{reveal=([^}]+)\}").unwrap();
         let result = misc_re.replace_all(input, |caps: &regex::Captures| {
             let statement = html_attr_escape(&caps[1]);
             let reveal = html_attr_escape(&caps[2]);
@@ -666,8 +671,14 @@ mod tests {
     #[test]
     fn extract_latex_inline_and_display_both_present() {
         let result = extract_latex_placeholders("Inline $a$ and display $$b$$");
-        assert!(result.contains(r#"data-display="false""#), "Should have inline span");
-        assert!(result.contains(r#"data-display="true""#), "Should have display div");
+        assert!(
+            result.contains(r#"data-display="false""#),
+            "Should have inline span"
+        );
+        assert!(
+            result.contains(r#"data-display="true""#),
+            "Should have display div"
+        );
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -676,7 +687,10 @@ mod tests {
         // Single $ without closing $ should not match
         let input = "Price is $5";
         let result = extract_latex_placeholders(input);
-        assert_eq!(result, input, "Single $ without closing should be unchanged");
+        assert_eq!(
+            result, input,
+            "Single $ without closing should be unchanged"
+        );
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -835,7 +849,9 @@ mod tests {
             result.html
         );
         assert!(
-            result.html.contains("<figcaption>Caption text</figcaption>"),
+            result
+                .html
+                .contains("<figcaption>Caption text</figcaption>"),
             ":::figure should have figcaption, got: {}",
             result.html
         );

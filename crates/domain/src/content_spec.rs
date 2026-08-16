@@ -519,7 +519,10 @@ impl fmt::Display for ValidationError {
             ValidationError::DuplicatePhase { number } => {
                 write!(f, "node.yaml:phases  Duplicate phase number {number}")
             }
-            ValidationError::MissingPhaseFile { number, expected_path } => {
+            ValidationError::MissingPhaseFile {
+                number,
+                expected_path,
+            } => {
                 write!(
                     f,
                     "{expected_path}:  File not found at expected path for phase {number}"
@@ -550,10 +553,7 @@ impl fmt::Display for ValidationError {
                 )
             }
             ValidationError::MalformedQuizBlock { phase, detail } => {
-                write!(
-                    f,
-                    "phase-{phase}.md:quiz  Malformed quiz block: {detail}"
-                )
+                write!(f, "phase-{phase}.md:quiz  Malformed quiz block: {detail}")
             }
             ValidationError::InvalidPhaseNumber { number } => {
                 write!(
@@ -561,7 +561,11 @@ impl fmt::Display for ValidationError {
                     "node.yaml:phases  Invalid phase number {number}; must be 0-6"
                 )
             }
-            ValidationError::PhaseTypeMismatch { number, expected, found } => {
+            ValidationError::PhaseTypeMismatch {
+                number,
+                expected,
+                found,
+            } => {
                 write!(
                     f,
                     "node.yaml:phases[{number}]  Phase type mismatch: expected '{expected}', found '{found}'"
@@ -573,7 +577,10 @@ impl fmt::Display for ValidationError {
                     "node.yaml:phases[{phase}]  Missing standard required block '{block}' for phase type retrieval_check"
                 )
             }
-            ValidationError::EstimatedMinutesMismatch { node_total, phase_sum } => {
+            ValidationError::EstimatedMinutesMismatch {
+                node_total,
+                phase_sum,
+            } => {
                 write!(
                     f,
                     "node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})"
@@ -603,10 +610,7 @@ pub enum ValidationWarning {
     /// other tier it has no effect — but it is almost always a sign that `tier`
     /// was meant to be `graduate` too, which is why it is reported rather than
     /// ignored. (Added v1.3 / M10a F4.)
-    RelaxationAtNonGraduateTier {
-        tier: String,
-        relaxation: String,
-    },
+    RelaxationAtNonGraduateTier { tier: String, relaxation: String },
 }
 
 impl fmt::Display for ValidationWarning {
@@ -690,7 +694,10 @@ pub fn extract_h2_headings(markdown: &str) -> Vec<String> {
 
     for event in parser {
         match event {
-            Event::Start(Tag::Heading { level: HeadingLevel::H2, .. }) => {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H2,
+                ..
+            }) => {
                 in_h2 = true;
                 current_heading.clear();
             }
@@ -774,7 +781,8 @@ fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
         if !phase2_has_derivation {
             errors.push(ValidationError::EqfConditionalViolation {
                 eqf_level: meta.eqf_level,
-                rule: "phase 2 requires list must contain 'derivation' for EQF level 4+".to_string(),
+                rule: "phase 2 requires list must contain 'derivation' for EQF level 4+"
+                    .to_string(),
             });
         }
     }
@@ -790,7 +798,8 @@ fn check_eqf_rules(meta: &NodeMeta, errors: &mut Vec<ValidationError>) {
         if !phase3_has_faded {
             errors.push(ValidationError::EqfConditionalViolation {
                 eqf_level: meta.eqf_level,
-                rule: "phase 3 requires list must contain 'mostly_faded_example' for EQF level 3+".to_string(),
+                rule: "phase 3 requires list must contain 'mostly_faded_example' for EQF level 3+"
+                    .to_string(),
             });
         }
     }
@@ -810,7 +819,9 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
 
     // 1. Check eqf_level is in range 2-8 (8 = doctoral/research; M1b G-1)
     if !(2..=8).contains(&node.meta.eqf_level) {
-        errors.push(ValidationError::InvalidEqfLevel { value: node.meta.eqf_level });
+        errors.push(ValidationError::InvalidEqfLevel {
+            value: node.meta.eqf_level,
+        });
     }
 
     // 2. Check misconception count against the tier-conditional range (M1b G-3).
@@ -829,9 +840,13 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     let mut seen_numbers: Vec<u8> = Vec::new();
     for phase in &node.meta.phases {
         if phase.number > 6 {
-            errors.push(ValidationError::InvalidPhaseNumber { number: phase.number });
+            errors.push(ValidationError::InvalidPhaseNumber {
+                number: phase.number,
+            });
         } else if seen_numbers.contains(&phase.number) {
-            errors.push(ValidationError::DuplicatePhase { number: phase.number });
+            errors.push(ValidationError::DuplicatePhase {
+                number: phase.number,
+            });
         } else {
             seen_numbers.push(phase.number);
         }
@@ -867,7 +882,9 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     }
     // Also check for missing phase files for expected phases
     for expected in 0u8..=6 {
-        if !node.phase_files_found.contains(&expected) && !node.meta.phases.iter().any(|p| p.number == expected) {
+        if !node.phase_files_found.contains(&expected)
+            && !node.meta.phases.iter().any(|p| p.number == expected)
+        {
             errors.push(ValidationError::MissingPhaseFile {
                 number: expected,
                 expected_path: format!("phase-{expected}.md"),
@@ -879,7 +896,8 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
     for phase in &node.meta.phases {
         if let Some(headings) = node.phase_headings.get(&phase.number) {
             // Normalize headings to requires-key form for comparison
-            let heading_keys: Vec<String> = headings.iter().map(|h| heading_to_requires(h)).collect();
+            let heading_keys: Vec<String> =
+                headings.iter().map(|h| heading_to_requires(h)).collect();
             for req in &phase.requires {
                 if !heading_keys.contains(req) {
                     errors.push(ValidationError::MissingRequiredBlock {
@@ -945,8 +963,14 @@ mod tests {
         assert_eq!(requires_to_heading("linkage_map"), "Linkage Map");
         assert_eq!(requires_to_heading("wonder_hook"), "Wonder Hook");
         assert_eq!(requires_to_heading("struggle_problem"), "Struggle Problem");
-        assert_eq!(requires_to_heading("self_explanation_prompt"), "Self Explanation Prompt");
-        assert_eq!(requires_to_heading("mostly_faded_example"), "Mostly Faded Example");
+        assert_eq!(
+            requires_to_heading("self_explanation_prompt"),
+            "Self Explanation Prompt"
+        );
+        assert_eq!(
+            requires_to_heading("mostly_faded_example"),
+            "Mostly Faded Example"
+        );
         assert_eq!(requires_to_heading("quiz"), "Quiz");
     }
 
@@ -955,8 +979,14 @@ mod tests {
         assert_eq!(heading_to_requires("Recall Prompt"), "recall_prompt");
         assert_eq!(heading_to_requires("Linkage Map"), "linkage_map");
         assert_eq!(heading_to_requires("Wonder Hook"), "wonder_hook");
-        assert_eq!(heading_to_requires("Self Explanation Prompt"), "self_explanation_prompt");
-        assert_eq!(heading_to_requires("Mostly Faded Example"), "mostly_faded_example");
+        assert_eq!(
+            heading_to_requires("Self Explanation Prompt"),
+            "self_explanation_prompt"
+        );
+        assert_eq!(
+            heading_to_requires("Mostly Faded Example"),
+            "mostly_faded_example"
+        );
     }
 
     #[test]
@@ -985,7 +1015,10 @@ mod tests {
         for key in &keys {
             let heading = requires_to_heading(key);
             let back = heading_to_requires(&heading);
-            assert_eq!(back, *key, "Round-trip failed for '{key}': '{heading}' -> '{back}'");
+            assert_eq!(
+                back, *key,
+                "Round-trip failed for '{key}': '{heading}' -> '{back}'"
+            );
         }
     }
 
@@ -1043,27 +1076,47 @@ mod tests {
             PhaseEntry {
                 number: 0,
                 phase_type: PhaseType::SchemaActivation,
-                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+                requires: vec![
+                    "recall_prompt".into(),
+                    "linkage_map".into(),
+                    "wonder_hook".into(),
+                ],
             },
             PhaseEntry {
                 number: 1,
                 phase_type: PhaseType::ProductiveStruggle,
-                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+                requires: vec![
+                    "struggle_problem".into(),
+                    "solution_capture".into(),
+                    "gap_reveal".into(),
+                ],
             },
             PhaseEntry {
                 number: 2,
                 phase_type: PhaseType::ConcretenesFading,
-                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into(), "derivation".into()],
+                requires: vec![
+                    "concrete_stage".into(),
+                    "bridging_stage".into(),
+                    "abstract_stage".into(),
+                    "derivation".into(),
+                ],
             },
             PhaseEntry {
                 number: 3,
                 phase_type: PhaseType::WorkedExamples,
-                requires: vec!["full_example".into(), "partially_faded_example".into(), "mostly_faded_example".into()],
+                requires: vec![
+                    "full_example".into(),
+                    "partially_faded_example".into(),
+                    "mostly_faded_example".into(),
+                ],
             },
             PhaseEntry {
                 number: 4,
                 phase_type: PhaseType::SelfExplanation,
-                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+                requires: vec![
+                    "self_explanation_prompt".into(),
+                    "reflection_questions".into(),
+                ],
             },
             PhaseEntry {
                 number: 5,
@@ -1098,7 +1151,11 @@ mod tests {
         // Build headings for each phase based on its requires
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
         for phase in &meta.phases {
-            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            let headings: Vec<String> = phase
+                .requires
+                .iter()
+                .map(|r| requires_to_heading(r))
+                .collect();
             phase_headings.insert(phase.number, headings);
         }
 
@@ -1118,17 +1175,29 @@ mod tests {
             PhaseEntry {
                 number: 0,
                 phase_type: PhaseType::SchemaActivation,
-                requires: vec!["recall_prompt".into(), "linkage_map".into(), "wonder_hook".into()],
+                requires: vec![
+                    "recall_prompt".into(),
+                    "linkage_map".into(),
+                    "wonder_hook".into(),
+                ],
             },
             PhaseEntry {
                 number: 1,
                 phase_type: PhaseType::ProductiveStruggle,
-                requires: vec!["struggle_problem".into(), "solution_capture".into(), "gap_reveal".into()],
+                requires: vec![
+                    "struggle_problem".into(),
+                    "solution_capture".into(),
+                    "gap_reveal".into(),
+                ],
             },
             PhaseEntry {
                 number: 2,
                 phase_type: PhaseType::ConcretenesFading,
-                requires: vec!["concrete_stage".into(), "bridging_stage".into(), "abstract_stage".into()],
+                requires: vec![
+                    "concrete_stage".into(),
+                    "bridging_stage".into(),
+                    "abstract_stage".into(),
+                ],
             },
             PhaseEntry {
                 number: 3,
@@ -1138,7 +1207,10 @@ mod tests {
             PhaseEntry {
                 number: 4,
                 phase_type: PhaseType::SelfExplanation,
-                requires: vec!["self_explanation_prompt".into(), "reflection_questions".into()],
+                requires: vec![
+                    "self_explanation_prompt".into(),
+                    "reflection_questions".into(),
+                ],
             },
             PhaseEntry {
                 number: 5,
@@ -1172,7 +1244,11 @@ mod tests {
 
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
         for phase in &meta.phases {
-            let headings: Vec<String> = phase.requires.iter().map(|r| requires_to_heading(r)).collect();
+            let headings: Vec<String> = phase
+                .requires
+                .iter()
+                .map(|r| requires_to_heading(r))
+                .collect();
             phase_headings.insert(phase.number, headings);
         }
 
@@ -1207,7 +1283,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::MissingPhase { number: 6 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::MissingPhase { number: 6 })),
             "Expected MissingPhase {{ number: 6 }}, got: {:?}",
             errors
         );
@@ -1226,7 +1304,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::DuplicatePhase { number: 3 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::DuplicatePhase { number: 3 })),
             "Expected DuplicatePhase {{ number: 3 }}, got: {:?}",
             errors
         );
@@ -1241,7 +1321,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 1 })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::InvalidEqfLevel { value: 1 })),
             "Expected InvalidEqfLevel {{ value: 1 }}, got: {:?}",
             errors
         );
@@ -1361,7 +1443,10 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 1, .. })),
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount { count: 1, .. }
+            )),
             "Expected InvalidMisconceptionCount {{ count: 1 }}, got: {:?}",
             errors
         );
@@ -1370,16 +1455,14 @@ mod tests {
     #[test]
     fn test_misconception_count_too_many() {
         let mut node = make_valid_eqf4_node();
-        node.meta.misconceptions = vec![
-            "one".into(),
-            "two".into(),
-            "three".into(),
-            "four".into(),
-        ];
+        node.meta.misconceptions = vec!["one".into(), "two".into(), "three".into(), "four".into()];
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::InvalidMisconceptionCount { count: 4, .. })),
+            errors.iter().any(|e| matches!(
+                e,
+                ValidationError::InvalidMisconceptionCount { count: 4, .. }
+            )),
             "Expected InvalidMisconceptionCount {{ count: 4 }}, got: {:?}",
             errors
         );
@@ -1414,7 +1497,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(e, ValidationError::MissingPhaseFile { number: 6, .. })),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::MissingPhaseFile { number: 6, .. })),
             "Expected MissingPhaseFile {{ number: 6 }}, got: {:?}",
             errors
         );
@@ -1449,10 +1534,9 @@ mod tests {
 
         let errors = validate_node(&node);
         assert!(
-            errors.iter().any(|e| matches!(
-                e,
-                ValidationError::PhaseTypeMismatch { number: 0, .. }
-            )),
+            errors
+                .iter()
+                .any(|e| matches!(e, ValidationError::PhaseTypeMismatch { number: 0, .. })),
             "Expected PhaseTypeMismatch for phase 0, got: {:?}",
             errors
         );
@@ -1539,9 +1623,11 @@ mod tests {
         let mut node = make_valid_eqf4_node();
         // node.meta.estimated_minutes is 40 in the fixture
         // Set phase estimated minutes that sum to 63 (mismatch)
-        let phase_minutes: HashMap<u8, u16> = [
-            (0, 5), (1, 10), (2, 12), (3, 10), (4, 6), (5, 12), (6, 8)
-        ].iter().cloned().collect();
+        let phase_minutes: HashMap<u8, u16> =
+            [(0, 5), (1, 10), (2, 12), (3, 10), (4, 6), (5, 12), (6, 8)]
+                .iter()
+                .cloned()
+                .collect();
         node.phase_estimated_minutes = phase_minutes;
 
         let errors = validate_node(&node);
@@ -1557,9 +1643,11 @@ mod tests {
     fn test_estimated_minutes_match_passes() {
         let mut node = make_valid_eqf4_node();
         // node.meta.estimated_minutes is 40; set phases to sum to 40
-        let phase_minutes: HashMap<u8, u16> = [
-            (0, 5), (1, 8), (2, 8), (3, 7), (4, 4), (5, 5), (6, 3)
-        ].iter().cloned().collect(); // sum = 40
+        let phase_minutes: HashMap<u8, u16> =
+            [(0, 5), (1, 8), (2, 8), (3, 7), (4, 4), (5, 5), (6, 3)]
+                .iter()
+                .cloned()
+                .collect(); // sum = 40
         node.phase_estimated_minutes = phase_minutes;
 
         let errors = validate_node(&node);

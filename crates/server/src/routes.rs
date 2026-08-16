@@ -7,7 +7,10 @@ use crate::handlers;
 /// The pool is moved into router state so graph handlers can extract it.
 pub fn api_routes(pool: PgPool) -> Router {
     Router::new()
-        .route("/api/health", axum::routing::get(handlers::health::health_check))
+        .route(
+            "/api/health",
+            axum::routing::get(handlers::health::health_check),
+        )
         .route("/api/graph", axum::routing::get(handlers::graph::get_graph))
         .route(
             "/api/graph/prereqs/{node_id}",
@@ -33,10 +36,7 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/auth/logout",
             axum::routing::post(handlers::auth::logout),
         )
-        .route(
-            "/api/auth/me",
-            axum::routing::get(handlers::auth::me),
-        )
+        .route("/api/auth/me", axum::routing::get(handlers::auth::me))
         .route(
             "/api/progress/dashboard",
             axum::routing::get(handlers::progress::get_dashboard),

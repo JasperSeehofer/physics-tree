@@ -11,7 +11,8 @@ pub fn NodeTooltip(
     #[prop(into)]
     all_nodes: Vec<(String, String, String)>,
 ) -> impl IntoView {
-    let graph_state = use_context::<GraphState>().expect("GraphState context required for NodeTooltip");
+    let graph_state =
+        use_context::<GraphState>().expect("GraphState context required for NodeTooltip");
 
     let hovered_node = graph_state.hovered_node;
     let panel_open = graph_state.panel_open;

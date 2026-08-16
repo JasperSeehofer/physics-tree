@@ -74,9 +74,7 @@ fn main() {
             }
 
             // On parse error (malformed frontmatter), fall back to treating full file as body.
-            let body = parsed
-                .map(|p| p.content)
-                .unwrap_or(content);
+            let body = parsed.map(|p| p.content).unwrap_or(content);
 
             // Extract H2 headings from the Markdown body
             let headings = extract_h2_headings(&body);
@@ -85,7 +83,12 @@ fn main() {
     }
 
     // Step 4: Build ParsedNode and validate
-    let parsed_node = ParsedNode { meta, phase_files_found, phase_headings, phase_estimated_minutes };
+    let parsed_node = ParsedNode {
+        meta,
+        phase_files_found,
+        phase_headings,
+        phase_estimated_minutes,
+    };
     let errors = validate_node(&parsed_node);
 
     // Warnings never affect the exit code (v1.3). Printed before the errors so

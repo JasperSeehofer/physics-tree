@@ -38,8 +38,7 @@ fn fire_confetti() {
             return;
         }
 
-        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__confetti_bridge"))
-        {
+        if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__confetti_bridge")) {
             if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("fire")) {
                 let _ = js_sys::Function::from(func).call0(&bridge);
             }

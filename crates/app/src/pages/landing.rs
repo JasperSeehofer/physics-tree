@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::components::health_indicator::HealthIndicator;
+use leptos::prelude::*;
 
 /// Flat vector tree SVG — Kurzgesagt-inspired, integrated into wordmark area.
 /// 40x40px, uses CSS custom property colors for consistency with design tokens.

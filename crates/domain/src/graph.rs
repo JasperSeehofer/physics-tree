@@ -3,7 +3,10 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "ssr", derive(sqlx::Type))]
-#[cfg_attr(feature = "ssr", sqlx(type_name = "node_type", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "ssr",
+    sqlx(type_name = "node_type", rename_all = "snake_case")
+)]
 pub enum NodeType {
     Concept,
     Formula,
@@ -14,7 +17,10 @@ pub enum NodeType {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "ssr", derive(sqlx::Type))]
-#[cfg_attr(feature = "ssr", sqlx(type_name = "edge_type", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "ssr",
+    sqlx(type_name = "edge_type", rename_all = "snake_case")
+)]
 pub enum EdgeType {
     Prerequisite,
     DerivesFrom,

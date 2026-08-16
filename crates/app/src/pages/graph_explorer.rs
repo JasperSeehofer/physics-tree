@@ -22,14 +22,8 @@ async fn fetch_graph_data() -> Result<(Vec<serde_json::Value>, Vec<serde_json::V
         return Err(format!("HTTP {}", resp.status()));
     }
     let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-    let nodes = json["nodes"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default();
-    let edges = json["edges"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default();
+    let nodes = json["nodes"].as_array().cloned().unwrap_or_default();
+    let edges = json["edges"].as_array().cloned().unwrap_or_default();
     Ok((nodes, edges))
 }
 
@@ -260,13 +254,8 @@ pub fn GraphExplorerPage() -> impl IntoView {
                         node_type: node_type_display(node_val),
                         branch: json_str(node_val, "branch"),
                         depth_tier: json_str(node_val, "depth_tier"),
-                        description: node_val["description"]
-                            .as_str()
-                            .unwrap_or("")
-                            .to_string(),
-                        has_phases: node_val["has_phases"]
-                            .as_bool()
-                            .unwrap_or(false),
+                        description: node_val["description"].as_str().unwrap_or("").to_string(),
+                        has_phases: node_val["has_phases"].as_bool().unwrap_or(false),
                     }));
                 }
 
@@ -283,10 +272,8 @@ pub fn GraphExplorerPage() -> impl IntoView {
                 leptos::task::spawn_local(async move {
                     match fetch_prereqs(&id_clone).await {
                         Ok(prereq_nodes) => {
-                            let prereq_ids: Vec<String> = prereq_nodes
-                                .iter()
-                                .map(|n| json_str(n, "id"))
-                                .collect();
+                            let prereq_ids: Vec<String> =
+                                prereq_nodes.iter().map(|n| json_str(n, "id")).collect();
 
                             // Update JS highlight
                             let prereq_ids_json = serde_json::to_string(&prereq_ids)
@@ -334,7 +321,13 @@ pub fn GraphExplorerPage() -> impl IntoView {
         all_nodes_data
             .get()
             .iter()
-            .map(|n| (json_str(n, "id"), json_str(n, "title"), node_type_display(n)))
+            .map(|n| {
+                (
+                    json_str(n, "id"),
+                    json_str(n, "title"),
+                    node_type_display(n),
+                )
+            })
             .collect::<Vec<_>>()
     };
 

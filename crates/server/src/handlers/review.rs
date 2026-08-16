@@ -1,10 +1,6 @@
 //! Review API handlers — spaced repetition review flow endpoints.
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tower_sessions::Session;

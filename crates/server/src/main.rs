@@ -4,10 +4,10 @@ async fn main() {
     use axum::Router;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
+    use server::routes;
     use time::Duration;
     use tower_sessions::{Expiry, SessionManagerLayer};
     use tower_sessions_sqlx_store::PostgresStore;
-    use server::routes;
     use tracing_subscriber::EnvFilter;
 
     // Load .env file (ignore if missing — production uses real env vars)
@@ -19,8 +19,7 @@ async fn main() {
         .init();
 
     // Connect to PostgreSQL
-    let database_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = db::create_pool(&database_url)
         .await
         .expect("Failed to connect to database");
@@ -35,9 +34,9 @@ async fn main() {
     // Configure session layer with security settings per D-06, D-07
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(cfg!(not(debug_assertions))) // HTTPS in prod, HTTP in dev
-        .with_http_only(true)                      // D-06: XSS protection
+        .with_http_only(true) // D-06: XSS protection
         .with_same_site(tower_sessions::cookie::SameSite::Lax) // CSRF mitigation
-        .with_name("pt_session")                   // app-specific cookie name
+        .with_name("pt_session") // app-specific cookie name
         .with_expiry(Expiry::OnInactivity(Duration::days(30))); // D-07: 30-day sessions
 
     let conf = get_configuration(None).unwrap();
@@ -63,7 +62,9 @@ async fn main() {
 
     tracing::info!("PhysicsTree server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    axum::serve(listener, app.into_make_service()).await.unwrap();
+    axum::serve(listener, app.into_make_service())
+        .await
+        .unwrap();
 }
 
 #[cfg(not(feature = "ssr"))]

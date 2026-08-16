@@ -160,15 +160,14 @@ pub async fn award_xp(
             .unwrap_or((0, 0));
 
         // Fetch current total XP for user
-        let total_xp: i64 = sqlx::query(
-            "SELECT COALESCE(SUM(xp_earned), 0) FROM progress WHERE user_id = $1",
-        )
-        .bind(user_id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .try_get::<i64, _>("coalesce")
-        .unwrap_or(0);
+        let total_xp: i64 =
+            sqlx::query("SELECT COALESCE(SUM(xp_earned), 0) FROM progress WHERE user_id = $1")
+                .bind(user_id)
+                .fetch_one(&pool)
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+                .try_get::<i64, _>("coalesce")
+                .unwrap_or(0);
 
         // Fetch per-concept mastery XP for this specific node
         let concept_mastery: i32 = sqlx::query(
@@ -204,7 +203,8 @@ pub async fn award_xp(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     let depth_tier = match node_row {
-        Some(row) => row.try_get::<String, _>("depth_tier")
+        Some(row) => row
+            .try_get::<String, _>("depth_tier")
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?,
         None => return Err((StatusCode::NOT_FOUND, "Node not found.".to_string())),
     };
@@ -233,21 +233,24 @@ pub async fn award_xp(
 
     // Determine if a streak milestone was hit (streak just earned an extra token)
     let milestone_hit = xp_logic::check_streak_milestone(new_streak as u32);
-    let streak_milestone = if milestone_hit { Some(new_streak) } else { None };
+    let streak_milestone = if milestone_hit {
+        Some(new_streak)
+    } else {
+        None
+    };
 
     // Compute mastery tier from concept XP
     let mastery_tier = xp_logic::xp_to_mastery_tier(new_concept_xp).to_string();
 
     // Fetch updated total XP for user
-    let total_xp: i64 = sqlx::query(
-        "SELECT COALESCE(SUM(xp_earned), 0) FROM progress WHERE user_id = $1",
-    )
-    .bind(user_id)
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-    .try_get::<i64, _>("coalesce")
-    .unwrap_or(0);
+    let total_xp: i64 =
+        sqlx::query("SELECT COALESCE(SUM(xp_earned), 0) FROM progress WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+            .try_get::<i64, _>("coalesce")
+            .unwrap_or(0);
 
     Ok(Json(AwardXpResponse {
         xp_awarded: xp_amount as i32,

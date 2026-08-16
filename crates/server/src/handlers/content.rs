@@ -16,7 +16,9 @@ pub struct QuizQueryParams {
     pub limit: Option<usize>,
 }
 
-use app::components::content::markdown_renderer::{extract_latex_placeholders, render_content_markdown};
+use app::components::content::markdown_renderer::{
+    extract_latex_placeholders, render_content_markdown,
+};
 use domain::quiz::QuizQuestion;
 
 /// A prerequisite or next-concept item in the API response.
@@ -80,12 +82,14 @@ pub async fn get_content(
     }
 
     // ── 3. Read markdown from disk ────────────────────────────────────────────
-    let markdown = tokio::fs::read_to_string(&row.file_path).await.map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to read content file '{}': {}", row.file_path, e),
-        )
-    })?;
+    let markdown = tokio::fs::read_to_string(&row.file_path)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to read content file '{}': {}", row.file_path, e),
+            )
+        })?;
 
     // ── 4. Parse markdown → HTML ──────────────────────────────────────────────
     let rendered = render_content_markdown(&markdown);

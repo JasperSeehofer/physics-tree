@@ -10,10 +10,7 @@ use leptos::prelude::*;
 /// Renders a breadcrumb trail: ← Graph / branch / node_title
 /// Inactive crumbs use `text-mist`, the current node uses `text-petal-white`.
 #[component]
-pub fn Breadcrumb(
-    #[prop(into)] branch: String,
-    #[prop(into)] node_title: String,
-) -> impl IntoView {
+pub fn Breadcrumb(#[prop(into)] branch: String, #[prop(into)] node_title: String) -> impl IntoView {
     view! {
         <nav class="flex items-center gap-2 text-sm font-normal py-2" aria-label="Breadcrumb">
             <a

@@ -2,17 +2,17 @@ use crate::traits::Simulation;
 
 pub struct PendulumSimulation {
     // Parameters
-    pub length: f32,          // 0.5 - 10.0 meters
-    gravity: f32,             // fixed at 9.81
-    initial_angle: f32,       // 5 - 89 degrees (stored as radians internally)
-    damping: f32,             // 0.0 - 0.1
+    pub length: f32,    // 0.5 - 10.0 meters
+    gravity: f32,       // fixed at 9.81
+    initial_angle: f32, // 5 - 89 degrees (stored as radians internally)
+    damping: f32,       // 0.0 - 0.1
     // State
-    theta: f32,               // current angle in radians
-    omega: f32,               // angular velocity
+    theta: f32, // current angle in radians
+    omega: f32, // angular velocity
     time: f32,
     step_count: u32,
     running: bool,
-    dt: f32,                  // 1/60
+    dt: f32, // 1/60
     // Canvas
     canvas_width: f64,
     canvas_height: f64,
@@ -58,8 +58,12 @@ impl PendulumSimulation {
         self.damping = d.clamp(0.0, 0.1);
     }
 
-    pub fn get_length(&self) -> f32 { self.length }
-    pub fn get_angle_deg(&self) -> f32 { self.theta.to_degrees() }
+    pub fn get_length(&self) -> f32 {
+        self.length
+    }
+    pub fn get_angle_deg(&self) -> f32 {
+        self.theta.to_degrees()
+    }
 
     pub fn play(&mut self) {
         self.running = true;
@@ -89,9 +93,13 @@ impl PendulumSimulation {
     }
 
     /// Current angle in radians (for testing)
-    pub fn theta(&self) -> f32 { self.theta }
+    pub fn theta(&self) -> f32 {
+        self.theta
+    }
     /// Current angular velocity (for testing)
-    pub fn omega(&self) -> f32 { self.omega }
+    pub fn omega(&self) -> f32 {
+        self.omega
+    }
 
     #[cfg(target_arch = "wasm32")]
     pub fn render(&self, ctx: &web_sys::CanvasRenderingContext2d) {
@@ -116,7 +124,16 @@ impl PendulumSimulation {
         ctx.set_stroke_style_str(COLOR_MIST);
         ctx.set_line_width(1.0);
         ctx.begin_path();
-        for (i, &(_, theta)) in self.trajectory.iter().enumerate().rev().take(120).collect::<Vec<_>>().iter().rev() {
+        for (i, &(_, theta)) in self
+            .trajectory
+            .iter()
+            .enumerate()
+            .rev()
+            .take(120)
+            .collect::<Vec<_>>()
+            .iter()
+            .rev()
+        {
             let tx = pivot_x + (theta.sin() as f64) * self.length as f64 * scale;
             let ty = pivot_y + (theta.cos() as f64) * self.length as f64 * scale;
             if *i == 0 {
@@ -185,9 +202,15 @@ impl Simulation for PendulumSimulation {
         self.running = false;
     }
 
-    fn is_running(&self) -> bool { self.running }
-    fn set_running(&mut self, running: bool) { self.running = running; }
-    fn time(&self) -> f32 { self.time }
+    fn is_running(&self) -> bool {
+        self.running
+    }
+    fn set_running(&mut self, running: bool) {
+        self.running = running;
+    }
+    fn time(&self) -> f32 {
+        self.time
+    }
 
     fn positions(&self) -> Vec<(f32, f32)> {
         let x = self.length * self.theta.sin();

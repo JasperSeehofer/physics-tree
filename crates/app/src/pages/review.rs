@@ -86,7 +86,10 @@ async fn fetch_review_queue() -> Result<ReviewQueueResponse, String> {
 
 #[cfg(not(target_arch = "wasm32"))]
 async fn fetch_review_queue() -> Result<ReviewQueueResponse, String> {
-    Ok(ReviewQueueResponse { total_due: 0, items: vec![] })
+    Ok(ReviewQueueResponse {
+        total_due: 0,
+        items: vec![],
+    })
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -131,10 +134,7 @@ async fn fetch_suggestions() -> Result<Vec<FrontierSuggestion>, String> {
 
 /// Inline result card shown after a review quiz is submitted.
 #[component]
-fn ReviewResultCard(
-    result: SubmitReviewResponse,
-    on_next: Callback<()>,
-) -> impl IntoView {
+fn ReviewResultCard(result: SubmitReviewResponse, on_next: Callback<()>) -> impl IntoView {
     // Format date: extract "Month Day" from ISO 8601
     let next_date = {
         let s = result.next_review_date.clone();
@@ -143,9 +143,18 @@ fn ReviewResultCard(
             let date_parts: Vec<&str> = date_part.split('-').collect();
             if date_parts.len() == 3 {
                 let month = match date_parts[1] {
-                    "01" => "Jan", "02" => "Feb", "03" => "Mar", "04" => "Apr",
-                    "05" => "May", "06" => "Jun", "07" => "Jul", "08" => "Aug",
-                    "09" => "Sep", "10" => "Oct", "11" => "Nov", "12" => "Dec",
+                    "01" => "Jan",
+                    "02" => "Feb",
+                    "03" => "Mar",
+                    "04" => "Apr",
+                    "05" => "May",
+                    "06" => "Jun",
+                    "07" => "Jul",
+                    "08" => "Aug",
+                    "09" => "Sep",
+                    "10" => "Oct",
+                    "11" => "Nov",
+                    "12" => "Dec",
                     m => m,
                 };
                 let day: u32 = date_parts[2].parse().unwrap_or(1);
@@ -162,7 +171,6 @@ fn ReviewResultCard(
     let rating = result.rating.clone();
     let streak = result.streak;
     let freeze_used = result.freeze_used;
-
 
     view! {
         <div class="bg-bark-dark border border-leaf-green rounded-card px-4 py-4 mt-6">
@@ -245,10 +253,7 @@ fn ReviewResultCard(
 
 /// Wraps question rendering for the review page.
 #[component]
-fn ConceptReviewQuestion(
-    question: QuizQuestion,
-    on_answered: Callback<bool>,
-) -> impl IntoView {
+fn ConceptReviewQuestion(question: QuizQuestion, on_answered: Callback<bool>) -> impl IntoView {
     use crate::components::quiz::formula_input::QuizFormulaInput;
     use crate::components::quiz::matching::QuizMatching;
     use crate::components::quiz::multiple_choice::QuizMultipleChoice;

@@ -188,9 +188,7 @@ async fn post_phase_complete(_slug: &str, _phase_number: i16, _format_pref: &str
 #[component]
 pub fn LearningRoomPage() -> impl IntoView {
     let params = use_params_map();
-    let slug = move || {
-        params.with(|p| p.get("slug").unwrap_or_default().to_string())
-    };
+    let slug = move || params.with(|p| p.get("slug").unwrap_or_default().to_string());
 
     // ── Reactive state ──────────────────────────────────────────────────────
     let active_phase: RwSignal<usize> = RwSignal::new(0);
@@ -302,10 +300,8 @@ pub fn LearningRoomPage() -> impl IntoView {
                 }
             });
 
-            let _ = container.add_event_listener_with_callback(
-                "scroll",
-                scroll_cb.as_ref().unchecked_ref(),
-            );
+            let _ = container
+                .add_event_listener_with_callback("scroll", scroll_cb.as_ref().unchecked_ref());
             scroll_cb.forget();
         });
 

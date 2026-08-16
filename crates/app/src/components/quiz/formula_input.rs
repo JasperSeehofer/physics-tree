@@ -84,10 +84,7 @@ enum FormulaState {
 
 /// Formula input question with live KaTeX preview and symbolic equivalence check.
 #[component]
-pub fn QuizFormulaInput(
-    question: QuizQuestion,
-    on_correct: Callback<bool>,
-) -> impl IntoView {
+pub fn QuizFormulaInput(question: QuizQuestion, on_correct: Callback<bool>) -> impl IntoView {
     let input_value: RwSignal<String> = RwSignal::new(String::new());
     let preview_html: RwSignal<String> = RwSignal::new(String::new());
     let attempts: RwSignal<u32> = RwSignal::new(0);
@@ -104,16 +101,20 @@ pub fn QuizFormulaInput(
     // Defer renderAllPlaceholders to next animation frame so DOM has committed inner_html
     #[cfg(target_arch = "wasm32")]
     {
+        use wasm_bindgen::closure::Closure;
         use wasm_bindgen::JsCast;
         use wasm_bindgen::JsValue;
-        use wasm_bindgen::closure::Closure;
         Effect::new(move |_| {
             let _ = state.get(); // subscribe to state changes
             let window = web_sys::window().unwrap();
             let cb = Closure::<dyn FnMut()>::new(move || {
                 let window = web_sys::window().unwrap();
-                if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-                    if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+                if let Ok(bridge) =
+                    js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge"))
+                {
+                    if let Ok(func) =
+                        js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders"))
+                    {
                         let func: js_sys::Function = func.into();
                         let _ = func.call0(&bridge);
                     }
@@ -147,7 +148,12 @@ pub fn QuizFormulaInput(
         }
     });
 
-    let is_locked = move || matches!(state.get(), FormulaState::Correct | FormulaState::Revealed(_));
+    let is_locked = move || {
+        matches!(
+            state.get(),
+            FormulaState::Correct | FormulaState::Revealed(_)
+        )
+    };
 
     // Re-run renderAllPlaceholders when state changes (new LaTeX elements appear in DOM)
     #[cfg(target_arch = "wasm32")]
@@ -156,7 +162,9 @@ pub fn QuizFormulaInput(
         use wasm_bindgen::JsValue;
         let window = web_sys::window().unwrap();
         if let Ok(bridge) = js_sys::Reflect::get(&window, &JsValue::from_str("__katex_bridge")) {
-            if let Ok(func) = js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders")) {
+            if let Ok(func) =
+                js_sys::Reflect::get(&bridge, &JsValue::from_str("renderAllPlaceholders"))
+            {
                 let func: js_sys::Function = func.into();
                 let _ = func.call0(&bridge);
             }

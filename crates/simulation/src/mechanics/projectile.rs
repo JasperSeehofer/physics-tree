@@ -1,5 +1,5 @@
-use rapier2d::prelude::*;
 use crate::traits::Simulation;
+use rapier2d::prelude::*;
 
 pub struct ProjectileSimulation {
     // Rapier physics state
@@ -36,7 +36,9 @@ impl ProjectileSimulation {
         let mut collider_set = ColliderSet::new();
 
         // Create ground: static rigid body at y=0 with a large flat collider
-        let ground_body = RigidBodyBuilder::fixed().translation(vector![0.0, 0.0].into()).build();
+        let ground_body = RigidBodyBuilder::fixed()
+            .translation(vector![0.0, 0.0].into())
+            .build();
         let ground_handle = rigid_body_set.insert(ground_body);
         let ground_collider = ColliderBuilder::cuboid(100.0, 0.1).build();
         collider_set.insert_with_parent(ground_collider, ground_handle, &mut rigid_body_set);
@@ -46,9 +48,7 @@ impl ProjectileSimulation {
             .translation(vector![1.0, 1.0].into())
             .build();
         let ball_handle = rigid_body_set.insert(ball_body);
-        let ball_collider = ColliderBuilder::ball(0.3)
-            .restitution(0.3)
-            .build();
+        let ball_collider = ColliderBuilder::ball(0.3).restitution(0.3).build();
         collider_set.insert_with_parent(ball_collider, ball_handle, &mut rigid_body_set);
 
         let gravity: Vector = vector![0.0, -9.81].into();
@@ -121,7 +121,9 @@ impl ProjectileSimulation {
         let mut collider_set = ColliderSet::new();
 
         // Recreate ground
-        let ground_body = RigidBodyBuilder::fixed().translation(vector![0.0, 0.0].into()).build();
+        let ground_body = RigidBodyBuilder::fixed()
+            .translation(vector![0.0, 0.0].into())
+            .build();
         let ground_handle = rigid_body_set.insert(ground_body);
         let ground_collider = ColliderBuilder::cuboid(100.0, 0.1).build();
         collider_set.insert_with_parent(ground_collider, ground_handle, &mut rigid_body_set);
@@ -131,9 +133,7 @@ impl ProjectileSimulation {
             .translation(vector![1.0, 1.0].into())
             .build();
         let ball_handle = rigid_body_set.insert(ball_body);
-        let ball_collider = ColliderBuilder::ball(0.3)
-            .restitution(0.3)
-            .build();
+        let ball_collider = ColliderBuilder::ball(0.3).restitution(0.3).build();
         collider_set.insert_with_parent(ball_collider, ball_handle, &mut rigid_body_set);
 
         self.rigid_body_set = rigid_body_set;
@@ -311,7 +311,11 @@ mod tests {
             sim.step();
         }
         let pos = sim.positions();
-        assert!(pos[0].1 < 2.0, "ball should have come back down (y={:.2})", pos[0].1);
+        assert!(
+            pos[0].1 < 2.0,
+            "ball should have come back down (y={:.2})",
+            pos[0].1
+        );
     }
 
     #[test]

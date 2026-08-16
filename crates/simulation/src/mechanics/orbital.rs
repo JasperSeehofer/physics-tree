@@ -8,9 +8,12 @@ pub struct OrbitalSimulation {
     initial_speed: f32,    // 1.0 - 50.0 (tangential)
     pub g_constant: f32,   // gravitational constant (tuned for visual scale)
     // State
-    cx: f32, cy: f32,      // central body position (fixed at center)
-    ox: f32, oy: f32,      // orbiting body position
-    vx: f32, vy: f32,      // orbiting body velocity
+    cx: f32,
+    cy: f32, // central body position (fixed at center)
+    ox: f32,
+    oy: f32, // orbiting body position
+    vx: f32,
+    vy: f32, // orbiting body velocity
     time: f32,
     step_count: u32,
     running: bool,
@@ -61,12 +64,20 @@ impl OrbitalSimulation {
         self.reset();
     }
 
-    pub fn get_central_mass(&self) -> f32 { self.central_mass }
-    pub fn get_initial_distance(&self) -> f32 { self.initial_distance }
-    pub fn get_initial_speed(&self) -> f32 { self.initial_speed }
+    pub fn get_central_mass(&self) -> f32 {
+        self.central_mass
+    }
+    pub fn get_initial_distance(&self) -> f32 {
+        self.initial_distance
+    }
+    pub fn get_initial_speed(&self) -> f32 {
+        self.initial_speed
+    }
 
     /// Current position of orbiting body
-    pub fn orbital_pos(&self) -> (f32, f32) { (self.ox, self.oy) }
+    pub fn orbital_pos(&self) -> (f32, f32) {
+        (self.ox, self.oy)
+    }
 
     pub fn play(&mut self) {
         self.running = true;
@@ -82,7 +93,8 @@ impl OrbitalSimulation {
                 // Circular orbit: v = sqrt(G*M/r)
                 self.initial_distance = 20.0;
                 // speed = sqrt(G * central_mass / r) = sqrt(1.0 * 1e4 / 20.0) ≈ 22.36
-                self.initial_speed = (self.g_constant * self.central_mass / self.initial_distance).sqrt();
+                self.initial_speed =
+                    (self.g_constant * self.central_mass / self.initial_distance).sqrt();
             }
             "elliptical" => {
                 self.initial_distance = 15.0;
@@ -206,9 +218,15 @@ impl Simulation for OrbitalSimulation {
         self.running = false;
     }
 
-    fn is_running(&self) -> bool { self.running }
-    fn set_running(&mut self, running: bool) { self.running = running; }
-    fn time(&self) -> f32 { self.time }
+    fn is_running(&self) -> bool {
+        self.running
+    }
+    fn set_running(&mut self, running: bool) {
+        self.running = running;
+    }
+    fn time(&self) -> f32 {
+        self.time
+    }
 
     fn positions(&self) -> Vec<(f32, f32)> {
         vec![(self.ox, self.oy)]
@@ -263,7 +281,8 @@ mod tests {
         assert!(
             ox < initial_x,
             "x should decrease as body curves toward center, initial={:.3}, current={:.3}",
-            initial_x, ox
+            initial_x,
+            ox
         );
     }
 

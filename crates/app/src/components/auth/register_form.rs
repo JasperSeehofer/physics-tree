@@ -112,9 +112,7 @@ pub fn RegisterForm() -> impl IntoView {
                             ));
                         }
                         _ => {
-                            error.set(Some(
-                                "Something went wrong. Please try again.".to_string(),
-                            ));
+                            error.set(Some("Something went wrong. Please try again.".to_string()));
                         }
                     }
                 });

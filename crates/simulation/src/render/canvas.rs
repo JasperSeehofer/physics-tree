@@ -13,7 +13,13 @@ pub const COLOR_MIST: &str = "#8892a4";
 
 /// Transform physics coordinates (meters) to canvas pixel coordinates.
 /// Physics origin at bottom-left, canvas origin at top-left.
-pub fn physics_to_canvas(x: f32, y: f32, _canvas_width: f64, canvas_height: f64, scale: f64) -> (f64, f64) {
+pub fn physics_to_canvas(
+    x: f32,
+    y: f32,
+    _canvas_width: f64,
+    canvas_height: f64,
+    scale: f64,
+) -> (f64, f64) {
     let cx = x as f64 * scale;
     let cy = canvas_height - (y as f64 * scale);
     (cx, cy)
@@ -40,7 +46,14 @@ pub fn draw_ground(ctx: &CanvasRenderingContext2d, y: f64, width: f64, color: &s
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn draw_text(ctx: &CanvasRenderingContext2d, text: &str, x: f64, y: f64, color: &str, font: &str) {
+pub fn draw_text(
+    ctx: &CanvasRenderingContext2d,
+    text: &str,
+    x: f64,
+    y: f64,
+    color: &str,
+    font: &str,
+) {
     ctx.set_fill_style_str(color);
     ctx.set_font(font);
     ctx.fill_text(text, x, y).unwrap();

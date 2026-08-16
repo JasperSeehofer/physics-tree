@@ -2,13 +2,13 @@ use crate::traits::Simulation;
 
 pub struct HarmonicSimulation {
     // Parameters
-    spring_k: f32,               // 1.0 - 100.0 N/m
-    mass: f32,                   // 0.1 - 10.0 kg
-    initial_displacement: f32,   // 0.5 - 5.0 m
-    damping: f32,                // 0.0 - 2.0
+    spring_k: f32,             // 1.0 - 100.0 N/m
+    mass: f32,                 // 0.1 - 10.0 kg
+    initial_displacement: f32, // 0.5 - 5.0 m
+    damping: f32,              // 0.0 - 2.0
     // State
-    x: f32,                      // displacement from equilibrium
-    v: f32,                      // velocity
+    x: f32, // displacement from equilibrium
+    v: f32, // velocity
     time: f32,
     step_count: u32,
     running: bool,
@@ -62,9 +62,15 @@ impl HarmonicSimulation {
         self.damping = d.clamp(0.0, 2.0);
     }
 
-    pub fn get_spring_k(&self) -> f32 { self.spring_k }
-    pub fn get_mass(&self) -> f32 { self.mass }
-    pub fn get_displacement(&self) -> f32 { self.x }
+    pub fn get_spring_k(&self) -> f32 {
+        self.spring_k
+    }
+    pub fn get_mass(&self) -> f32 {
+        self.mass
+    }
+    pub fn get_displacement(&self) -> f32 {
+        self.x
+    }
 
     pub fn play(&mut self) {
         self.running = true;
@@ -100,9 +106,13 @@ impl HarmonicSimulation {
     }
 
     /// Current displacement (for testing)
-    pub fn displacement(&self) -> f32 { self.x }
+    pub fn displacement(&self) -> f32 {
+        self.x
+    }
     /// Current velocity (for testing)
-    pub fn velocity(&self) -> f32 { self.v }
+    pub fn velocity(&self) -> f32 {
+        self.v
+    }
 
     #[cfg(target_arch = "wasm32")]
     pub fn render(&self, ctx: &web_sys::CanvasRenderingContext2d) {
@@ -151,7 +161,11 @@ impl HarmonicSimulation {
             for i in 0..n_coils {
                 let x1 = spring_start + coil_width * (i as f64 + 0.25);
                 let x2 = spring_start + coil_width * (i as f64 + 0.75);
-                let y_off = if i % 2 == 0 { -coil_height } else { coil_height };
+                let y_off = if i % 2 == 0 {
+                    -coil_height
+                } else {
+                    coil_height
+                };
                 ctx.line_to(x1, center_y + y_off);
                 ctx.line_to(x2, center_y - y_off);
             }
@@ -161,7 +175,12 @@ impl HarmonicSimulation {
 
         // Draw block
         ctx.set_fill_style_str(COLOR_LEAF_GREEN);
-        ctx.fill_rect(block_x - block_half, center_y - block_half, block_half * 2.0, block_half * 2.0);
+        ctx.fill_rect(
+            block_x - block_half,
+            center_y - block_half,
+            block_half * 2.0,
+            block_half * 2.0,
+        );
 
         // Draw displacement arrow
         if self.x.abs() > 0.05 {
@@ -216,9 +235,15 @@ impl Simulation for HarmonicSimulation {
         self.running = false;
     }
 
-    fn is_running(&self) -> bool { self.running }
-    fn set_running(&mut self, running: bool) { self.running = running; }
-    fn time(&self) -> f32 { self.time }
+    fn is_running(&self) -> bool {
+        self.running
+    }
+    fn set_running(&mut self, running: bool) {
+        self.running = running;
+    }
+    fn time(&self) -> f32 {
+        self.time
+    }
 
     fn positions(&self) -> Vec<(f32, f32)> {
         // Return (x displacement, 0) for interface compliance
@@ -259,7 +284,8 @@ mod tests {
         assert!(
             x_after < initial_x,
             "displacement should have decreased from initial after 45 steps (was {:.3} -> {:.3})",
-            initial_x, x_after
+            initial_x,
+            x_after
         );
     }
 

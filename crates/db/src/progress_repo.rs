@@ -254,10 +254,7 @@ pub async fn award_xp_to_user(
 /// writes back, and checks for streak milestones to award freeze tokens (up to MAX_FREEZE_TOKENS).
 ///
 /// Returns (new_streak, new_freeze_tokens, freeze_used).
-pub async fn upsert_streak(
-    pool: &PgPool,
-    user_id: Uuid,
-) -> Result<(i32, i32, bool), sqlx::Error> {
+pub async fn upsert_streak(pool: &PgPool, user_id: Uuid) -> Result<(i32, i32, bool), sqlx::Error> {
     use sqlx::Row;
 
     let today = Utc::now().date_naive();
@@ -287,21 +284,21 @@ pub async fn upsert_streak(
 
     // Check milestone and cap tokens
     let milestone_reached = xp_logic::check_streak_milestone(update.new_streak);
-    let final_tokens = if milestone_reached && update.new_freeze_tokens < xp_logic::MAX_FREEZE_TOKENS {
-        update.new_freeze_tokens + 1
-    } else {
-        update.new_freeze_tokens
-    };
+    let final_tokens =
+        if milestone_reached && update.new_freeze_tokens < xp_logic::MAX_FREEZE_TOKENS {
+            update.new_freeze_tokens + 1
+        } else {
+            update.new_freeze_tokens
+        };
 
     // Fetch current longest_streak to update it if needed
-    let longest_streak: i32 = sqlx::query(
-        "SELECT COALESCE(longest_streak, 0) FROM user_streaks WHERE user_id = $1",
-    )
-    .bind(user_id)
-    .fetch_optional(pool)
-    .await?
-    .map(|r| r.try_get::<i32, _>("coalesce").unwrap_or(0))
-    .unwrap_or(0);
+    let longest_streak: i32 =
+        sqlx::query("SELECT COALESCE(longest_streak, 0) FROM user_streaks WHERE user_id = $1")
+            .bind(user_id)
+            .fetch_optional(pool)
+            .await?
+            .map(|r| r.try_get::<i32, _>("coalesce").unwrap_or(0))
+            .unwrap_or(0);
 
     let new_longest = longest_streak.max(update.new_streak as i32);
 
@@ -327,5 +324,9 @@ pub async fn upsert_streak(
     .execute(pool)
     .await?;
 
-    Ok((update.new_streak as i32, final_tokens as i32, update.freeze_used))
+    Ok((
+        update.new_streak as i32,
+        final_tokens as i32,
+        update.freeze_used,
+    ))
 }

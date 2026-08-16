@@ -73,10 +73,10 @@ pub async fn get_by_slug(
     .await?;
 
     Ok(row.map(|r| ContentMetadataRow {
-        id: r.get("node_id"),    // reuse node_id as id (no separate id column in node_phases join)
+        id: r.get("node_id"), // reuse node_id as id (no separate id column in node_phases join)
         node_id: r.get("node_id"),
         file_path: r.get("file_path"),
-        review_status: "approved".to_string(),  // all migrated content is approved
+        review_status: "approved".to_string(), // all migrated content is approved
         slug: r.get("slug"),
         title: r.get("title"),
         description: r.get("description"),
@@ -168,12 +168,10 @@ pub async fn get_node_by_slug(
     pool: &PgPool,
     slug: &str,
 ) -> Result<Option<(Uuid, String, String)>, sqlx::Error> {
-    let row = sqlx::query(
-        r#"SELECT id, title, branch FROM nodes WHERE slug = $1 LIMIT 1"#,
-    )
-    .bind(slug)
-    .fetch_optional(pool)
-    .await?;
+    let row = sqlx::query(r#"SELECT id, title, branch FROM nodes WHERE slug = $1 LIMIT 1"#)
+        .bind(slug)
+        .fetch_optional(pool)
+        .await?;
 
     Ok(row.map(|r| {
         let id: Uuid = r.get("id");

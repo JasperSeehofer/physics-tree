@@ -400,5 +400,6 @@ pub fn MiniTree(nodes: Vec<NodeProgress>) -> impl IntoView {
             // Node botanical shapes (sorted by mastery tier — bloom on top)
             {node_elements}
         </svg>
-    }.into_any()
+    }
+    .into_any()
 }
