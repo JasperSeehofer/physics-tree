@@ -158,6 +158,31 @@ pub async fn post_probe(
                 format!("Item '{}' is not correctness-gated", submitted.id),
             ));
         }
+        // A correctness-gated item that was scored but not judged would disarm
+        // the correctness gate silently — the rule reads `correct`, not `score`,
+        // so an absent judgement is indistinguishable from a right answer in the
+        // verdict. That is the one failure mode a self-scoring learner cannot
+        // detect, so it is a 400 rather than a quiet no-fire. Mirrors
+        // `save_enabled` in the entry form; a blank item needs no judgement,
+        // because there is nothing to judge.
+        if item.correctness.is_some() && submitted.score.is_some() && submitted.correct.is_none() {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                format!(
+                    "Item '{}' is correctness-gated: a score needs a correct/wrong judgement",
+                    submitted.id
+                ),
+            ));
+        }
+        // `probe_item_scores` is keyed (sitting_id, item_id): a repeated id would
+        // be a primary-key violation surfacing as a 500 mid-transaction. Caught
+        // at the serde boundary instead, like every other failure on this route.
+        if items.iter().any(|i| i.item_id == submitted.id) {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                format!("Item '{}' submitted more than once", submitted.id),
+            ));
+        }
         items.push(ItemScoreInput {
             item_id: submitted.id.clone(),
             score: submitted.score.map(|s| s as i16),

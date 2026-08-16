@@ -12,9 +12,10 @@
 //!
 //! `probe.yaml` is the sidecar that carries the routing *data* beside the
 //! routing *prose*. The prose stays authoritative for the learner; this file is
-//! authoritative for the app, and every rule carries the paragraph it mirrors
-//! verbatim in `text` so a drift between the two shows itself the first time the
-//! rule fires.
+//! authoritative for the app, and every rule carries in `text` the paragraph it
+//! encodes — verbatim where the sentence stands alone, otherwise condensed from
+//! the same paragraph without changing its condition, action or reason — so a
+//! drift between the two shows itself the first time the rule fires.
 //!
 //! # What this module is not
 //!
@@ -212,8 +213,12 @@ pub struct ProbeRule {
     /// which are advice and not policy.
     #[serde(default)]
     pub then: RuleActions,
-    /// Verbatim from `phase-0.md`'s routing prose. The app displays this rather
-    /// than paraphrasing it, so a drifted rule shows itself when it fires.
+    /// The authored paragraph from `phase-0.md`'s routing prose: verbatim where
+    /// the sentence stands alone, otherwise a condensation of that same
+    /// paragraph — never a re-wording of the condition, the action, or the
+    /// reason given for either (content-spec §4a, "The `text` standard"). The
+    /// app displays this rather than paraphrasing it, so a drifted rule shows
+    /// itself when it fires.
     pub text: String,
 }
 

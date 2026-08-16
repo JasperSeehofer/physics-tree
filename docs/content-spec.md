@@ -823,7 +823,7 @@ rules:                                # evaluated in precedence order, all match
       route_to: {concept_id: <slug>, status: external, phase: 2}
       flag_escalation: E11
       report: true                    # surface as "record this before continuing"
-    text: >                           # verbatim from phase-0.md's routing prose
+    text: >                           # the paragraph from phase-0.md this rule encodes
       Stop. The single harmonic oscillator is …
 ```
 
@@ -913,10 +913,26 @@ Whether `probe.yaml` **agrees with** the prose in `phase-0.md`. Nothing in the
 toolchain can check that `when: {items: ["4a"], correct: false}` still means what
 the paragraph above it says, and an edit to one and not the other misroutes
 silently. Three things reduce the exposure and none of them removes it: each
-rule's `text` is copied **verbatim** from the prose, so a diff is visible in one
-file; the app **displays** `text` rather than paraphrasing it, so a drifted rule
-shows itself the first time it fires; and checks 16–22 catch structural drift.
-Agreement itself is a review obligation, like everything else inside the probe.
+rule's `text` carries the authored paragraph itself; the app **displays** that
+text rather than paraphrasing it, so a drifted rule shows itself the first time
+it fires; and checks 16–22 catch structural drift. Agreement itself is a review
+obligation, like everything else inside the probe.
+
+**The `text` standard, stated precisely.** A rule's `text` is the prose it
+encodes, with two edits allowed and no third. (1) The *condition* clause may be
+dropped, because `when` now carries it — the bullet "**A 0 or 1 on item 4(a)** —
+take the node in order and …" becomes "Take the node in order and …". (2) A
+paragraph whose argument runs across several sentences may be **condensed**, and
+a pronoun whose antecedent was the surrounding prose may be resolved so the text
+stands alone off the page ("that entire argument" → "node 8's derivation of its
+vanishing at spacelike separation"). What is **not** allowed is a re-wording that
+changes, weakens or extends the condition, the action, or the reason given for
+either: those are the three things a reviewer diffs against the prose, and a
+condensation that drops one of them is a MAJOR. §2.1's worked example — the
+ratified reference for this file's style — condenses; roughly a third of the
+shipped corpus does. Reviewers should therefore read for *meaning* against the
+paragraph, not run a string comparison, and should expect the condensed rules to
+be the ones where drift can hide.
 
 ---
 

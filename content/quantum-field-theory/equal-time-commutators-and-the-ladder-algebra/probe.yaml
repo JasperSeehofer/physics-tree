@@ -2,8 +2,11 @@
 # authoritative for the learner; this file is authoritative for the app.
 # TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
 #
-# Every `text` below is copied verbatim from the routing prose it mirrors, so a
-# drift between the two is a one-file diff rather than an invisible divergence.
+# Every `text` below carries the routing paragraph it mirrors — verbatim where
+# the sentence stands alone, condensed from the same paragraph otherwise, and
+# never re-worded in its condition, action or reason (content-spec v1.4 §4a).
+# A drift between the two is then a one-file read rather than an invisible
+# divergence.
 spec_version: 1.4
 concept_id: equal-time-commutators-and-the-ladder-algebra
 
