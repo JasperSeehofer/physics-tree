@@ -16,7 +16,11 @@ items:
       wrong_if: >
         The answer is (a) — that the general, unequal-time [φ(x),φ(y)] is a
         postulate of the theory, laid down alongside the equal-time relation.
-      basin: pQCD
+      # No `basin`: the two-basin rule (M10a §5) classifies *measured* attractors,
+      # and the vault record types this item's wrong answer as C1's non-fluency
+      # ("writes [φ̂(x),φ̂(y)] where the equal-time relation belonged"), not as
+      # geometry- or pQCD-basin interference. An unevidenced basin tag would be a
+      # [MEASURED] claim without a source (Gate-8 amendment 3).
   - id: "3"
     summary: "Derive [a_k, a†_k'] from the postulate, or say in one line where you get stuck"
 
@@ -44,6 +48,14 @@ rules:
         - {items: ["1"], score: {gte: 1}}
     then:
       flag_escalation: E2
+      # The prose instructs "**Flag this in the module log**" — the same
+      # instruction node 1's E11 rule carries, and `report` is precisely the
+      # encoding of "record this before continuing" (§1.2). DESIGN §5.3's
+      # "E12 *additionally* carries report: true" cannot be read as excluding
+      # E11, since §2.1's ratified worked example gives E11 `report: true`; it
+      # distinguishes *where* E12's report goes (the vault premise record), not
+      # whether the flag is reported at all. M13c ruling.
+      report: true
     text: >
       Take the node in order and do Phase 2's D1 with a pen rather than reading
       it. Flag this in the module log: it is escalation trigger E2 in the S0.5

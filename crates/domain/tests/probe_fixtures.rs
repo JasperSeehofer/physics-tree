@@ -291,6 +291,72 @@ fn no_s05_probe_grants_a_skip() {
     }
 }
 
+#[test]
+fn every_per_node_escalation_flag_is_a_report() {
+    // M13c ruling on the design's §2.1-vs-§5.3 contradiction. E11, E2 and E12
+    // are the three per-node flags in the S0.5 corpus, and every one of them is
+    // introduced by prose that tells the learner to write it down before
+    // continuing ("Flag this outcome in the module log", "Flag this in the
+    // module log", "stop and record it before continuing"). `report` is the
+    // encoding of exactly that instruction, so all three carry it. Escalation is
+    // "sequential and probe-driven" (M10a §6): every row has to reach the
+    // orchestrator, and E12's distinction is *where* its report goes — the vault
+    // premise record — not whether it is reported.
+    let expected = [
+        ("node 1", NODE_1, "E11"),
+        ("node 2", NODE_2, "E2"),
+        ("node 4", NODE_4, "E12"),
+    ];
+    for (name, yaml, flag_id) in expected {
+        let spec = parse(yaml);
+        let rule = spec
+            .rules
+            .iter()
+            .find(|r| r.then.flag_escalation.as_deref() == Some(flag_id))
+            .unwrap_or_else(|| panic!("{name} declares no rule flagging {flag_id}"));
+        assert!(
+            rule.then.report,
+            "{name}/{} raises {flag_id} without report: true",
+            rule.id
+        );
+    }
+
+    // And no other node in the corpus raises a flag at all.
+    for (name, yaml) in [("node 3", NODE_3), ("node 5", NODE_5)] {
+        for rule in &parse(yaml).rules {
+            assert!(
+                rule.then.flag_escalation.is_none(),
+                "{name}/{} raises an unexpected escalation flag",
+                rule.id
+            );
+        }
+    }
+}
+
+#[test]
+fn a_report_is_never_authored_without_a_flag_to_carry_it() {
+    // `report` is only ever surfaced through an EscalationFlag, so a rule with
+    // `report: true` and no `flag_escalation` would be silently inert. Nothing
+    // in the corpus does that; this pins it.
+    for (name, yaml) in [
+        ("node 1", NODE_1),
+        ("node 2", NODE_2),
+        ("node 3", NODE_3),
+        ("node 4", NODE_4),
+        ("node 5", NODE_5),
+        ("GR lie", GR_LIE),
+        ("GR parallel", GR_PARALLEL),
+    ] {
+        for rule in &parse(yaml).rules {
+            assert!(
+                !(rule.then.report && rule.then.flag_escalation.is_none()),
+                "{name}/{} sets report: true with no escalation flag to carry it",
+                rule.id
+            );
+        }
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Node 1 — module probe, correctness gate, E11, diagnostic item
 // ─────────────────────────────────────────────────────────────────────────────
@@ -455,6 +521,16 @@ fn node_2_scores_to_verdicts() {
     );
     assert_eq!(derivation.escalation_flags.len(), 1);
     assert_eq!(derivation.escalation_flags[0].id, "E2");
+    // M13c: the prose says "**Flag this in the module log**", which is exactly
+    // what `report` encodes. All three per-node flags (E11, E2, E12) carry it —
+    // design §5.3's "additionally" distinguishes where E12's report goes, not
+    // whether E2 is reported. Without this the banner is the weaker variant and
+    // the "record this before continuing" line never renders.
+    assert!(
+        derivation.escalation_flags[0].report,
+        "E2 is a report, not merely a flag"
+    );
+    assert!(derivation.wants_report());
     assert_eq!(derivation.headline, VerdictHeadline::TakeInOrder);
 
     // 1 or 2 on item 3 is the expected outcome.
