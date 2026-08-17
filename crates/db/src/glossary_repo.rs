@@ -404,13 +404,16 @@ async fn branch_conventions(
                c.opened_by, c.closed_by,
                COALESCE(o.title, c.opened_by_slug) AS opened_title,
                COALESCE(x.title, c.closed_by_slug) AS closed_title,
+               -- The `::uuid` casts are load-bearing, not decoration: `user_id`
+               -- is `Option<Uuid>` for the anonymous case, and an untyped NULL
+               -- parameter leaves Postgres unable to infer the type at all.
                EXISTS (
                    SELECT 1 FROM user_phase_progress p
-                   WHERE p.user_id = $2 AND p.node_id = c.opened_by
+                   WHERE p.user_id = $2::uuid AND p.node_id = c.opened_by
                ) AS reached_open,
                EXISTS (
                    SELECT 1 FROM user_phase_progress p
-                   WHERE p.user_id = $2 AND p.node_id = c.closed_by
+                   WHERE p.user_id = $2::uuid AND p.node_id = c.closed_by
                ) AS reached_close
         FROM branch_conventions c
         LEFT JOIN nodes o ON o.id = c.opened_by
