@@ -271,3 +271,172 @@ phases:
     requires:
       - spaced_prompt
       - interleaving_problem
+
+# =============================================================================
+# GLOSSARY TERMS — content-spec v1.5 (mission M14).
+#
+# The objects this node is the *first* in the branch to define. Ownership is
+# structural: the record lives in the defining node's node.yaml, so there is no
+# "defined by" field to keep correct and none to go stale.
+#
+# Ten of them, against ~185 distinct bolded phrases in this node — roughly 5% of
+# the emphasis surface. That is the intended discipline: a declaration is a
+# *selection*, not a transcription.
+#
+# Every string here is KaTeX source and follows the §3 YAML rule — single quotes
+# or literal blocks, never double quotes, or the backslashes are eaten before
+# serde ever sees them.
+#
+# `caveat` is the amber slot and it is load-bearing on this branch: it is where
+# the convention traps go, and convention traps are this learner's measured #1
+# error class (three fired in the assessment, all source interference from a
+# pQCD past). Five of the ten carry one.
+#
+# Unlock is derived from the tag index, not from a field: a term is unlocked
+# once the learner completes any (node, phase) in which it is tagged. So the
+# five terms this node *uses* but does not own — equal-time-ccr,
+# operator-valued-distribution, improper-state, normal-ordering,
+# invariant-measure — are readable here in full, because the page in front of
+# the learner states them. Their records live with their owners.
+# =============================================================================
+terms:
+  - key: mode-expansion
+    term: 'Mode expansion'
+    symbol: |
+      $\varphi(\mathbf{x}) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}\left(a_{\mathbf{k}}e^{i\mathbf{k}\cdot\mathbf{x}} + a^{\dagger}_{\mathbf{k}}e^{-i\mathbf{k}\cdot\mathbf{x}}\right)$
+    units: 'mass dimension 1'
+    definition: |
+      The free scalar field written as a superposition of ladder operators — one
+      independent harmonic oscillator per momentum $\mathbf{k}$. It is an operator
+      identity in both directions: $a_{\mathbf{k}}$ can be written back in terms of
+      $\varphi$ and $\pi$, so neither side is more fundamental.
+    caveat: |
+      The $1/\sqrt{2\omega_{\mathbf{k}}}$ placement is a convention. Srednicki puts
+      $1/(2\omega_{\mathbf{k}})$ in the measure and absorbs $\sqrt{2\omega_{\mathbf{k}}}$
+      into $a_{\mathbf{k}}$. **A convention is only wrong when it is mixed.**
+    teaser: 'the field written as a superposition of ladder operators'
+    convention_row: mode-normalization
+
+  - key: ladder-operators
+    term: 'Creation and annihilation operators'
+    symbol: '$a_{\mathbf{k}},\; a^{\dagger}_{\mathbf{k}}$'
+    units: 'mass dimension $-3/2$'
+    definition: |
+      The operators that lower and raise the occupation number of the
+      momentum-$\mathbf{k}$ oscillator. This node *constructs* them from
+      $\tilde{\varphi}$ and $\tilde{\pi}$ rather than naming them.
+    caveat: |
+      $a^{\text{Sred}}(\mathbf{k}) = \sqrt{2\omega_{\mathbf{k}}}\,a^{\text{Peskin}}_{\mathbf{k}}$,
+      so every formula containing $a$ or $a^{\dagger}$ differs between the two
+      standard texts by a $k$-dependent factor.
+    teaser: 'the two operators that move one momentum mode up and down the ladder'
+
+  - key: ladder-algebra
+    term: 'Ladder commutator'
+    symbol: '$\left[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}''}\right] = (2\pi)^{3}\delta^{3}(\mathbf{k}-\mathbf{k}'')$'
+    units: 'mass dimension $-3$'
+    definition: |
+      The commutation relation the mode operators inherit from the equal-time
+      CCR. It is equivalent to the CCR, and node 2 proves the equivalence in
+      both directions.
+    caveat: |
+      The $(2\pi)^{3}$ is **not** an independent choice — it is fixed by the
+      Fourier convention and the mode normalization together. In the symmetric
+      Fourier convention it disappears.
+    teaser: 'what the canonical commutator becomes once you change to the momentum basis'
+    convention_row: ladder-commutator
+
+  - key: conjugate-momentum-density
+    term: 'Conjugate momentum (field)'
+    symbol: '$\pi(\mathbf{x}) = \partial\mathcal{L}/\partial\dot{\varphi}(\mathbf{x})$'
+    units: 'mass dimension 2'
+    definition: |
+      The momentum conjugate to the field at a point — a *density*, not a
+      momentum. For $\mathcal{L} = \tfrac{1}{2}(\partial\varphi)^{2} -
+      \tfrac{1}{2}m^{2}\varphi^{2}$ it is simply $\pi = \dot{\varphi}$.
+    caveat: |
+      Sources using the opposite-sign Legendre convention flip $\pi$ throughout,
+      and nothing looks wrong in isolation.
+    teaser: 'the per-point partner of the field, and the reason there is a canonical commutator at all'
+    convention_row: sign-of-i-in-the-ccr
+
+  - key: fourier-transform
+    term: 'Fourier transform (as a change of basis)'
+    units: '—'
+    definition: |
+      The change of basis that diagonalizes translations, and therefore the
+      operation that decouples the field's modes. Not the integral — the
+      *meaning* of the integral.
+    caveat: |
+      **This is not a Legendre transform.** [MEASURED: probe C1 reached momentum
+      space "via Legendre transform".] Fourier changes which *space* you are in;
+      Legendre changes which *variable* you hold fixed. This node's correctness
+      gate is on exactly this distinction.
+    teaser: 'the change of basis that makes the coupled modes independent'
+
+  - key: legendre-transform
+    term: 'Legendre transform'
+    symbol: '$L(q,\dot{q}) \to H(q,p)$, $p = \partial L/\partial\dot{q}$'
+    units: '—'
+    definition: |
+      The operation that trades a variable for its conjugate slope. It changes
+      which variable you hold fixed, not which space you are in.
+    caveat: |
+      The Fourier↔Legendre collision is one of three measured convention traps
+      in this learner's ledger, all of them source interference from a pQCD past.
+    teaser: 'the operation that takes the Lagrangian to the Hamiltonian'
+
+  - key: on-shell-energy
+    term: 'On-shell energy'
+    symbol: '$\omega_{\mathbf{k}} = +\sqrt{\mathbf{k}^{2}+m^{2}}$'
+    units: 'energy'
+    definition: |
+      The on-shell condition $k^{2}=m^{2}$ solved for the energy, always the
+      positive root. It is the oscillator frequency of the mode $\mathbf{k}$ and
+      it is the relativistic energy of a particle of that momentum — the same
+      number, arrived at twice.
+    caveat: |
+      Written $E_{\mathbf{k}}$ or $E_{p}$ elsewhere for the same object, and
+      mixed freely in the literature. **Not** a convention: no choice is involved.
+    teaser: 'the frequency of one mode, which is also the energy of one particle'
+
+  - key: positive-frequency
+    term: 'Positive frequency'
+    units: '—'
+    definition: |
+      The $e^{-i\omega_{\mathbf{k}}t}$ half of the expansion, which rides the
+      annihilation operator. The split is what makes $\varphi$ Hermitian, and it
+      is defined relative to a choice of time.
+    caveat: |
+      Sources in $(-,+,+,+)$ write $e^{+ikx}$ for the **same physical function**.
+      The sign difference is illusory; the normalization difference is real.
+    teaser: 'the half of the expansion that annihilates rather than creates'
+    convention_row: positive-frequency
+
+  - key: metric-signature
+    term: 'Metric signature'
+    symbol: '$\eta_{\mu\nu} = \mathrm{diag}(+1,-1,-1,-1)$'
+    units: '—'
+    definition: |
+      This branch uses $(+,-,-,-)$ throughout, so $kx = k^{0}t -
+      \mathbf{k}\cdot\mathbf{x}$.
+    caveat: |
+      The `general-relativity` branch of this tree uses $(-,+,+,+)$ **on
+      purpose**. The two meet in module S2.1 and every $\eta_{\mu\nu}$ changes
+      sign. Write the signature at the top of every page.
+    teaser: 'which of the four signs the metric carries, and therefore what $kx$ means'
+    convention_row: metric-signature
+
+  - key: fourier-convention
+    term: 'Fourier convention'
+    symbol: '$\int\!\frac{d^{3}k}{(2\pi)^{3}}\,e^{i\mathbf{k}\cdot\mathbf{x}} = \delta^{3}(\mathbf{x})$'
+    units: '—'
+    definition: |
+      Where the $2\pi$s live: $(2\pi)^{3}$ accompanies every $d^{3}k$ and nothing
+      accompanies $d^{3}x$.
+    caveat: |
+      The symmetric convention puts $(2\pi)^{-3/2}$ on both, and then the
+      $(2\pi)^{3}$ in the ladder commutator disappears too. Mixing the two is the
+      cheapest way to lose a factor you will never find again.
+    teaser: 'where the factors of $2\pi$ are put, and what else that decides'
+    convention_row: fourier-convention

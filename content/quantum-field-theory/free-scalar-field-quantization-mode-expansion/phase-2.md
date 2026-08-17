@@ -64,13 +64,13 @@ $$E_{0} = \tfrac{1}{2}\sum_{\mathbf{n}}\omega_{\mathbf{k}} = \tfrac{1}{2}\left(1
 
 counting $6$, $12$ and $8$ for the permutations and sign choices of $(0,0,1)$, $(0,1,1)$ and $(1,1,1)$ — and it keeps going, growing without bound, because $\omega_{\mathbf{k}}\to\lvert\mathbf{k}\rvert$ while the number of modes in a shell grows like $k^{2}$. The sum diverges as $k^{4}$.
 
-**This node derives that divergence and then stops.** Whether subtracting it is legitimate, why "only energy differences couple to anything" is the licence, and what happens to that licence when gravity is switched on, is node 3 (`field-hamiltonian-normal-ordering-and-vacuum-energy`). Do not subtract anything here; just notice that the object which appeared is a *c-number added to a perfectly sensible operator*, which is a very specific and very mild kind of infinity.
+**This node derives that divergence and then stops.** Whether subtracting it — ::term[normal-ordering]{normal ordering} — is legitimate, why "only energy differences couple to anything" is the licence, and what happens to that licence when gravity is switched on, is node 3 (`field-hamiltonian-normal-ordering-and-vacuum-energy`). Do not subtract anything here; just notice that the object which appeared is a *c-number added to a perfectly sensible operator*, which is a very specific and very mild kind of infinity.
 
 ## Bridging Stage
 
 Same box, quantities named, algebra instead of arithmetic. Everything here is derived in full in the Derivation block; this stage is the argument without the index gymnastics.
 
-**Start.** The Lagrangian density and, by a Legendre transform at each point, the Hamiltonian:
+**Start.** The Lagrangian density and, by a ::term[legendre-transform]{Legendre transform} at each point, the Hamiltonian:
 
 $$\mathcal{L} = \tfrac{1}{2}\dot{\varphi}^{2} - \tfrac{1}{2}\left(\nabla\varphi\right)^{2} - \tfrac{1}{2}m^{2}\varphi^{2}, \qquad \pi = \frac{\partial\mathcal{L}}{\partial\dot{\varphi}} = \dot{\varphi}, \qquad H = \int\! d^{3}x\;\tfrac{1}{2}\left[\pi^{2}+\left(\nabla\varphi\right)^{2}+m^{2}\varphi^{2}\right].$$
 
@@ -108,7 +108,7 @@ so that, relabelling $\mathbf{k}\to-\mathbf{k}$ in the second half of the sum,
 
 $$\varphi(\mathbf{x}) = \frac{1}{\sqrt{V}}\sum_{\mathbf{k}}\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}\left(a_{\mathbf{k}}e^{i\mathbf{k}\cdot\mathbf{x}} + a^{\dagger}_{\mathbf{k}}e^{-i\mathbf{k}\cdot\mathbf{x}}\right).$$
 
-**This is the mode expansion**, and every symbol in it has now been produced rather than quoted. It is manifestly Hermitian, as it must be. And it is an **operator identity**, not a solution ansatz: the $a_{\mathbf{k}}$ are operators on the Hilbert space, not integration constants fixed by initial data. If they were constants, $\varphi$ would be a c-number function and there would be nothing quantum in sight.
+**This is the ::term[mode-expansion]{mode expansion}**, and every symbol in it has now been produced rather than quoted. It is manifestly Hermitian, as it must be. And it is an **operator identity**, not a solution ansatz: the $a_{\mathbf{k}}$ are operators on the Hilbert space, not integration constants fixed by initial data. If they were constants, $\varphi$ would be a c-number function and there would be nothing quantum in sight.
 
 **The $1/\sqrt{2\omega_{\mathbf{k}}}$ is not a convention here.** It came out of the inversion, forced by the definition of $a_{\mathbf{k}}$, which was itself forced by the requirement $[a,a^{\dagger}] = 1$. Where convention genuinely enters is in how much of it you choose to absorb into $a_{\mathbf{k}}$ rather than leave in the expansion — see the Conventions table.
 
@@ -132,7 +132,7 @@ $$\pi(x) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\,(-i)\sqrt{\frac{\omega_{\mathbf{k}}}
 
 where $kx \equiv k^{\mu}x_{\mu} = \omega_{\mathbf{k}}t - \mathbf{k}\cdot\mathbf{x}$ **on shell** — the $k^{0}$ in the exponent is not an integration variable, it is $\omega_{\mathbf{k}}$, which is why the integral is three-dimensional while the exponent looks four-dimensional.
 
-**The algebra**, equivalent to the postulate:
+**::term[ladder-algebra]{The algebra}**, equivalent to the postulate:
 
 $$\left[a_{\mathbf{k}},\,a^{\dagger}_{\mathbf{k}'}\right] = (2\pi)^{3}\,\delta^{3}(\mathbf{k}-\mathbf{k}'), \qquad \left[a_{\mathbf{k}},a_{\mathbf{k}'}\right] = \left[a^{\dagger}_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}\right] = 0.$$
 
@@ -144,13 +144,13 @@ $$H = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\omega_{\mathbf{k}}\left(a^{\dagger}_{\ma
 
 1. **The whole construction is one harmonic oscillator, done once per $\mathbf{k}$.** No new quantum mechanics was introduced. The commutation postulate is $[q,p] = i$ with the index turned into a continuous label; the ladder operators are the textbook ones; the spectrum is a ladder. Everything specifically *field*-theoretic happened in the classical step, where a Fourier transform decoupled the modes.
 
-2. **The mode expansion is an operator identity, in both directions.** Read left to right it says the field is built from ladder operators. Read right to left — invert it —
+2. **The mode expansion is an operator identity, in both directions.** Read left to right it says the field is built from ::term[ladder-operators]{ladder operators}. Read right to left — invert it —
 
 $$a_{\mathbf{k}} = \int\! d^{3}x\;e^{-i\mathbf{k}\cdot\mathbf{x}}\left(\sqrt{\frac{\omega_{\mathbf{k}}}{2}}\,\varphi(x) + \frac{i}{\sqrt{2\omega_{\mathbf{k}}}}\,\pi(x)\right)e^{i\omega_{\mathbf{k}}t}$$
 
 — it says the ladder operators are built from the field. Neither is more fundamental. In particular $a_{\mathbf{k}}$ is not a coefficient waiting to be fixed by initial data; it is a specific operator, written above.
 
-3. **The $e^{-ikx}$ half and the $e^{+ikx}$ half are not interchangeable.** The annihilation operator rides the **positive-frequency** exponential $e^{-i\omega_{\mathbf{k}}t}$ and the creation operator the negative-frequency one. This split is what makes $\varphi$ Hermitian, and it is defined relative to a choice of time — which is fine in Minkowski space, where a global timelike Killing vector exists, and is precisely what fails in a general curved spacetime, where no preferred split and hence no preferred vacuum exists. That failure is module S2.1's central lesson and is stated here only so that the assumption is visible while it still looks innocent.
+3. **The $e^{-ikx}$ half and the $e^{+ikx}$ half are not interchangeable.** The annihilation operator rides the **::term[positive-frequency]{positive-frequency}** exponential $e^{-i\omega_{\mathbf{k}}t}$ and the creation operator the negative-frequency one. This split is what makes $\varphi$ Hermitian, and it is defined relative to a choice of time — which is fine in Minkowski space, where a global timelike Killing vector exists, and is precisely what fails in a general curved spacetime, where no preferred split and hence no preferred vacuum exists. That failure is module S2.1's central lesson and is stated here only so that the assumption is visible while it still looks innocent.
 
 4. **The negative-frequency half is not optional and is not a nuisance.** A real field must contain both. Six nodes downstream (`microcausality-and-spacelike-commutators`), the fact that the two halves *cancel* outside the light cone is what makes the theory causal, and each half separately does not vanish there. Relativistic causality is bought with the $e^{+ikx}$ term.
 
@@ -158,8 +158,8 @@ $$a_{\mathbf{k}} = \int\! d^{3}x\;e^{-i\mathbf{k}\cdot\mathbf{x}}\left(\sqrt{\fr
 
 **Two fences, stated rather than left implicit.**
 
-- The measure $d^{3}k/(2\pi)^{3}$ appearing above is **not** Lorentz invariant. Node 5 (`lorentz-invariant-measure-and-normalization-conventions`) is where the invariant combination $d^{3}k/\left((2\pi)^{3}2\omega_{\mathbf{k}}\right)$ is derived from the on-shell delta function, and where the freedom to move $\sqrt{2\omega}$ between the measure, the operator and the state is settled for the branch. This node does not settle the *state* normalization at all: it writes $a^{\dagger}_{\mathbf{k}}\lvert 0\rangle$ and leaves the question of what to call it open.
-- The objects $a_{\mathbf{k}}$ are **operator-valued distributions**, not operators: $a^{\dagger}_{\mathbf{k}}\lvert 0\rangle$ is not a normalizable vector, and the $\delta^{3}(0)$ above is a symptom of exactly that. Node 4 (`hilbert-space-for-fields-and-continuum-normalization`) is where this is treated properly, and it is where your probe E2 answer — "$\lvert x\rangle\notin\mathcal{H}$ because it is four-dimensional" — gets its real answer, which is non-normalizability. Nothing here depends on that treatment; the box of the Concrete Stage is the honest way to keep every expression finite in the meantime.
+- The measure $d^{3}k/(2\pi)^{3}$ appearing above is **not** Lorentz invariant. Node 5 (`lorentz-invariant-measure-and-normalization-conventions`) is where the ::term[invariant-measure]{invariant combination} $d^{3}k/\left((2\pi)^{3}2\omega_{\mathbf{k}}\right)$ is derived from the on-shell delta function, and where the freedom to move $\sqrt{2\omega}$ between the measure, the operator and the state is settled for the branch. This node does not settle the *state* normalization at all: it writes $a^{\dagger}_{\mathbf{k}}\lvert 0\rangle$ and leaves the question of what to call it open.
+- The objects $a_{\mathbf{k}}$ are **::term[operator-valued-distribution]{operator-valued distributions}**, not operators: $a^{\dagger}_{\mathbf{k}}\lvert 0\rangle$ is an ::term[improper-state]{improper, non-normalizable state}, and the $\delta^{3}(0)$ above is a symptom of exactly that. Node 4 (`hilbert-space-for-fields-and-continuum-normalization`) is where this is treated properly, and it is where your probe E2 answer — "$\lvert x\rangle\notin\mathcal{H}$ because it is four-dimensional" — gets its real answer, which is non-normalizability. Nothing here depends on that treatment; the box of the Concrete Stage is the honest way to keep every expression finite in the meantime.
 
 ## Structural Stage
 
@@ -173,7 +173,7 @@ You have now diagonalized three quadratic forms by the same move: two coupled ma
 
 Read backwards, this is a prediction: break translation invariance and the method must fail. It does, exactly as Phase 1 Part C2 showed — a position-dependent mass $m(\mathbf{x})$ makes the mass term a convolution in $\mathbf{k}$, and different $\mathbf{k}$ are coupled again. Fourier is not a general-purpose decoupling device; it was the right basis for *this* Hamiltonian because of a symmetry *this* Hamiltonian has.
 
-**The dictionary.** Same idea, five systems, five "Fourier transforms":
+**The dictionary.** Same idea, five systems, five "::term[fourier-transform]{Fourier transforms}":
 
 | System | Symmetry group | Irreps labelled by | The "Fourier transform" | Block size |
 |---|---|---|---|---|
@@ -191,7 +191,7 @@ The last two rows are non-abelian, so the blocks are bigger than $1\times1$ and 
 
 ## Derivation
 
-Four derivations in dependency order. **D1** diagonalizes the classical Hamiltonian by Fourier transform — this is where all the real work happens and nothing in it is quantum. **D2** constructs the ladder operators and derives their algebra from the canonical postulate. **D3** writes $H$ in terms of them. **D4** assembles the mode expansion and gives it its time dependence, producing the covariant form.
+Four derivations in dependency order. **D1** diagonalizes the classical Hamiltonian by ::term[fourier-transform]{Fourier transform} — this is where all the real work happens and nothing in it is quantum. **D2** constructs the ladder operators and derives their algebra from the canonical postulate. **D3** writes $H$ in terms of them. **D4** assembles the mode expansion and gives it its time dependence, producing the covariant form.
 
 ### Conventions
 
@@ -268,7 +268,7 @@ $$\boxed{\;H = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\tfrac{1}{2}\left[\tilde{\pi}(\m
 
 Using the reality constraint this is $\int\frac{d^{3}k}{(2\pi)^{3}}\tfrac{1}{2}\left[\lvert\tilde{\pi}(\mathbf{k})\rvert^{2}+\omega_{\mathbf{k}}^{2}\lvert\tilde{\varphi}(\mathbf{k})\rvert^{2}\right]$ — **one unit-mass harmonic oscillator per wavevector**, with no coupling between different wavevectors.
 
-**Audit the structure used.** A choice of inertial time (to define $\pi = \dot{\varphi}$), the plane-wave basis, and the orthogonality relation. The Legendre transform appears exactly once, at the very start, converting $\mathcal{L}$ into $H$ *pointwise* — and it left the $(\nabla\varphi)^{2}$ coupling completely untouched, as it must, since it never relates the field at two different points. The transform that removed the coupling is the Fourier one, and the property it consumed is translation invariance. **These are two different operations doing two different jobs and the node's declared `convention_trap` is precisely their collision.**
+**Audit the structure used.** A choice of inertial time (to define $\pi = \dot{\varphi}$), the plane-wave basis, and the orthogonality relation. The ::term[legendre-transform]{Legendre transform} appears exactly once, at the very start, converting $\mathcal{L}$ into $H$ *pointwise* — and it left the $(\nabla\varphi)^{2}$ coupling completely untouched, as it must, since it never relates the field at two different points. The transform that removed the coupling is the Fourier one, and the property it consumed is translation invariance. **These are two different operations doing two different jobs and the node's declared `convention_trap` is precisely their collision.**
 
 The same substitution in the Euler–Lagrange equation gives the equation of motion mode by mode:
 
@@ -278,7 +278,7 @@ which is the harmonic-oscillator equation. Classical field theory has become cla
 
 ### D2 — the ladder operators, and their algebra from the postulate
 
-Depends on: D1, and the equal-time canonical postulate (Assumption 6).
+Depends on: D1, and the ::term[equal-time-ccr]{equal-time canonical postulate} (Assumption 6).
 
 **The postulate in the Fourier basis.** From $[\varphi(\mathbf{x}),\pi(\mathbf{y})] = i\delta^{3}(\mathbf{x}-\mathbf{y})$,
 
@@ -308,7 +308,7 @@ $$\left[a_{\mathbf{k}},a_{\mathbf{k}'}\right] = -\tfrac{1}{2}(2\pi)^{3}\delta^{3
 
 and $[a^{\dagger}_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}] = 0$ follows by conjugation. **The same two terms that added to give the $\delta^{3}(\mathbf{k}-\mathbf{k}')$ above cancel here**; the entire difference is which sign of the momentum label the delta enforces.
 
-**Read the $(2\pi)^{3}$.** It is there because the Fourier convention put $(2\pi)^{3}$ with $d^{3}k$ and nothing with $d^{3}x$. Change that convention and it moves. It is not physics, and node 2 will show that this whole relation and the position-space postulate are one statement written in two bases.
+**Read the $(2\pi)^{3}$.** It is there because the ::term[fourier-convention]{Fourier convention} put $(2\pi)^{3}$ with $d^{3}k$ and nothing with $d^{3}x$. Change that convention and it moves. It is not physics, and node 2 will show that this whole relation and the position-space postulate are one statement written in two bases.
 
 **Inverting.** Since $a^{\dagger}_{-\mathbf{k}} = \sqrt{\omega_{\mathbf{k}}/2}\,\tilde{\varphi}(\mathbf{k}) - \tfrac{i}{\sqrt{2\omega_{\mathbf{k}}}}\,\tilde{\pi}(\mathbf{k})$ — the same expression as $a_{\mathbf{k}}$ with the sign of the $\tilde\pi$ term flipped — adding and subtracting gives
 
@@ -368,7 +368,7 @@ $$a_{\mathbf{k}}(t) = a_{\mathbf{k}}\,e^{-i\omega_{\mathbf{k}}t}, \qquad a^{\dag
 
 with $a_{\mathbf{k}} \equiv a_{\mathbf{k}}(0)$ from here on. **This is where "free field" is used, and it is the only place.** The evolution is a pure phase precisely because $H$ is quadratic; with an interaction, $[H,a_{\mathbf{k}}]$ acquires terms in other modes and no such solution exists.
 
-Substituting, and combining the exponentials with $kx = \omega_{\mathbf{k}}t - \mathbf{k}\cdot\mathbf{x}$ (signature $(+,-,-,-)$, $k^{0} = \omega_{\mathbf{k}}$ on shell):
+Substituting, and combining the exponentials with $kx = \omega_{\mathbf{k}}t - \mathbf{k}\cdot\mathbf{x}$ (::term[metric-signature]{signature} $(+,-,-,-)$, $k^{0} = \omega_{\mathbf{k}}$ on shell):
 
 $$\boxed{\;\varphi(x) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}\left(a_{\mathbf{k}}\,e^{-ikx} + a^{\dagger}_{\mathbf{k}}\,e^{+ikx}\right),\;}$$
 
@@ -378,7 +378,7 @@ $$\pi(x) = \dot{\varphi}(x) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\;(-i)\sqrt{\frac{\
 
 **Four checks, all of which should be done rather than believed.**
 
-1. **Equation of motion.** $\left(\partial^{2}+m^{2}\right)e^{\mp ikx} = \left(-k^{0\,2}+\mathbf{k}^{2}+m^{2}\right)e^{\mp ikx} = 0$ on shell, so $\varphi$ solves Klein–Gordon by construction. The mode expansion is a *complete* solution of the operator equation of motion, and this is the sense in which "expansion in solutions" is right — but the coefficients are operators, and the expansion is an identity between operators, not an ansatz with constants to be determined.
+1. **Equation of motion.** $\left(\partial^{2}+m^{2}\right)e^{\mp ikx} = \left(-k^{0\,2}+\mathbf{k}^{2}+m^{2}\right)e^{\mp ikx} = 0$ on shell, so $\varphi$ solves Klein–Gordon by construction. The ::term[mode-expansion]{mode expansion} is a *complete* solution of the operator equation of motion, and this is the sense in which "expansion in solutions" is right — but the coefficients are operators, and the expansion is an identity between operators, not an ansatz with constants to be determined.
 2. **Hermiticity.** $\varphi^{\dagger} = \varphi$ by inspection.
 3. **Dimensions.** $[\varphi] = 1$, $[d^{3}k] = 3$, $[(2\omega)^{-1/2}] = -\tfrac{1}{2}$, so $[a_{\mathbf{k}}] = 1-3+\tfrac{1}{2} = -\tfrac{3}{2}$; and from $[a,a^{\dagger}] = (2\pi)^{3}\delta^{3}$ with $[\delta^{3}(\mathbf{k})] = -3$, again $[a_{\mathbf{k}}] = -\tfrac{3}{2}$. Consistent.
 4. **The limit that must reproduce quantum mechanics.** Set $\mathbf{k} = 0$ and keep one mode: the expansion collapses to $\varphi \propto \frac{1}{\sqrt{2m}}\left(a e^{-imt} + a^{\dagger}e^{+imt}\right)$, which is the Heisenberg-picture position operator of a single oscillator of unit mass and frequency $m$. The field theory contains ordinary single-oscillator quantum mechanics as its zero-momentum mode, exactly as it should.

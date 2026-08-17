@@ -8,6 +8,21 @@ pub struct RenderedContent {
     pub simulations: Vec<String>, // e.g. ["projectile"]
 }
 
+/// How `::term[key]{display}` is rendered in one block of content (v1.5).
+///
+/// Under a hard closed-book lock the directive becomes **plain text**, not an
+/// inert-but-styled span: an underline the learner cannot click advertises that
+/// help exists and is being withheld, which is worse than either policy
+/// (M14a §4.2).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum TermRendering {
+    /// Emit the trigger `<button>` the hydrator wires up.
+    #[default]
+    Interactive,
+    /// Emit the display text alone, with no affordance and no key.
+    PlainText,
+}
+
 // ── Syntect singletons (ssr-only) ────────────────────────────────────────────
 
 #[cfg(feature = "ssr")]
@@ -26,6 +41,19 @@ static TS: std::sync::OnceLock<syntect::highlighting::ThemeSet> = std::sync::Onc
 /// 5. Collect section IDs from h2 headings and simulation names
 #[cfg(feature = "ssr")]
 pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
+    render_content_markdown_with(markdown_source, TermRendering::default())
+}
+
+/// `render_content_markdown`, with the v1.5 term-rendering switch exposed.
+///
+/// Split out rather than added as a parameter to the original so that the two
+/// dozen call sites and tests that have no opinion about closed-book policy
+/// keep their signature.
+#[cfg(feature = "ssr")]
+pub fn render_content_markdown_with(
+    markdown_source: &str,
+    term_rendering: TermRendering,
+) -> RenderedContent {
     use regex::Regex;
 
     // ── 1. Strip YAML frontmatter ────────────────────────────────────────────
@@ -46,16 +74,53 @@ pub fn render_content_markdown(markdown_source: &str) -> RenderedContent {
     });
 
     // ::concept-link[slug]{title}
+    //
+    // The `data-concept-link` attribute is the v1.5 courtesy fix for the dead
+    // hydration this mission's own risk list names first: `hydrate_concept_links`
+    // has always queried `[data-concept-link]`, which this directive never
+    // emitted, so the concept tooltip was dead code from the day it shipped.
+    // One attribute, and the selector the hydrator asks for is the selector the
+    // renderer writes — asserted from `CONCEPT_LINK_SELECTOR` below.
     let concept_re = Regex::new(r"::concept-link\[([^\]]+)\]\{([^}]*)\}").unwrap();
     let content = concept_re.replace_all(&content, |caps: &regex::Captures| {
         let slug = html_attr_escape(&caps[1]);
         let title = &caps[2];
         format!(
-            r#"<a href="/graph/{slug}/learn" class="concept-link">{title}</a>"#,
+            r#"<a href="/graph/{slug}/learn" class="concept-link" data-concept-link="{slug}">{title}</a>"#,
             slug = slug,
             title = title
         )
     });
+
+    // ::term[key]{display}  (v1.5)
+    //
+    // Not a regex, unlike the four directives above: the pre-pass runs on raw
+    // markdown, and a `::term` inside a ```quiz fence would otherwise be
+    // rewritten into HTML *inside* the fence and handed to the quiz parser as
+    // markup. Phase-5 files are full of quiz fences carrying prose prompts.
+    // `domain::glossary::rewrite_term_tags` is the fence-aware scanner ingest
+    // uses to build the tag index, so the page and the index cannot disagree
+    // about which occurrences count.
+    //
+    // The markup carries **only the key** (design D5): the payload arrives from
+    // the session-aware endpoint, so a term the learner has not reached is not
+    // sitting in the DOM waiting to be read in devtools. That was the passport's
+    // largest shipped defect.
+    //
+    // `<button>` rather than the passport's `<span tabindex="0">`: keyboard and
+    // screen-reader semantics come free, and `aria-describedby` tells a screen
+    // reader the card exists at all — which the passport never did.
+    let content = domain::glossary::rewrite_term_tags(
+        &content,
+        |key, display| match term_rendering {
+            TermRendering::PlainText => display.to_string(),
+            TermRendering::Interactive => format!(
+                r#"<button type="button" class="term" data-term="{key}" aria-describedby="term-card">{display}</button>"#,
+                key = html_attr_escape(key),
+                display = display
+            ),
+        },
+    );
 
     // ::misconception[statement]{reveal=explanation}
     let misc_re = Regex::new(r"::misconception\[([^\]]+)\]\{reveal=([^}]+)\}").unwrap();
@@ -934,6 +999,141 @@ mod tests {
             result.html
         );
         assert!(result.html.contains("text-align: right"), "{}", result.html);
+    }
+
+    // ── ::term and the dead-hydration bug class (M14a §7 risk 1) ─────────────
+
+    /// Assert that `html` contains an element matching a trivial
+    /// `tag.class[attr]` selector.
+    ///
+    /// The assertions are *derived from the selector string the hydrator
+    /// queries*, not written out beside it. That is the whole point: this
+    /// codebase has shipped "hydration wired to a selector nothing emits" twice,
+    /// and a hand-written assertion would have passed in both cases. Change the
+    /// selector and this fails; change the emitted markup and this fails.
+    #[cfg(feature = "ssr")]
+    fn assert_matches_selector(html: &str, selector: &str) {
+        let (tag, classes, attrs) = domain::glossary::selector_parts(selector);
+        assert!(
+            html.contains(&format!("<{tag} ")),
+            "selector '{selector}' wants a <{tag}>, rendered HTML has none: {html}"
+        );
+        for class in &classes {
+            assert!(
+                html.contains(&format!(r#"class="{class}""#))
+                    || html.contains(&format!(r#"class="{class} "#))
+                    || html.contains(&format!(r#" {class}""#)),
+                "selector '{selector}' wants class '{class}', rendered HTML has none: {html}"
+            );
+        }
+        for attr in &attrs {
+            assert!(
+                html.contains(&format!(r#"{attr}=""#)),
+                "selector '{selector}' wants attribute '{attr}', rendered HTML has none: {html}"
+            );
+        }
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn term_directive_emits_exactly_what_the_hydrator_queries() {
+        // NON-NEGOTIABLE ACCEPTANCE CRITERION (M14a §7 risk 1). If this test is
+        // ever weakened to a hand-written string, the bug it exists to prevent
+        // comes back.
+        let result =
+            render_content_markdown("Start from the ::term[mode-expansion]{mode expansion} above.");
+        assert_matches_selector(&result.html, domain::glossary::TERM_TRIGGER_SELECTOR);
+        assert!(
+            result.html.contains(r#"data-term="mode-expansion""#),
+            "the key must reach the markup: {}",
+            result.html
+        );
+        assert!(
+            result.html.contains("mode expansion</button>"),
+            "the display text is the button's label: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn concept_link_directive_emits_exactly_what_its_hydrator_queries() {
+        // The one-line courtesy fix. Before v1.5 this assertion failed and the
+        // concept tooltip had been dead code since it shipped.
+        let result = render_content_markdown("See ::concept-link[some-node]{that node}.");
+        assert_matches_selector(&result.html, domain::glossary::CONCEPT_LINK_SELECTOR);
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn term_markup_carries_the_key_and_nothing_else() {
+        // D5: the payload never rides in the markup. A regression here is the
+        // passport's largest shipped defect returning.
+        let result = render_content_markdown("::term[mode-expansion]{the mode expansion}");
+        for spoiler in [
+            "data-definition",
+            "data-caveat",
+            "data-teaser",
+            "data-units",
+        ] {
+            assert!(
+                !result.html.contains(spoiler),
+                "'{spoiler}' must never appear in term markup: {}",
+                result.html
+            );
+        }
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn term_directive_is_not_rewritten_inside_a_quiz_fence() {
+        // NON-NEGOTIABLE ACCEPTANCE CRITERION (M14a §7 risk 2). Phase-5 files
+        // are full of quiz fences with prose prompts.
+        let md = "\
+Before the fence: ::term[ladder-operators]{ladder operators}.
+
+```quiz
+prompt: |
+  Write the ::term[mode-expansion]{mode expansion} from memory.
+answer: x
+```
+";
+        let result = render_content_markdown(md);
+        assert!(
+            result.html.contains(r#"data-term="ladder-operators""#),
+            "the prose occurrence is a real tag: {}",
+            result.html
+        );
+        assert!(
+            !result.html.contains(r#"data-term="mode-expansion""#),
+            "the fenced occurrence must stay verbatim: {}",
+            result.html
+        );
+        // The quiz block still reaches the client as the quiz parser's input,
+        // with the directive text intact rather than half-rewritten HTML.
+        assert!(
+            result.html.contains("::term[mode-expansion]"),
+            "the fenced directive survives as text: {}",
+            result.html
+        );
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn plain_text_rendering_leaves_no_affordance_at_all() {
+        // Under a hard lock the learner must not see an underline they cannot
+        // use — that advertises withheld help (M14a §4.2).
+        let result = render_content_markdown_with(
+            "Recall the ::term[mode-expansion]{mode expansion}.",
+            TermRendering::PlainText,
+        );
+        assert!(
+            result.html.contains("Recall the mode expansion."),
+            "the display text stays: {}",
+            result.html
+        );
+        assert!(!result.html.contains("data-term"), "{}", result.html);
+        assert!(!result.html.contains("<button"), "{}", result.html);
     }
 
     #[cfg(feature = "ssr")]

@@ -1,4 +1,5 @@
 pub mod celebration;
+pub mod cheatsheet_panel;
 pub mod format_switcher;
 pub mod mark_complete;
 pub mod phase_content;
@@ -11,3 +12,4 @@ pub mod phase_tab;
 pub mod phase_timer;
 pub mod probe_form;
 pub mod probe_verdict;
+pub mod term_card;

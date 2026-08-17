@@ -10,7 +10,7 @@ use sqlx::PgPool;
 use tower_sessions::Session;
 use uuid::Uuid;
 
-use app::components::learning_room::phase_layout::render_phase;
+use app::components::learning_room::phase_layout::render_phase_with;
 use db::content_repo;
 use db::phase_progress_repo::{self, PhaseProgressRow};
 
@@ -76,10 +76,16 @@ pub async fn get_learning_room_content(
     // `render_phase` splits the phase on the H2 blocks content-spec.md §5
     // already mandates and wraps each in a bounded section — the learning room
     // used to drop one undifferentiated blob of HTML into a single div (M8).
+    // The site's phase-5 glossary policy reaches the renderer, because under a
+    // hard lock the `::term` affordance has to be absent from the markup itself
+    // — the phase HTML is the same string for every reader, so it is a server
+    // decision or it is not a decision at all (content-spec v1.5).
+    let policy = crate::handlers::glossary::phase5_policy();
+
     let phases = phase_rows
         .into_iter()
         .map(|row| {
-            let rendered = render_phase(&row.content_body, &row.phase_type, &title);
+            let rendered = render_phase_with(&row.content_body, &row.phase_type, &title, policy);
             PhaseContent {
                 phase_number: row.phase_number,
                 phase_type: row.phase_type,

@@ -29,9 +29,9 @@ Closed book, twenty minutes, paper only. Everything you need is on this page, so
 
 2. **The construction, from memory.** Write, in order and without justification: (a) $\mathcal{L}$ and $\mathcal{H}$ for the free real scalar; (b) the definition of $a_{\mathbf{k}}$ in terms of $\tilde{\varphi}(\mathbf{k})$ and $\tilde{\pi}(\mathbf{k})$; (c) $[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}]$; (d) the mode expansion of $\varphi(x)$, **with its measure and its normalization factor**; (e) $H$ in terms of $a^{\dagger}_{\mathbf{k}}a_{\mathbf{k}}$. Five lines. This is the item.
 
-3. **The two transforms.** In a two-row table, give for the Legendre and the Fourier transform: its input, its output, which variable it trades for which, how many points of space it acts on at once, and whether it can decouple coupled degrees of freedom. Then state which one you performed in item 2(a).
+3. **The two transforms.** In a two-row table, give for the ::term[legendre-transform]{Legendre} and the ::term[fourier-transform]{Fourier} transform: its input, its output, which variable it trades for which, how many points of space it acts on at once, and whether it can decouple coupled degrees of freedom. Then state which one you performed in item 2(a).
 
-4. **Derive one factor.** Derive the $1/\sqrt{2\omega_{\mathbf{k}}}$ in the mode expansion — that is, show it is forced by the definition of $a_{\mathbf{k}}$ rather than chosen. Then, separately, say where the $(2\pi)^{3}$ in the ladder commutator comes from and what it would become under the symmetric Fourier convention.
+4. **Derive one factor.** Derive the $1/\sqrt{2\omega_{\mathbf{k}}}$ in the ::term[mode-expansion]{mode expansion} — that is, show it is forced by the definition of $a_{\mathbf{k}}$ rather than chosen. Then, separately, say where the $(2\pi)^{3}$ in the ladder commutator comes from and what it would become under the symmetric Fourier convention.
 
 5. **Compute.** Starting from the mode expansion and the ladder algebra, compute the equal-time vacuum two-point function $\langle0\lvert\varphi(\mathbf{x})\varphi(\mathbf{y})\rvert0\rangle$ as an integral over $\mathbf{k}$. You need not evaluate the integral; stop at the point where the invariant combination $\frac{d^{3}k}{(2\pi)^{3}2\omega_{\mathbf{k}}}$ appears, and say in one sentence why an invariant object showed up in a calculation done at fixed time.
 
@@ -59,7 +59,7 @@ This problem is not solvable with this node alone. It requires the external prer
 
 **Part 2 — run the derivation backwards.** Phase 2 went from the postulate $[\varphi(\mathbf{x}),\pi(\mathbf{y})] = i\delta^{3}(\mathbf{x}-\mathbf{y})$ to the algebra $[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}] = (2\pi)^{3}\delta^{3}(\mathbf{k}-\mathbf{k}')$, in that direction only. Phase 3's Full Example did the reverse, but in a box.
 
-(a) Do the reverse in the continuum. Assume only the ladder algebra and the mode expansions of $\varphi$ and $\pi$, and compute $[\varphi(\mathbf{x}),\pi(\mathbf{y})]$ at equal times. You should find that the two surviving cross terms combine into $2\times\tfrac{1}{2}\int\frac{d^{3}k}{(2\pi)^{3}}e^{i\mathbf{k}\cdot(\mathbf{x}-\mathbf{y})}$ and hence give $i\delta^{3}(\mathbf{x}-\mathbf{y})$; note where the $\sqrt{\omega_{\mathbf{k}'}/\omega_{\mathbf{k}}}$ factor went and why.
+(a) Do the reverse in the continuum. Assume only the ::term[ladder-algebra]{ladder algebra} and the ::term[mode-expansion]{mode expansions} of $\varphi$ and $\pi$, and compute $[\varphi(\mathbf{x}),\pi(\mathbf{y})]$ at equal times. You should find that the two surviving cross terms combine into $2\times\tfrac{1}{2}\int\frac{d^{3}k}{(2\pi)^{3}}e^{i\mathbf{k}\cdot(\mathbf{x}-\mathbf{y})}$ and hence give $i\delta^{3}(\mathbf{x}-\mathbf{y})$; note where the $\sqrt{\omega_{\mathbf{k}'}/\omega_{\mathbf{k}}}$ factor went and why.
 
 (b) Also compute $[\varphi(\mathbf{x}),\varphi(\mathbf{y})]$ at equal times, from the same expansions, and confirm it vanishes. Identify the cancellation that makes it vanish, and state which property of the mode expansion was responsible.
 

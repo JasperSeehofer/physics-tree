@@ -1,0 +1,156 @@
+# =============================================================================
+# BRANCH CONVENTIONS — content-spec v1.5 (mission M14).
+#
+# The machine-readable half of node 1's `### Conventions` table in phase-2.md.
+# The prose table stays canonical for the *page*: it carries Warning 1 (this
+# branch and `general-relativity` use opposite signatures on purpose), Warning 2
+# (the seven-row Peskin/Srednicki comparison), and the argument that a
+# convention is only wrong when it is mixed. None of that belongs in a panel.
+# This file is canonical for the *panel*, and it carries the two things the
+# prose cannot: a machine-readable `status`, and the `opened_by` / `closed_by`
+# ledger that says which node settles each row.
+#
+# The two are two representations of one set of rows, and that cost is accepted
+# rather than hidden: validation warning W-4 fires when the row-key sets part
+# company. Row keys are the slugified first column of the prose table exactly,
+# so the check is meaningful rather than decorative.
+#
+# Scraping the prose instead was rejected: node 1's table has no Status column
+# at all (nodes 2, 4 and 5 write theirs in prose), so a scrape cannot recover
+# the forced/free distinction that is the whole point of the tab, and
+# attributing a row to its opening node is impossible from merged prose.
+#
+# STATUS VALUES
+#   free                    a real choice; the literature is split
+#   forced                  compelled once some other commitment is made
+#   not_independent         determined by another row in this table
+#   convention_independent  no choice is involved at all
+#   open                    deliberately unsettled, and not by any later node
+#
+# `status` is what the row *is*. Whether the learner may *see* its value is a
+# separate question, answered by `closed_by`: a row whose closing node the
+# learner has not reached shows its authored open state and not its value. That
+# is what node 1's own prose does for state-normalization, and it is what stops
+# the panel becoming a shortcut past node 5.
+# =============================================================================
+
+branch: quantum-field-theory
+title: 'Quantum Field Theory — branch conventions'
+
+rows:
+  - key: units
+    object: 'Units'
+    this_branch: '$\hbar = c = 1$; masses, momenta and inverse lengths all in energy units'
+    also_common: 'SI, or $\hbar = 1$ with $c$ retained. Nothing in this branch is written in either'
+    status: free
+    status_note: |
+      A choice, and a near-universal one in this literature. It is listed first
+      because every mass dimension quoted anywhere in the branch is quoted in it.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: metric-signature
+    object: 'Metric signature'
+    this_branch: '$(+,-,-,-)$, i.e. $\eta_{\mu\nu} = \mathrm{diag}(+1,-1,-1,-1)$ — the particle-physics convention (Peskin & Schroeder, Weinberg)'
+    also_common: '$(-,+,+,+)$ (Srednicki, and **the `general-relativity` branch of this tree**)'
+    status: free
+    status_note: |
+      Both branches of this tree follow their own literature, on purpose.
+      They meet in module S2.1 and every $\eta_{\mu\nu}$ changes sign between
+      them. Write the signature at the top of every page — the habit costs
+      nothing now and is the only defence later.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: four-vectors
+    object: 'Four-vectors'
+    this_branch: '$x^{\mu} = (t,\mathbf{x})$, $k^{\mu} = (k^{0},\mathbf{k})$, so $kx = k^{\mu}x_{\mu} = k^{0}t - \mathbf{k}\cdot\mathbf{x}$'
+    also_common: 'The same symbols with the other signature give $kx = -k^{0}t + \mathbf{k}\cdot\mathbf{x}$'
+    status: not_independent
+    status_note: 'Fixed by the metric signature. There is no separate choice here.'
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: on-shell-energy
+    object: 'On-shell energy'
+    this_branch: '$\omega_{\mathbf{k}} = +\sqrt{\mathbf{k}^{2}+m^{2}}$, always the positive root, always written $\omega_{\mathbf{k}}$'
+    also_common: '$E_{\mathbf{k}}$ or $E_{p}$ for the same object; identical meaning, and mixed freely in the literature'
+    status: convention_independent
+    status_note: |
+      A naming choice only. The object is the positive root of the on-shell
+      condition $k^{2}=m^{2}$ and no convention can move it.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: positive-frequency
+    object: 'Positive frequency'
+    this_branch: '$e^{-ikx}$ multiplies the **annihilation** operator $a_{\mathbf{k}}$'
+    also_common: '$e^{+ikx}$ does, in sources using $(-,+,+,+)$ — and this is **the same physical function**, $e^{-i\omega t + i\mathbf{k}\cdot\mathbf{x}}$'
+    status: not_independent
+    status_note: |
+      Fixed by the signature. The apparent sign disagreement between Peskin and
+      Srednicki is illusory for exactly this reason; the normalization
+      disagreement in the row below is the real one.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: fourier-convention
+    object: 'Fourier convention'
+    this_branch: '$(2\pi)^{3}$ accompanies every $d^{3}k$; nothing accompanies $d^{3}x$'
+    also_common: 'The symmetric convention, $(2\pi)^{-3/2}$ on both; then the $(2\pi)^{3}$ in the ladder commutator disappears too'
+    status: free
+    status_note: |
+      A real choice, and one that propagates: the ladder-commutator row below is
+      not independent of it.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: mode-normalization
+    object: 'Mode normalization'
+    this_branch: '$1/\sqrt{2\omega_{\mathbf{k}}}$ **inside** the expansion; $a_{\mathbf{k}}$ carries none of it'
+    also_common: '$1/(2\omega_{\mathbf{k}})$ in the measure, with $\sqrt{2\omega_{\mathbf{k}}}$ absorbed into $a_{\mathbf{k}}$ (Srednicki)'
+    status: free
+    status_note: |
+      This node's declared `convention_trap`, and the one real disagreement
+      between the two standard texts: $a^{\text{Sred}}(\mathbf{k}) =
+      \sqrt{2\omega_{\mathbf{k}}}\,a^{\text{Peskin}}_{\mathbf{k}}$, so every
+      formula containing $a$ differs accordingly. Neither is wrong. **A
+      convention is only wrong when it is mixed.**
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: free-scalar-field-quantization-mode-expansion
+
+  - key: ladder-commutator
+    object: 'Ladder commutator'
+    this_branch: '$\left[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}''}\right] = (2\pi)^{3}\delta^{3}(\mathbf{k}-\mathbf{k}'')$'
+    also_common: '$\delta^{3}(\mathbf{k}-\mathbf{k}'')$ alone (symmetric Fourier convention); or $(2\pi)^{3}2\omega_{\mathbf{k}}\delta^{3}(\mathbf{k}-\mathbf{k}'')$ (Srednicki)'
+    status: not_independent
+    status_note: |
+      The $(2\pi)^{3}$ is not a separate choice: it is fixed by the Fourier
+      convention and the mode normalization together. Node 2 proves the
+      equivalence with the equal-time CCR in both directions.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: equal-time-commutators-and-the-ladder-algebra
+
+  - key: state-normalization
+    object: 'State normalization'
+    this_branch: '$\lvert\mathbf{k}\rangle_{R} = \sqrt{2\omega_{\mathbf{k}}}\,a^{\dagger}_{\mathbf{k}}\lvert0\rangle$'
+    also_common: '$\lvert\mathbf{k}\rangle = a^{\dagger}_{\mathbf{k}}\lvert0\rangle$ (not covariant); or $S = 1$ with $\sqrt{2\omega_{\mathbf{k}}}$ absorbed into $a_{\mathbf{k}}$ (Srednicki)'
+    status: forced
+    status_note: |
+      Forced once covariance is demanded and the measure is fixed. Node 1
+      deliberately does not fix it — it writes $a^{\dagger}_{\mathbf{k}}\lvert0\rangle$
+      and names it nothing — because choosing early is how a factor gets lost.
+      Node 5 fixes it.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: lorentz-invariant-measure-and-normalization-conventions
+
+  - key: sign-of-i-in-the-ccr
+    object: 'Sign of $i$ in the CCR'
+    this_branch: '$\left[\varphi(\mathbf{x}),\pi(\mathbf{y})\right] = +i\delta^{3}(\mathbf{x}-\mathbf{y})$, matching $[\hat{x},\hat{p}] = +i$'
+    also_common: 'The opposite sign, in sources using the opposite-sign Legendre convention. Flips the sign of $\pi$ throughout'
+    status: free
+    status_note: |
+      A choice, and one that hides: a source that flips it flips $\pi$ everywhere
+      and nothing looks wrong in isolation.
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: equal-time-commutators-and-the-ladder-algebra

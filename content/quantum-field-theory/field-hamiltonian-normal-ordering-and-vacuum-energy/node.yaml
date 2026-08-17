@@ -223,3 +223,23 @@ phases:
     requires:
       - spaced_prompt
       - interleaving_problem
+
+# =============================================================================
+# GLOSSARY TERMS — content-spec v1.5 (mission M14). See the scope note on node 1
+# of this branch: the full retrofit is a separate content mission (M14a Q4).
+# This record exists because node 1 tags the term and a tag must resolve.
+# =============================================================================
+terms:
+  - key: normal-ordering
+    term: 'Normal ordering'
+    symbol: '$:\!a_{\mathbf{k}}a^{\dagger}_{\mathbf{k}}\!: \;=\; a^{\dagger}_{\mathbf{k}}a_{\mathbf{k}}$'
+    units: '—'
+    definition: |
+      The prescription that every creation operator is written to the left of
+      every annihilation operator, discarding the commutator terms. It is what
+      removes the vacuum energy from the field Hamiltonian.
+    caveat: |
+      It removes an *infinite constant*, not an ambiguity in the physics: energy
+      differences are unaffected, and the constant is not unobservable in a
+      gravitational context.
+    teaser: 'the bookkeeping rule that sets the vacuum energy to zero'

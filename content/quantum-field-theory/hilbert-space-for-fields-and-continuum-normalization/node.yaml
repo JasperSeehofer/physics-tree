@@ -253,3 +253,35 @@ phases:
     requires:
       - spaced_prompt
       - interleaving_problem
+
+# =============================================================================
+# GLOSSARY TERMS — content-spec v1.5 (mission M14). See the scope note on node 1
+# of this branch: the full retrofit is a separate content mission (M14a Q4).
+# These two records exist because node 1 tags both terms and a tag must resolve.
+# =============================================================================
+terms:
+  - key: operator-valued-distribution
+    term: 'Operator-valued distribution'
+    units: '—'
+    definition: |
+      What $\varphi(\mathbf{x})$ and $a_{\mathbf{k}}$ actually are: objects that
+      yield an operator only after being smeared against a test function. They
+      are not operators on the Fock space at a point.
+    caveat: |
+      $\delta^{3}(0)$ appearing in a calculation is a symptom of this, not of a
+      physical infinity. Node 1 manipulates them formally and says so.
+    teaser: 'why the field at a point is not quite an operator'
+
+  - key: improper-state
+    term: 'Improper (non-normalizable) state'
+    symbol: '$\langle\mathbf{k}\vert\mathbf{k}''\rangle \propto \delta^{3}(\mathbf{k}-\mathbf{k}'')$'
+    units: '—'
+    definition: |
+      A momentum eigenstate in infinite volume: it is not in the Hilbert space,
+      because its norm is a delta function rather than a number. Physical states
+      are wave packets built from them.
+    caveat: |
+      Continuum normalization is where the finite-box intuition from ordinary
+      quantum mechanics stops transferring, and the assessment measured that
+      substrate as *not* intact.
+    teaser: 'the momentum eigenstate that is not actually in the Hilbert space'

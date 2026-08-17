@@ -17,7 +17,13 @@ use web_sys::HtmlElement;
 /// - Styles the link as sky-teal with underline on hover
 #[cfg(target_arch = "wasm32")]
 pub fn hydrate_concept_links(container: &HtmlElement) {
-    let links_nl = container.query_selector_all("[data-concept-link]").ok();
+    // The selector is the shared constant, not a literal: from v1.5 the
+    // renderer's own test derives its assertions from the same string, so the
+    // two cannot drift apart again. Before that they had, silently, since this
+    // hydrator shipped.
+    let links_nl = container
+        .query_selector_all(domain::glossary::CONCEPT_LINK_SELECTOR)
+        .ok();
     let links_nl = match links_nl {
         Some(nl) => nl,
         None => return,

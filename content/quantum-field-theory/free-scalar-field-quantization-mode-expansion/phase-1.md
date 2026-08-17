@@ -41,7 +41,7 @@ Same system, now $N$ unit masses on a ring, $q_{N+1} \equiv q_{1}$:
 
 $$H = \sum_{n=1}^{N}\left[\tfrac{1}{2}p_{n}^{2} + \tfrac{K}{2}q_{n}^{2} + \tfrac{\kappa}{2}\left(q_{n+1}-q_{n}\right)^{2}\right].$$
 
-1. Substitute the discrete Fourier transform $q_{n} = \frac{1}{\sqrt{N}}\sum_{j=0}^{N-1}e^{2\pi ijn/N}\,Q_{j}$ and the same for $p_{n}$. Since the $q_{n}$ are real (Hermitian), what constraint does that put on $Q_{j}$? Write it down — it will matter later far more than it looks like it will here.
+1. Substitute the discrete ::term[fourier-transform]{Fourier transform} $q_{n} = \frac{1}{\sqrt{N}}\sum_{j=0}^{N-1}e^{2\pi ijn/N}\,Q_{j}$ and the same for $p_{n}$. Since the $q_{n}$ are real (Hermitian), what constraint does that put on $Q_{j}$? Write it down — it will matter later far more than it looks like it will here.
 2. Using $\frac{1}{N}\sum_{n}e^{2\pi i(j+j')n/N} = \delta_{j+j',\,0}$, show that $H$ contains **no term coupling $Q_{j}$ to $Q_{j'}$ for $j' \neq -j$**, and read off $\omega_{j}^{2}$.
 3. Sanity-check your $\omega_{j}^{2}$ in two independent ways: at $j = 0$, and against Part A. (The second check does *not* come out equal on the first try. When it does not, find out why before continuing — the reason is worth more than the check.)
 4. Now the limit. Put the masses a distance $a$ apart, write $x = na$, and let $N\to\infty$, $a\to 0$ with $Na$ fixed. Take $\omega_{j}$ for $j \ll N$ and show that it becomes $\omega_{k}^{2} = \mu^{2} + c^{2}k^{2}$ for constants you should identify in terms of $K$, $\kappa$ and $a$. **Which term of the discrete Hamiltonian became the $\mu^{2}$, and which became the $c^{2}k^{2}$?**
@@ -56,13 +56,13 @@ $$\mathcal{L} = \tfrac{1}{2}\partial_{\mu}\varphi\,\partial^{\mu}\varphi - \tfra
 
 quantized by the postulate $\left[\varphi(\mathbf{x}),\pi(\mathbf{y})\right] = i\delta^{3}(\mathbf{x}-\mathbf{y})$ at equal times, with $\left[\varphi(\mathbf{x}),\varphi(\mathbf{y})\right] = \left[\pi(\mathbf{x}),\pi(\mathbf{y})\right] = 0$.
 
-1. **Try Part A's step 2 again, in the continuum.** Treat $\varphi(\mathbf{x})$ and $\pi(\mathbf{x})$ at each fixed $\mathbf{x}$ as one oscillator's worth of $\hat{q},\hat{p}$, and define a local ladder operator
+1. **Try Part A's step 2 again, in the continuum.** Treat $\varphi(\mathbf{x})$ and $\pi(\mathbf{x})$ at each fixed $\mathbf{x}$ as one oscillator's worth of $\hat{q},\hat{p}$, and define a local ::term[ladder-operators]{ladder operator}
 $$a(\mathbf{x}) \;=\; \sqrt{\tfrac{\omega}{2}}\left(\varphi(\mathbf{x}) + \frac{i}{\omega}\pi(\mathbf{x})\right)$$
 for some constant $\omega$ you get to choose. Now compute $\left[H,\,a(\mathbf{x})\right]$. You will need $\left[H,\varphi(\mathbf{x})\right]$ and $\left[H,\pi(\mathbf{x})\right]$ — get them from the Heisenberg equations $\dot{O} = i[H,O]$ rather than from the integrals, which is faster and less error-prone.
 
    Then ask what a ladder operator is actually *for*: it must satisfy $[H,a] = -\omega\,a$, because that is the statement that $a$ lowers the energy by $\omega$. **Write down the condition on $\varphi$ that would make your $[H,a(\mathbf{x})]$ take that form.** Do not stop at "it does not work"; get the condition, explicitly, as an equation. It is one line and it is the answer to the whole node.
 
-2. **The transform question, settled by force.** You performed a Legendre transform to get $H$ from $\mathcal{L}$ above. You are still in position space and the modes are still coupled. Argue in two sentences why a Legendre transform *cannot* have decoupled them — the argument is about which variables it acts on and at how many points at a time, and it takes no calculation at all.
+2. **The transform question, settled by force.** You performed a ::term[legendre-transform]{Legendre transform} to get $H$ from $\mathcal{L}$ above. You are still in position space and the modes are still coupled. Argue in two sentences why a Legendre transform *cannot* have decoupled them — the argument is about which variables it acts on and at how many points at a time, and it takes no calculation at all.
 
    Then: which transform can, and what property of $H$ does it need in order to work? Say what would go wrong with your answer if the mass term were $\tfrac{1}{2}m^{2}(\mathbf{x})\varphi^{2}$ with a position-dependent $m(\mathbf{x})$.
 
@@ -76,7 +76,7 @@ for some constant $\omega$ you get to choose. Now compute $\left[H,\,a(\mathbf{x
 
 Close everything. Write, from memory:
 
-1. The mode expansion of $\varphi(x)$ in terms of $a_{\mathbf{k}}$ and $a^{\dagger}_{\mathbf{k}}$, **with its measure and its normalization factor**.
+1. The ::term[mode-expansion]{mode expansion} of $\varphi(x)$ in terms of $a_{\mathbf{k}}$ and $a^{\dagger}_{\mathbf{k}}$, **with its measure and its normalization factor**.
 2. $\left[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}\right] = \;?$
 3. Now check what you wrote by dimensional analysis. In $\hbar = c = 1$ and $3+1$ dimensions, deduce the mass dimension of $\varphi$ from the requirement that $\int d^{4}x\,\mathcal{L}$ be dimensionless, then deduce the mass dimension of $a_{\mathbf{k}}$ **twice** — once from your expansion in (1) and once from your commutator in (2). Do the two agree?
 
@@ -144,7 +144,7 @@ Rescale to keep the continuum theory finite — mass density $\rho$ with $m_{\te
 
 $$\omega_{\mathbf{k}} = \sqrt{\mathbf{k}^{2}+m^{2}}.$$
 
-**Read the identification twice, because it is the physical content of the whole node.** The $k^{2}$ came from the *bonds between neighbours* — the term that couples the degrees of freedom, which in the field theory is $(\nabla\varphi)^{2}$. The $m^{2}$ came from the *on-site anchors* — a restoring force that acts at each point separately and couples nothing, which in the field theory is $m^{2}\varphi^{2}$. And the resulting frequency is the relativistic energy $E = \sqrt{p^{2}+m^{2}}$ of a particle of mass $m$. A calculation with no relativity anywhere in it — springs, masses, a discrete Fourier transform — produced the relativistic dispersion relation, because "relativistic mass" and "on-site restoring force" are the same term in the same quadratic form. The rest energy of a particle is the $k\to 0$ frequency of an anchor spring.
+**Read the identification twice, because it is the physical content of the whole node.** The $k^{2}$ came from the *bonds between neighbours* — the term that couples the degrees of freedom, which in the field theory is $(\nabla\varphi)^{2}$. The $m^{2}$ came from the *on-site anchors* — a restoring force that acts at each point separately and couples nothing, which in the field theory is $m^{2}\varphi^{2}$. And the resulting frequency is the ::term[on-shell-energy]{relativistic energy} $E = \sqrt{p^{2}+m^{2}}$ of a particle of mass $m$. A calculation with no relativity anywhere in it — springs, masses, a discrete Fourier transform — produced the relativistic dispersion relation, because "relativistic mass" and "on-site restoring force" are the same term in the same quadratic form. The rest energy of a particle is the $k\to 0$ frequency of an anchor spring.
 
 One thing the limit threw away, worth naming now: the lattice had a **largest** frequency, at $j = N/2$, where $\sin^{2} = 1$ and $\omega^{2}_{\max} = K+4\kappa$. Wavelengths shorter than the spacing do not exist. The continuum field has no such bound, which is exactly where its infinities come from. That is module S1.2's subject and this node does not open it; but you should know that the finiteness you just lost was a *feature* of the lattice, not an artefact of it.
 
@@ -156,7 +156,7 @@ Therefore, for $a(\mathbf{x}) = \sqrt{\omega/2}\left(\varphi + \tfrac{i}{\omega}
 
 $$\left[H,a(\mathbf{x})\right] = \sqrt{\tfrac{\omega}{2}}\left(-i\pi + \frac{i}{\omega}\cdot\left(-i\right)\left(\nabla^{2}-m^{2}\right)\varphi\right) = \sqrt{\tfrac{\omega}{2}}\left(-i\pi + \frac{1}{\omega}\left(\nabla^{2}-m^{2}\right)\varphi\right).$$
 
-What we need for a ladder operator is $[H,a] = -\omega a = \sqrt{\omega/2}\left(-\omega\varphi - i\pi\right)$. The $\pi$ terms already match. Equating the $\varphi$ terms:
+What we need for a ::term[ladder-operators]{ladder operator} is $[H,a] = -\omega a = \sqrt{\omega/2}\left(-\omega\varphi - i\pi\right)$. The $\pi$ terms already match. Equating the $\varphi$ terms:
 
 $$\frac{1}{\omega}\left(\nabla^{2}-m^{2}\right)\varphi = -\omega\,\varphi \qquad\Longleftrightarrow\qquad \boxed{\;\nabla^{2}\varphi = -\left(\omega^{2}-m^{2}\right)\varphi.\;}$$
 
@@ -168,9 +168,9 @@ which is Part B4's answer arrived at a second time, by a completely different ro
 
 Notice what the failure was *not*. Nothing was wrong with the commutation postulate, nothing was wrong with the Hamiltonian, and no new quantum mechanics was needed. What failed was a choice of **basis**, and it failed for the same reason $\hat{a}_{1}$ failed in Part A2: a cross-term. In Part A the cross-term was $-\kappa q_{1}q_{2}$; here it is the $\nabla^{2}$, which is nothing but the continuum limit of that same cross-term. There is one obstruction in this node and you have now met it twice, at $N = 2$ and at $N = \infty$.
 
-**Part C2 — why the Legendre transform could never have helped.** A Legendre transform acts on the *pair of variables at one point*: it takes $\left(\varphi(\mathbf{x}),\dot{\varphi}(\mathbf{x})\right)$ to $\left(\varphi(\mathbf{x}),\pi(\mathbf{x})\right)$, replacing a velocity by a slope, and it does this independently at every $\mathbf{x}$. It never combines the field at $\mathbf{x}$ with the field at $\mathbf{y}$. The coupling in $H$ is precisely a statement relating $\varphi$ at different points. **An operation that acts pointwise cannot remove a coupling between points.** No calculation is needed and none should be attempted; the conclusion follows from the shape of the operation.
+**Part C2 — why the Legendre transform could never have helped.** A ::term[legendre-transform]{Legendre transform} acts on the *pair of variables at one point*: it takes $\left(\varphi(\mathbf{x}),\dot{\varphi}(\mathbf{x})\right)$ to $\left(\varphi(\mathbf{x}),\pi(\mathbf{x})\right)$, replacing a velocity by a slope, and it does this independently at every $\mathbf{x}$. It never combines the field at $\mathbf{x}$ with the field at $\mathbf{y}$. The coupling in $H$ is precisely a statement relating $\varphi$ at different points. **An operation that acts pointwise cannot remove a coupling between points.** No calculation is needed and none should be attempted; the conclusion follows from the shape of the operation.
 
-The Fourier transform is the opposite kind of object: it is non-local by construction, $\tilde{\varphi}(\mathbf{k}) = \int d^{3}x\,e^{-i\mathbf{k}\cdot\mathbf{x}}\varphi(\mathbf{x})$ depends on the field everywhere, and that is exactly why it can undo a coupling between points.
+The ::term[fourier-transform]{Fourier transform} is the opposite kind of object: it is non-local by construction, $\tilde{\varphi}(\mathbf{k}) = \int d^{3}x\,e^{-i\mathbf{k}\cdot\mathbf{x}}\varphi(\mathbf{x})$ depends on the field everywhere, and that is exactly why it can undo a coupling between points.
 
 Two objects, two jobs:
 

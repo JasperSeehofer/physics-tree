@@ -84,6 +84,33 @@ pub fn api_routes(pool: PgPool) -> Router {
             "/api/learning-room/{slug}/probe",
             axum::routing::get(handlers::probe::get_probe).post(handlers::probe::post_probe),
         )
+        // Glossary / cheatsheet (content-spec v1.5). Pins are collection-scoped
+        // and everything else is node-scoped; the term route is separate from
+        // the bulk route because it is the one that records a peek.
+        .route(
+            "/api/glossary/pins",
+            axum::routing::post(handlers::glossary::post_pin),
+        )
+        .route(
+            "/api/glossary/pins/{branch}/{term_key}",
+            axum::routing::delete(handlers::glossary::delete_pin),
+        )
+        .route(
+            "/api/glossary/{slug}",
+            axum::routing::get(handlers::glossary::get_glossary),
+        )
+        .route(
+            "/api/glossary/{slug}/term/{term_key}",
+            axum::routing::get(handlers::glossary::get_term),
+        )
+        .route(
+            "/api/glossary/{slug}/peek",
+            axum::routing::post(handlers::glossary::post_panel_peek),
+        )
+        .route(
+            "/api/glossary/{slug}/peeks",
+            axum::routing::get(handlers::glossary::get_peeks),
+        )
         // Time telemetry. Node-scoped work is addressed by slug in the body
         // rather than in the path, because a session is a cross-node object the
         // pace report reads in one query.

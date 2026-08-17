@@ -11,6 +11,11 @@ use serde::Deserialize;
 
 use crate::components::content::breadcrumb::Breadcrumb;
 use crate::components::learning_room::celebration::PhaseCompletionCelebration;
+#[cfg(target_arch = "wasm32")]
+use crate::components::learning_room::cheatsheet_panel::fetch_glossary;
+use crate::components::learning_room::cheatsheet_panel::{
+    post_panel_peek, CheatsheetPanel, GlossaryData,
+};
 use crate::components::learning_room::format_switcher::FormatSwitcher;
 use crate::components::learning_room::mark_complete::MarkCompleteButton;
 use crate::components::learning_room::phase_content::PhaseContentArea;
@@ -19,6 +24,8 @@ use crate::components::learning_room::phase_tab::PhaseTab;
 use crate::components::learning_room::phase_timer::PhaseTimer;
 use crate::components::learning_room::probe_form::{ProbeEntryForm, SittingSaved};
 use crate::components::learning_room::probe_verdict::{phase_annotation, ProbeVerdictCard};
+use crate::components::learning_room::term_card::{GlossaryContext, TermCard};
+use domain::glossary::GlossaryGate;
 use domain::probe::{ProbeSpec, ProbeVerdict};
 use domain::user::User;
 
@@ -81,6 +88,55 @@ pub struct ProbeItemScoreData {
     pub score: Option<i16>,
     #[serde(default)]
     pub correct: Option<bool>,
+}
+
+/// GET `/api/glossary/:slug/peeks` — mirrors `db::glossary_repo::PeekRow`.
+///
+/// One recorded peek. `term_key: None` is a panel open with no card read.
+#[derive(Clone, Debug, Deserialize)]
+pub struct PeekData {
+    #[serde(default)]
+    pub term_key: Option<String>,
+    #[serde(default)]
+    pub term: Option<String>,
+    pub occurred_at: String,
+}
+
+/// The peek line shown beside a closed-book result.
+///
+/// Deliberately a count and a term list rather than a scolding: the peek is
+/// evidence about which production is missing, and it is only diagnostic if the
+/// learner does not start self-censoring. Panel opens with no card read are
+/// counted separately, because "opened the cheatsheet and closed it again" is a
+/// different signal from "looked up the mode expansion".
+pub fn peek_summary(peeks: &[PeekData]) -> Option<String> {
+    if peeks.is_empty() {
+        return None;
+    }
+    let mut terms: Vec<String> = Vec::new();
+    let mut opens = 0usize;
+    for peek in peeks {
+        match peek.term.clone().or_else(|| peek.term_key.clone()) {
+            Some(name) => {
+                if !terms.contains(&name) {
+                    terms.push(name);
+                }
+            }
+            None => opens += 1,
+        }
+    }
+
+    let mut parts: Vec<String> = Vec::new();
+    if !terms.is_empty() {
+        parts.push(format!("looked up {}", terms.join(", ")));
+    }
+    if opens > 0 {
+        parts.push(format!(
+            "opened the cheatsheet {opens} time{}",
+            if opens == 1 { "" } else { "s" }
+        ));
+    }
+    Some(format!("Closed-book: {}.", parts.join("; ")))
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +291,26 @@ async fn fetch_probe(_slug: &str) -> Option<ProbeData> {
     None
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn fetch_peeks(slug: &str, phase: Option<i16>) -> Vec<PeekData> {
+    // No `phase` asks for the whole node, which is what the probe verdict wants:
+    // the verdict is a node-level object even though the probe sits in phase 0.
+    let query = phase.map(|p| format!("?phase={p}")).unwrap_or_default();
+    let resp = gloo_net::http::Request::get(&format!("/api/glossary/{slug}/peeks{query}"))
+        .send()
+        .await
+        .ok();
+    match resp {
+        Some(r) if r.status() == 200 => r.json().await.unwrap_or_default(),
+        _ => Vec::new(),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn fetch_peeks(_slug: &str, _phase: Option<i16>) -> Vec<PeekData> {
+    Vec::new()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LearningRoomPage component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,6 +335,16 @@ pub fn LearningRoomPage() -> impl IntoView {
     let probe_sitting: RwSignal<Option<SittingSaved>> = RwSignal::new(None);
     let probe_stale: RwSignal<bool> = RwSignal::new(false);
     let probe_entry_open: RwSignal<bool> = RwSignal::new(false);
+
+    // ── Glossary state (M14 §3) ─────────────────────────────────────────────
+    // The one structural change M14a §3.1 asked for, slightly widened: the
+    // card, the panel, the peek confirmation and the two peek surfaces all read
+    // the same handful of values, so they travel as one context struct rather
+    // than as the same tuple in four component signatures.
+    let glossary = GlossaryContext::new();
+    provide_context(glossary);
+    let glossary_data: RwSignal<Option<GlossaryData>> = RwSignal::new(None);
+    let peeks: RwSignal<Vec<PeekData>> = RwSignal::new(Vec::new());
 
     let auth_user = use_context::<LocalResource<Option<User>>>();
     let authenticated = move || {
@@ -320,6 +406,74 @@ pub fn LearningRoomPage() -> impl IntoView {
                 probe_entry_open.set(!has_latest);
                 probe_spec.set(probe.spec);
             }
+        });
+    });
+
+    // ── Effect: keep the glossary context in step with the page ─────────────
+    // The slug and the phase feed every glossary endpoint; the probe-section
+    // flag is set by the observer in `PhaseContentArea`. Re-reading the gate
+    // whenever either changes is what makes the confirmation appear on entering
+    // phase 5 rather than on the next click.
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        glossary.slug.set(slug());
+        let phase_num = content
+            .get()
+            .flatten()
+            .and_then(|room| {
+                room.phases
+                    .get(active_phase.get())
+                    .map(|p: &PhaseData| p.phase_number)
+            })
+            .unwrap_or(0);
+        glossary.phase_number.set(phase_num);
+        // A new phase is a new closed-book context: the confirmation is not
+        // carried across, or the learner would accept it once in phase 5 of
+        // node 1 and never see it again.
+        glossary.peek_ack.set(false);
+        glossary.card.set(None);
+    });
+
+    // ── Effect: fetch the glossary for the current (node, phase) view ───────
+    // Per (node, phase) rather than per node, unlike M14a §3.2's "once per
+    // node": the phase is a *gate input*, and a response computed for the wrong
+    // phase either withholds a term the page is showing or serves one the
+    // closed-book check is testing. Refetching is the cost of the gate being
+    // server-side at all.
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let slug_val = glossary.slug.get();
+        if slug_val.is_empty() {
+            return;
+        }
+        let query = glossary.view_query();
+        leptos::task::spawn_local(async move {
+            if let Some(data) = fetch_glossary(&slug_val, &query).await {
+                glossary.gate.set(data.gate);
+                glossary.pins.set(data.pinned.clone());
+                glossary_data.set(Some(data));
+            }
+        });
+    });
+
+    // ── Effect: refresh the peek log whenever a peek is recorded ────────────
+    // Scoped to the phase on screen, **not** the node. The phase-5 retrieval
+    // check and the phase-0 calibration probe are two different closed-book
+    // instruments, and both display surfaces render this one list: a node-wide
+    // fetch puts probe peeks beside the retrieval result and retrieval peeks
+    // beside the probe verdict, which is exactly the annotation D-G9c is not.
+    // Each surface is rendered inside its own phase's view, so the phase on
+    // screen is the right scope for both.
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let _ = glossary.peeks_recorded.get();
+        let slug_val = glossary.slug.get();
+        let phase = glossary.phase_number.get();
+        if slug_val.is_empty() {
+            return;
+        }
+        leptos::task::spawn_local(async move {
+            peeks.set(fetch_peeks(&slug_val, Some(phase)).await);
         });
     });
 
@@ -570,7 +724,7 @@ pub fn LearningRoomPage() -> impl IntoView {
 
                                     view! {
                                         <div
-                                            class="overflow-x-auto whitespace-nowrap border-b border-bark-mid mb-6"
+                                            class="overflow-x-auto whitespace-nowrap border-b border-bark-mid mb-6 flex items-center"
                                             role="tablist"
                                             aria-label="Learning phases"
                                         >
@@ -604,8 +758,94 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                     />
                                                 }
                                             }).collect_view()}
+
+                                            // ── Cheatsheet toggle (M14 §3.1) ──
+                                            // In the tab-bar row, not the global
+                                            // navbar: the panel is
+                                            // learning-room-scoped (Q3), and a
+                                            // navbar button would promise it
+                                            // everywhere.
+                                            <button
+                                                type="button"
+                                                class="ml-auto shrink-0 min-h-[44px] px-3 text-sm text-mist \
+                                                       hover:text-petal-white focus-visible:ring-2 focus-visible:ring-sky-teal"
+                                                aria-expanded=move || glossary.panel_open.get().to_string()
+                                                on:click=move |_| {
+                                                    let gate = glossary.gate.get();
+                                                    if glossary.panel_open.get() {
+                                                        glossary.panel_open.set(false);
+                                                        return;
+                                                    }
+                                                    match gate {
+                                                        // The hard-lock branch of D-G9c. One
+                                                        // line to switch to, one line to switch
+                                                        // back.
+                                                        GlossaryGate::Locked => {}
+                                                        // Peek-with-logging: one confirmation,
+                                                        // then the panel, and the open is
+                                                        // recorded whether or not a card is read.
+                                                        GlossaryGate::PeekLogged
+                                                            if !glossary.peek_ack.get() => {}
+                                                        _ => {
+                                                            glossary.panel_open.set(true);
+                                                            if gate == GlossaryGate::PeekLogged {
+                                                                let slug_val = glossary.slug.get();
+                                                                let phase = glossary.phase_number.get();
+                                                                let probe = glossary.probe_section.get();
+                                                                leptos::task::spawn_local(async move {
+                                                                    if post_panel_peek(&slug_val, phase, probe).await {
+                                                                        glossary.peeks_recorded.update(|n| *n += 1);
+                                                                    }
+                                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            >
+                                                "\u{2605} Cheatsheet"
+                                            </button>
                                         </div>
                                     }
+                                }}
+
+                                // ── Closed-book confirmation / refusal ────────
+                                // The friction that makes a peek a decision. Under
+                                // `lock` it is a refusal instead, in the same slot,
+                                // so switching policy changes the sentence and not
+                                // the layout.
+                                {move || match glossary.gate.get() {
+                                    GlossaryGate::Locked => Some(view! {
+                                        <p class="mb-4 rounded-lg border border-bark-light bg-bark-mid px-3 py-2 text-xs text-mist">
+                                            "Closed during retrieval \u{2014} that's the point."
+                                        </p>
+                                    }.into_any()),
+                                    GlossaryGate::PeekLogged if !glossary.peek_ack.get() => Some(view! {
+                                        <div class="mb-4 rounded-lg border border-sun-amber bg-bark-mid px-3 py-2">
+                                            <p class="text-xs text-sun-amber">
+                                                "This is a closed-book check. Opening the cheatsheet is recorded."
+                                            </p>
+                                            <button
+                                                type="button"
+                                                class="mt-2 min-h-[44px] rounded-lg border border-sun-amber px-3 text-xs \
+                                                       text-sun-amber hover:bg-bark-light focus-visible:ring-2 focus-visible:ring-sky-teal"
+                                                on:click=move |_| {
+                                                    glossary.peek_ack.set(true);
+                                                    glossary.panel_open.set(true);
+                                                    let slug_val = glossary.slug.get();
+                                                    let phase = glossary.phase_number.get();
+                                                    let probe = glossary.probe_section.get();
+                                                    leptos::task::spawn_local(async move {
+                                                        if post_panel_peek(&slug_val, phase, probe).await {
+                                                            glossary.peeks_recorded.update(|n| *n += 1);
+                                                        }
+                                                    });
+                                                }
+                                            >
+                                                "Open it anyway \u{2014} record the peek"
+                                            </button>
+                                        </div>
+                                    }.into_any()),
+                                    _ => None,
                                 }}
 
                                 // ── Phase content ─────────────────────────────
@@ -692,6 +932,29 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                             });
                                                         })
                                                     />
+                                                </div>
+                                            }.into_any()
+                                        } else if phase_type == "retrieval_check" {
+                                            // Phase 5, already completed: the result
+                                            // surface. Peeks are shown here, next to
+                                            // the outcome they qualify (D-G9c) —
+                                            // "peeked on item 3" is a
+                                            // correctness-relevant annotation on a
+                                            // self-score, not a reprimand.
+                                            view! {
+                                                <div class="mt-6">
+                                                    <MarkCompleteButton
+                                                        phase_name=phase_display_name
+                                                        accent_color=accent.clone()
+                                                        is_completed=is_completed
+                                                        visible=visible_signal
+                                                        on_complete=Callback::new(move |_| {})
+                                                    />
+                                                    {move || peek_summary(&peeks.get()).map(|line| view! {
+                                                        <p class="mt-3 rounded-lg border border-sun-amber bg-bark-mid px-3 py-2 text-xs text-sun-amber">
+                                                            {line}
+                                                        </p>
+                                                    })}
                                                 </div>
                                             }.into_any()
                                         } else {
@@ -813,6 +1076,16 @@ pub fn LearningRoomPage() -> impl IntoView {
                                                         probe_entry_open.set(true);
                                                     })
                                                 />
+                                                // Peeks alongside the verdict (D-G9c).
+                                                // The verdict is what the learner acts
+                                                // on, so a peek recorded during the
+                                                // probe belongs beside it and not in a
+                                                // log nobody opens.
+                                                {move || peek_summary(&peeks.get()).map(|line| view! {
+                                                    <p class="mt-3 rounded-lg border border-sun-amber bg-bark-mid px-3 py-2 text-xs text-sun-amber">
+                                                        {line}
+                                                    </p>
+                                                })}
                                             </div>
                                         }.into_any()
                                     }
@@ -831,6 +1104,31 @@ pub fn LearningRoomPage() -> impl IntoView {
                                         </p>
                                     </div>
                                 })}
+
+                                // ── Cheatsheet panel and term card (M14) ───────
+                                // Both sit as native Leptos siblings of the
+                                // injected phase HTML: the codebase has an
+                                // explicit rule against mounting components into
+                                // injected markup (pages/concept.rs:531-533), and
+                                // the hydrator-to-signal-to-sibling shape is what
+                                // three existing hydrators already do.
+                                //
+                                // Left-anchored on lg+, so it cannot collide with
+                                // the celebration and the XP toasts, which own
+                                // `fixed bottom-6 right-6 z-50`.
+                                <CheatsheetPanel
+                                    ctx=glossary
+                                    data=Signal::derive(move || glossary_data.get())
+                                />
+                                <TermCard
+                                    ctx=glossary
+                                    branch=Signal::derive(move || {
+                                        glossary_data
+                                            .get()
+                                            .map(|d| d.branch)
+                                            .unwrap_or_default()
+                                    })
+                                />
 
                                 // ── Phase completion celebration (D-23) ────────
                                 <PhaseCompletionCelebration
