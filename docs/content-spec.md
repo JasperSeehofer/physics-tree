@@ -1,7 +1,22 @@
 # Content Specification: 7-Phase Node Template
 
-**Version:** 1.4
+**Version:** 1.5
 **Status:** Canonical — all downstream phases (Phase 9 ingest, Phase 10 pilot authoring, Phase 11 Learning Room, Phase 12 AI pipeline) build against this contract.
+
+**v1.5 changes (glossary and branch conventions).** Every change is additive and
+optional; no v1.4 node needs to change, and the eight `node.yaml` files shipped
+at v1.4 parse byte-identically under v1.5. Source: mission M14a's
+glossary/cheatsheet design
+(`.planning/missions/M14-glossary-cheatsheet/DESIGN.md`), ratified at Gate 9.
+Implemented by mission M14b.
+
+| # | Change | Section |
+|---|--------|---------|
+| G-15 | New optional `terms:` block in `node.yaml` — the glossary records the node is the **first in its branch** to define. Owned by the defining node, so "defined by" is structural rather than a field that can go stale | §3, §6a |
+| G-16 | New inline directive `::term[key]{display}`, the fifth in the family. Its pre-pass is **fence-aware**: an occurrence inside a fenced block or an inline code span is left verbatim, because phase-5 files are full of `quiz` fences carrying prose prompts | §5, §6a |
+| G-17 | New optional branch file `content/{branch}/conventions.yaml` — the conventions table as a *branch* object, because rows are opened by one node and closed by another. `node.yaml` is untouched | §2, §6a |
+| G-18 | Validation gains checks 23–26 and warnings W-3 (a term declared but tagged nowhere, so no learner can unlock it) and W-4 (prose ↔ yaml drift on the conventions table, in both directions) | §8 |
+| — | Unlock is **derived**, not authored: a term is unlocked once the learner completes any `(node, phase)` in which it is tagged. There is no `first_taught` field, because a book has one linear position and a knowledge graph does not | §6a |
 
 **v1.4 changes (structured probes).** Every change is additive and optional; no
 v1.3 node needs to change, and the eight `node.yaml` files shipped at v1.3 are
@@ -158,6 +173,8 @@ Two consequences worth stating plainly:
 Per-node directories follow this layout (D-01, D-02, D-03):
 
 ```
+content/{branch}/
+  conventions.yaml  # optional (v1.5); one per branch, not per node
 content/{branch}/{slug}/
   node.yaml
   probe.yaml        # optional (v1.4); graduate nodes only
@@ -176,6 +193,7 @@ Where:
 - `{branch}` — physics branch name (e.g., `classical-mechanics`, `electromagnetism`)
 - `{slug}` — URL-safe concept identifier matching `concept_id` in `node.yaml` (e.g., `newtons-second-law`)
 - `probe.yaml` — *(v1.4 / G-10)* the structured mirror of `phase-0.md`'s `## Calibration Probe`. Optional; absence is the pre-v1.4 behaviour. See [§4a](#4a-probeyaml-schema-v14)
+- `conventions.yaml` — *(v1.5 / G-17)* the branch's conventions table, at **branch** level rather than node level. Optional; absence is the pre-v1.5 behaviour. It sits beside the node directories, not inside one, because a row is opened by one node and closed by another. See [§6a](#6a-glossary-terms-and-branch-conventions-v15)
 - `assets/` — per-node illustrations, SVGs, and media files (self-contained per node)
 
 New v1.1 phased content lives alongside existing v1.0 flat files in the same `content/` tree. Existing v1.0 flat files may be replaced; no need to preserve the old structure.
@@ -202,6 +220,7 @@ The `node.yaml` file contains all node-level metadata and the phase manifest dec
 | `esco_tags` | list[string] | yes | ESCO skill tag URIs |
 | `node_type` | string | no | Graph node type: `concept`, `formula`, `theorem`, `application`, `consequence`. Defaults to `concept` |
 | `depth_tier` | string | no | Graph depth: `trunk`, `branch`, `leaf`. Defaults to `trunk` |
+| `terms` | list[TermEntry] | no | *(v1.5 / G-15)* Glossary records this node is the **first in its branch** to define. Defaults to `[]`. See [§6a](#6a-glossary-terms-and-branch-conventions-v15) |
 
 > **`node_type` and `depth_tier` were enforced before they were documented.**
 > `NodeMeta` is `deny_unknown_fields`, so the two serde-defaulted graph fields
@@ -964,6 +983,31 @@ Fields:
 > node granularity. It now reaches the database, because the interesting question
 > is not *whether* a node overruns but *which phase* does.
 
+### Inline directives
+
+Five inline directives are recognised in phase Markdown. All are rewritten to
+HTML in a pre-pass, before the Markdown parser runs.
+
+| Directive | Since | Emits |
+|---|---|---|
+| `::simulation[name]` | v1.0 | `<div data-simulation="name">` |
+| `::concept-link[slug]{title}` | v1.0 | `<a href="/graph/{slug}/learn" class="concept-link" data-concept-link="{slug}">` |
+| `::misconception[statement]{reveal=…}` | v1.0 | `<div data-misconception …>` |
+| `::quiz[type]{attrs}` | v1.0 | `<div data-quiz-checkpoint …>` |
+| `::term[key]{display}` | **v1.5 / G-16** | `<button class="term" data-term="key" aria-describedby="term-card">` — see [§6a](#6a-glossary-terms-and-branch-conventions-v15) |
+
+> **The `data-concept-link` attribute is new at v1.5** and is a bug fix, not a
+> feature: the concept-link hydrator has always queried `[data-concept-link]`,
+> which the directive never emitted, so that tooltip was dead code from the day
+> it shipped. Both selectors are now shared constants asserted by the renderer's
+> own tests.
+
+> **Only `::term`'s pre-pass is fence-aware.** The other four run raw regexes
+> over the whole document and would rewrite an occurrence inside a fenced block.
+> That is a latent hazard for all four; it is *fixed* for `::term` because
+> phase-5 files are full of `quiz` fences carrying prose prompts, which is
+> precisely where a term is most likely to be named.
+
 ### Heading Convention
 
 Required content blocks are marked by H2 headings. The mapping between `requires` list entries and H2 headings is deterministic:
@@ -1129,6 +1173,162 @@ The EQF-conditional rules in this table are reference documentation. The `node.y
 
 ---
 
+## 6a. Glossary Terms and Branch Conventions (v1.5)
+
+*(v1.5 / G-15 through G-18. Source: mission M14a's glossary/cheatsheet design,
+ratified at Gate 9. Implemented by mission M14b.)*
+
+Two artefacts, deliberately at two different levels.
+
+| Artefact | Level | Why |
+|---|---|---|
+| `terms:` block | **node** | The node that *defines* a term owns its record, so "defined by" is structural and cannot drift. Node directories stay self-contained (§2), and parallel authoring missions do not collide on one shared file. |
+| `conventions.yaml` | **branch** | The table is authored as a branch object: node 1's own prose says *"this table fixes the conventions of the entire branch"*, and rows are **opened by one node and closed by another**. A per-node block cannot express that without a merge pass. |
+
+### `TermEntry`
+
+Added to `NodeMeta` as `#[serde(default)] pub terms: Vec<TermEntry>` — the same
+additive, defaulted pattern as v1.2's `tier` and v1.3's `relaxation`, so every
+existing `node.yaml` stays valid and byte-identical.
+
+```yaml
+terms:
+  - key: mode-expansion                  # required. branch-unique slug; the ::term[...] target
+    term: 'Mode expansion'               # required. display name
+    symbol: |                            # optional. KaTeX SOURCE, not rendered HTML
+      $\varphi(\mathbf{x}) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+      \left(a_{\mathbf{k}}e^{i\mathbf{k}\cdot\mathbf{x}} + a^{\dagger}_{\mathbf{k}}e^{-i\mathbf{k}\cdot\mathbf{x}}\right)$
+    units: 'mass dimension 1'            # optional. '—' for dimensionless
+    definition: |                        # required. 1–3 sentences. KaTeX allowed
+      The free scalar field written as a superposition of ladder operators — one
+      independent harmonic oscillator per momentum $\mathbf{k}$.
+    caveat: |                            # optional. Rendered amber. Convention traps go HERE
+      The $1/\sqrt{2\omega_{\mathbf{k}}}$ placement is a convention. Srednicki puts
+      $1/(2\omega_{\mathbf{k}})$ in the measure. A convention is only wrong when it is **mixed**.
+    teaser: 'the field written as a superposition of ladder operators'   # optional; shown before unlock
+    convention_row: mode-normalization   # optional. links the card to a conventions.yaml row
+```
+
+`TermEntry` is `deny_unknown_fields`, for the same reason `ProbeSpec` is: a typo
+in an optional field would otherwise drop a caveat in silence, and the caveat is
+where convention traps live.
+
+**The §3 YAML rule applies unchanged and is restated because it bites hardest
+here: single-quoted or literal-block scalars only, never double quotes**, or the
+backslashes are eaten before serde ever sees them. Every string field is KaTeX
+*source*; the existing two-stage math pipeline turns `$…$` into placeholders
+server-side and the client renders them. No new math path.
+
+**Spoiler surface.** `definition` and `caveat` are the only two fields that
+spoil. `symbol`, `units`, `teaser` and the attribution to the teaching node never
+do, which is why they survive into a locked card — showing them is the feature's
+actual job, not a consolation prize. The server is the only thing that decides:
+a locked payload is built without the two spoiler fields and there is no
+client-side branch that could restore them.
+
+### The `::term[key]{display}` directive
+
+The fifth member of the inline directive family, alongside `::simulation`,
+`::concept-link`, `::misconception` and `::quiz`.
+
+```
+::term[mode-expansion]{the mode expansion}
+  →  <button type="button" class="term" data-term="mode-expansion"
+             aria-describedby="term-card">the mode expansion</button>
+```
+
+The markup carries **only the key**. The card payload arrives from a
+session-aware endpoint, so a term the learner has not reached is not sitting in
+the DOM waiting to be read in devtools.
+
+`<button>` rather than a `<span tabindex="0">`: keyboard and screen-reader
+semantics come free, and `aria-describedby` tells a screen reader the card exists
+at all.
+
+**The pre-pass is fence-aware, and this is not optional.** The other four
+directive pre-passes run raw regexes over the whole document. Phase-5 files are
+full of ```` ```quiz ```` fences carrying prose prompts, and a `::term`
+rewritten into HTML *inside* a fence would be handed to the quiz parser as
+markup. An occurrence inside a fenced block, or inside an inline `` `code` ``
+span, is left verbatim. The scanner
+(`domain::glossary::scan_term_tags`) is shared by the renderer and the ingest
+binary, so the page and the tag index cannot disagree about which occurrences
+count.
+
+**Authoring rule: tag on first use per phase-section, not every occurrence.**
+Sections are already the unit the renderer works in. Tagging every occurrence
+reaches unreadable densities in a 15k-word node.
+
+### Unlock is derived, not authored
+
+**A term is unlocked for a learner once they have completed at least one
+`(node, phase)` pair in which that term is tagged.** Ingest builds the
+`(term_key, node, phase)` index from the `::term` occurrences.
+
+There is no `first_taught` field, and there is deliberately not going to be one:
+a book has one linear position and a knowledge graph does not, and a term is
+routinely *used* in a node other than the one that defines it. The consequences
+are all desirable — nothing to author, nothing to keep correct, and "you were
+taught it where you met it" is literally true.
+
+The signal is `user_phase_progress`, chosen over the alternatives because it is
+the only one that is precise, idempotent and **server-gated**: phase completion
+is refused unless phase N−1 is complete, so completion is a prefix and cannot be
+forged out of order.
+
+The card *while reading* is never gated against the text in front of the learner:
+a term tagged in the currently displayed phase is served in full. There is no
+state in which the learner is denied a term the page is showing them.
+
+### `conventions.yaml`
+
+```yaml
+# content/quantum-field-theory/conventions.yaml
+branch: quantum-field-theory
+title: 'Quantum Field Theory — branch conventions'
+rows:
+  - key: state-normalization
+    object: 'State normalization'
+    this_branch: '$\lvert\mathbf{k}\rangle_{R} = \sqrt{2\omega_{\mathbf{k}}}\,a^{\dagger}_{\mathbf{k}}\lvert0\rangle$'
+    also_common: '$\lvert\mathbf{k}\rangle = a^{\dagger}_{\mathbf{k}}\lvert0\rangle$ (not covariant)'
+    status: forced
+    status_note: 'Forced once covariance is demanded and the measure is fixed.'
+    opened_by: free-scalar-field-quantization-mode-expansion
+    closed_by: lorentz-invariant-measure-and-normalization-conventions
+```
+
+| Field | Required | Meaning |
+|---|---|---|
+| `key` | yes | Row key; branch-unique. Should be the slugified first column of the prose table, so warning W-4 is meaningful |
+| `object` | yes | What the row is about |
+| `this_branch` | yes | The value this branch fixes |
+| `also_common` | no | The incompatible alternative, and who uses it |
+| `status` | yes | `free` \| `forced` \| `not_independent` \| `convention_independent` \| `open` |
+| `status_note` | no | Why it has that status |
+| `opened_by` | yes | `concept_id` of the node that raises the row |
+| `closed_by` | yes | `concept_id` of the node that settles it. Equal to `opened_by` for a row settled where it is raised |
+
+The five `status` values transcribe what the live content already asserts in
+prose: nodes 2 and 4 write *"Not independent. Fixed by …"*, node 5 writes
+*"Forced"* and *"Convention-independent"*, and node 1's prose distinguishes free
+choices from forced ones.
+
+**`status` is what the row *is*; `closed_by` decides what the learner may
+*see*.** A row whose closing node the learner has not reached is served without
+its value at all — the panel shows the authored open state (*"deliberately not
+fixed here — fixed by ⟨node⟩"*) and not the answer. That is exactly what node 1's
+own prose does, and it is what stops the panel becoming a shortcut past the node
+that settles the row.
+
+### Accepted cost
+
+The prose table in `phase-2.md` and `conventions.yaml` are two representations of
+the same rows. This is stated rather than hidden: the prose is canonical for the
+*page* and the yaml for the *panel*, and warning W-4 fires in both directions
+when the row-key sets part company. See §8.
+
+---
+
 ## 8. Validation Rules
 
 The validator (`validate_node()` in `crates/domain/src/content_spec.rs`) collects all violations in a single pass and rejects the entire node if any error is found. No partial ingest.
@@ -1184,6 +1384,15 @@ without one is validated exactly as it was at v1.3. (Added v1.4 / G-13.)
 21. **Route target exists** — a `route_to` with `status: internal` must name a `concept_id` that exists in `content/`; `status: external` is exempt, mirroring G-4's rule for prerequisites. The check is skipped when the caller cannot enumerate the corpus.
 22. **Correctness items and rules name each other** — every item with a `correctness:` block must be read by at least one `correctness` rule, and every `correctness` rule must name at least one correctness-gated item. A gated item no rule reads is a gate that never fires; a correctness rule reading an ungated item is a gate with no criterion.
 
+Checks 23–26 are the v1.5 glossary. A node with no `terms:` block and no
+`::term` tags adds no checks, which is every node authored before mission M14.
+(Added v1.5 / G-18.)
+
+23. **Term tags resolve** — every `::term[key]` occurrence in a phase file must name a key some node in the branch declares. Skipped when the caller cannot enumerate the branch, exactly as check 21 is. The passport's equivalent — its "0 unknown keys" PASS — was a one-off manual count and never CI.
+24. **Term keys are unique in a branch** — within this node's own `terms:` block, and across the branch. Two nodes claiming one key would make "defined by" ambiguous, which is the property the whole placement decision buys. Keys are branch-scoped, so the *same* key in two branches is two distinct terms and is allowed: `metric-signature` genuinely differs between `quantum-field-theory` and `general-relativity`, on purpose.
+25. **Conventions file shape** — `conventions.yaml`'s `branch` must match the directory it sits in, and its `rows` must have unique `key`s. The branch half runs in the ingest binary, which is the only caller that knows the path.
+26. **Conventions rows name real nodes** — every `opened_by` and `closed_by` must be a `concept_id` that exists in `content/`. Skipped when the corpus is not supplied, like check 21.
+
 The effective tier used by checks 3, 15 and W-2 is the declared `tier`, or — when
 the field is absent — `graduate` for `eqf_level >= 6` and `school` otherwise.
 
@@ -1201,6 +1410,23 @@ the errors array.
 |---|---------|-----------|
 | W-1 | `node.yaml:relaxation  '{value}' has no effect at tier {tier}; the gate is advisory only at tier graduate` | `relaxation` is declared and the **effective** tier is not `graduate` |
 | W-2 | `probe.yaml:  A structured probe has no effect at tier {tier}; the calibration probe routes only at tier graduate` | a `probe.yaml` exists and the **effective** tier is not `graduate` (v1.4 / G-13) |
+| W-3 | `node.yaml:terms  '{key}' is declared but tagged nowhere in the branch; no learner can unlock it` | a declared term that no `::term` tag anywhere in the branch names (v1.5 / G-18) |
+| W-4 | `conventions.yaml:rows  '{row}' {detail}` | prose ↔ yaml drift on the conventions table, in **both** directions; and a `convention_row:` naming no row (v1.5 / G-18) |
+
+W-3 exists because unlock is derived from the tag index: a record nothing tags
+is a record no learner can ever open. It is a warning rather than an error
+because a node may legitimately declare a term slightly ahead of the phase that
+will tag it — and because the passport shipped exactly one such orphan (`pi`)
+with no check to notice.
+
+W-4 is the mitigation for the one cost this design accepts openly: the prose
+table in `phase-2.md` and `conventions.yaml` are two representations of the same
+rows. The prose stays canonical for the *page* — it carries the warnings and the
+Peskin/Srednicki comparison, none of which belong in a panel — and the yaml is
+canonical for the *panel*. **A warning is not a mechanism**, and this one is
+named as a mitigation rather than a guarantee. Scraping the prose instead was
+rejected: node 1's table has no Status column at all, so a scrape cannot recover
+the forced/free distinction that is the point of the tab.
 
 W-2 mirrors W-1's shape and its reasoning exactly. The calibration probe is
 required, and read, only at graduate tier, so a sidecar below that tier is inert

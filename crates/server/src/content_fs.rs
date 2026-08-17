@@ -337,4 +337,82 @@ mod tests {
         // Not a node dir; load_probe must not invent a file.
         assert!(load_probe(dir).unwrap().is_none());
     }
+
+    // ── The v1.5 worked example, against the real files on disk ─────────────
+
+    const NODE_1: &str =
+        "../../content/quantum-field-theory/free-scalar-field-quantization-mode-expansion";
+
+    #[test]
+    fn node_1_declares_its_ten_terms_and_tags_them() {
+        let parsed = parse_node_dir(Path::new(NODE_1)).expect("node 1 parses");
+        assert_eq!(
+            parsed.meta.terms.len(),
+            10,
+            "node 1 owns ten terms — a selection, not a transcription"
+        );
+        assert!(
+            parsed.term_tags.len() > 30,
+            "node 1 is tagged end to end, got {} tags",
+            parsed.term_tags.len()
+        );
+
+        // The cross-node path: node 1 tags terms it does not own, which is the
+        // case a `first_taught` field could not express.
+        let owned: Vec<&str> = parsed.meta.terms.iter().map(|t| t.key.as_str()).collect();
+        let tagged: Vec<&str> = parsed.term_tags.iter().map(|(_, k)| k.as_str()).collect();
+        assert!(
+            tagged.iter().any(|k| !owned.contains(k)),
+            "at least one tag must be forward, or the teaser state ships untested"
+        );
+    }
+
+    #[test]
+    fn node_1_validates_clean_including_its_conventions() {
+        let parsed = parse_node_dir(Path::new(NODE_1)).expect("node 1 parses");
+        assert!(
+            parsed.conventions.is_some(),
+            "the branch conventions file must be reachable from a node dir"
+        );
+        assert_eq!(
+            domain::content_spec::validate_node(&parsed),
+            Vec::new(),
+            "the worked example must have zero errors"
+        );
+        assert_eq!(
+            domain::content_spec::validate_node_warnings(&parsed),
+            Vec::new(),
+            "and zero warnings — its row keys are the slugified prose labels exactly"
+        );
+    }
+
+    #[test]
+    fn the_branch_conventions_file_declares_its_own_directory() {
+        let conventions = load_branch_conventions(Path::new(NODE_1))
+            .expect("parses")
+            .expect("exists");
+        let branch = branch_name(Path::new(NODE_1)).expect("a branch dir");
+        assert!(
+            domain::content_spec::check_conventions_branch(&conventions, &branch).is_none(),
+            "conventions.yaml:branch must match the directory it sits in"
+        );
+        assert_eq!(conventions.rows.len(), 10);
+    }
+
+    #[test]
+    fn no_tag_is_counted_inside_a_quiz_fence_in_real_phase_5_content() {
+        // The acceptance criterion, checked against the file that actually has
+        // the fences rather than only against a fixture.
+        let phase5 = read_phase_content(Path::new(NODE_1), 5).expect("phase-5.md");
+        let counted = super::node_term_tags(Path::new(NODE_1))
+            .into_iter()
+            .filter(|(phase, _)| *phase == 5)
+            .count();
+        let raw = phase5.matches("::term[").count();
+        assert_eq!(
+            counted, raw,
+            "every phase-5 occurrence here is outside a fence; if that changes, \
+             the scanner and the renderer must still agree"
+        );
+    }
 }

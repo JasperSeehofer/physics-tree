@@ -5,6 +5,7 @@ import pytest
 import yaml
 
 from authoring.quality_gate import (
+    _check_validator_warnings,
     CheckResult,
     CheckStatus,
     GateReport,
@@ -252,3 +253,40 @@ def test_write_gate_report_appends_review_report(tmp_path: Path):
     path = write_gate_report(report, tmp_path)
     content = path.read_text()
     assert "Detailed feedback here." in content
+
+
+# ---------------------------------------------------------------------------
+# Validator warnings (content-spec v1.5)
+# ---------------------------------------------------------------------------
+def test_validator_warnings_pass_when_none(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(
+        "authoring.quality_gate.validate_node_warnings", lambda *_: []
+    )
+    result = _check_validator_warnings(tmp_path, tmp_path)
+    assert result.status is CheckStatus.PASS
+
+
+def test_validator_warnings_are_warnings_never_failures(monkeypatch, tmp_path: Path):
+    # A warning says "this is inert" or "these two representations have parted
+    # company", not "this is wrong" — so it must never fail a node's gate.
+    monkeypatch.setattr(
+        "authoring.quality_gate.validate_node_warnings",
+        lambda *_: [
+            "node.yaml:terms  'pi' is declared but tagged nowhere in the branch",
+            "conventions.yaml:rows  'metric-signature' is in this node's prose table but not in conventions.yaml",
+        ],
+    )
+    result = _check_validator_warnings(tmp_path, tmp_path)
+    assert result.status is CheckStatus.WARNING
+    assert "tagged nowhere" in result.detail
+    assert "prose table" in result.detail
+
+
+def test_validator_warnings_survive_a_missing_binary(monkeypatch, tmp_path: Path):
+    def boom(*_):
+        raise FileNotFoundError("target/debug/validate")
+
+    monkeypatch.setattr("authoring.quality_gate.validate_node_warnings", boom)
+    result = _check_validator_warnings(tmp_path, tmp_path)
+    assert result.status is CheckStatus.WARNING
+    assert "unavailable" in result.detail

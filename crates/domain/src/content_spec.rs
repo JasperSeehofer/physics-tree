@@ -3283,4 +3283,254 @@ rules:
         };
         assert!(warning.to_string().starts_with("probe.yaml:"));
     }
+
+    // ===== v1.5 glossary (checks 23-26, warnings W-3/W-4) =====
+
+    fn term(key: &str) -> TermEntry {
+        TermEntry {
+            key: key.into(),
+            term: key.into(),
+            symbol: None,
+            units: None,
+            definition: "A thing.".into(),
+            caveat: None,
+            teaser: None,
+            convention_row: None,
+        }
+    }
+
+    fn conventions_with(row_key: &str, opened_by: &str, closed_by: &str) -> BranchConventions {
+        BranchConventions {
+            branch: "quantum-field-theory".into(),
+            title: "QFT".into(),
+            rows: vec![crate::glossary::ConventionRow {
+                key: row_key.into(),
+                object: "Object".into(),
+                this_branch: "x".into(),
+                also_common: None,
+                status: crate::glossary::ConventionStatus::Free,
+                status_note: None,
+                opened_by: opened_by.into(),
+                closed_by: closed_by.into(),
+            }],
+        }
+    }
+
+    /// A node with no glossary at all is validated exactly as it was at v1.4.
+    #[test]
+    fn a_node_without_terms_or_tags_adds_no_glossary_checks() {
+        let node = make_valid_eqf4_node();
+        assert!(validate_node(&node).is_empty());
+        assert!(validate_node_warnings(&node).is_empty());
+    }
+
+    /// Check 23. The bug class the passport never had a check for.
+    #[test]
+    fn an_unknown_term_key_in_a_phase_file_is_an_error() {
+        let mut node = make_valid_eqf4_node();
+        node.branch_terms = vec![("kinematics".into(), "velocity".into())];
+        node.term_tags = vec![(2, "velocity".into()), (3, "acceleration".into())];
+
+        let errors = validate_node(&node);
+        assert_eq!(
+            errors,
+            vec![ValidationError::UnknownTermKey {
+                phase: 3,
+                key: "acceleration".into()
+            }],
+            "only the unresolved tag is an error"
+        );
+    }
+
+    /// Check 23 is skipped when the caller cannot enumerate the branch — the
+    /// same "not supplied" convention `known_concept_ids` uses.
+    #[test]
+    fn tag_resolution_is_skipped_without_a_branch_corpus() {
+        let mut node = make_valid_eqf4_node();
+        node.term_tags = vec![(3, "acceleration".into())];
+        assert!(node.branch_terms.is_empty());
+        assert!(validate_node(&node).is_empty());
+    }
+
+    /// Check 24, within one node's own block.
+    #[test]
+    fn a_duplicate_key_inside_one_node_is_an_error() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.terms = vec![term("velocity"), term("velocity")];
+        let errors = validate_node(&node);
+        assert!(
+            errors.contains(&ValidationError::DuplicateTermKey {
+                key: "velocity".into(),
+                owner: "kinematics".into()
+            }),
+            "got: {errors:?}"
+        );
+    }
+
+    /// Check 24, across the branch — the clash that only shows at branch scope.
+    #[test]
+    fn a_key_another_node_already_owns_is_an_error() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.terms = vec![term("velocity")];
+        node.branch_terms = vec![
+            ("kinematics".into(), "velocity".into()),
+            ("dynamics".into(), "velocity".into()),
+        ];
+        let errors = validate_node(&node);
+        assert!(
+            errors.contains(&ValidationError::DuplicateTermKey {
+                key: "velocity".into(),
+                owner: "dynamics".into()
+            }),
+            "got: {errors:?}"
+        );
+    }
+
+    /// Keys are branch-scoped: the same key in another *branch* is a different
+    /// term, on purpose, and must not be an error.
+    #[test]
+    fn the_same_key_owned_by_this_node_alone_is_fine() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.terms = vec![term("metric-signature")];
+        node.branch_terms = vec![("kinematics".into(), "metric-signature".into())];
+        assert!(validate_node(&node).is_empty());
+    }
+
+    /// Check 25.
+    #[test]
+    fn duplicate_conventions_rows_are_an_error() {
+        let mut node = make_valid_eqf4_node();
+        let mut conventions = conventions_with("units", "kinematics", "kinematics");
+        conventions.rows.push(conventions.rows[0].clone());
+        node.conventions = Some(conventions);
+        let errors = validate_node(&node);
+        assert!(
+            errors.contains(&ValidationError::DuplicateConventionRow {
+                key: "units".into()
+            }),
+            "got: {errors:?}"
+        );
+    }
+
+    /// Check 25, the branch half — only a caller that knows the path can run it.
+    #[test]
+    fn a_conventions_file_must_declare_the_branch_it_sits_in() {
+        let conventions = conventions_with("units", "kinematics", "kinematics");
+        assert!(check_conventions_branch(&conventions, "quantum-field-theory").is_none());
+        assert_eq!(
+            check_conventions_branch(&conventions, "general-relativity"),
+            Some(ValidationError::ConventionsBranchMismatch {
+                declared: "quantum-field-theory".into(),
+                directory: "general-relativity".into(),
+            })
+        );
+    }
+
+    /// Check 26.
+    #[test]
+    fn a_conventions_row_naming_an_unknown_node_is_an_error() {
+        let mut node = make_valid_eqf4_node();
+        node.known_concept_ids = vec!["kinematics".into()];
+        node.conventions = Some(conventions_with("units", "kinematics", "node-five"));
+        let errors = validate_node(&node);
+        assert!(
+            errors.contains(&ValidationError::UnknownConventionNode {
+                row: "units".into(),
+                field: "closed_by".into(),
+                concept_id: "node-five".into(),
+            }),
+            "got: {errors:?}"
+        );
+    }
+
+    /// W-3. A declared record that no tag names is unreachable: unlock is
+    /// derived from the tag index, so no learner can ever open its card.
+    #[test]
+    fn a_declared_but_untagged_term_warns_and_does_not_fail() {
+        let mut node = make_valid_eqf4_node();
+        node.meta.terms = vec![term("velocity"), term("jerk")];
+        node.branch_terms = vec![
+            ("kinematics".into(), "velocity".into()),
+            ("kinematics".into(), "jerk".into()),
+        ];
+        node.branch_term_tags = vec!["velocity".into()];
+
+        assert!(validate_node(&node).is_empty(), "never an error");
+        assert_eq!(
+            validate_node_warnings(&node),
+            vec![ValidationWarning::UntaggedTerm { key: "jerk".into() }]
+        );
+    }
+
+    /// W-4, the term half.
+    #[test]
+    fn a_convention_row_reference_that_resolves_to_nothing_warns() {
+        let mut node = make_valid_eqf4_node();
+        let mut t = term("velocity");
+        t.convention_row = Some("not-a-row".into());
+        node.meta.terms = vec![t];
+        node.conventions = Some(conventions_with("units", "kinematics", "kinematics"));
+
+        let warnings = validate_node_warnings(&node);
+        assert!(
+            warnings.contains(&ValidationWarning::UnknownConventionRowRef {
+                term: "velocity".into(),
+                row: "not-a-row".into()
+            }),
+            "got: {warnings:?}"
+        );
+    }
+
+    /// W-4 fires in **both** directions: a prose row missing from the yaml, and
+    /// a yaml row this node opens that its prose does not mention.
+    #[test]
+    fn prose_yaml_drift_warns_in_both_directions() {
+        let mut node = make_valid_eqf4_node();
+        node.conventions = Some(conventions_with("units", "kinematics", "kinematics"));
+        node.prose_convention_rows = vec!["metric-signature".into()];
+
+        let warnings = validate_node_warnings(&node);
+        let rows: Vec<&str> = warnings
+            .iter()
+            .filter_map(|w| match w {
+                ValidationWarning::ConventionsProseDrift { row, .. } => Some(row.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            rows.contains(&"metric-signature"),
+            "prose-only: {warnings:?}"
+        );
+        assert!(rows.contains(&"units"), "yaml-only: {warnings:?}");
+    }
+
+    /// The matching case is silent, which is what makes the warning worth
+    /// having: node 1's row keys are the slugified prose labels exactly.
+    #[test]
+    fn matching_prose_and_yaml_rows_are_silent() {
+        let mut node = make_valid_eqf4_node();
+        node.conventions = Some(conventions_with("units", "kinematics", "kinematics"));
+        node.prose_convention_rows = vec!["units".into()];
+        assert!(validate_node_warnings(&node).is_empty());
+    }
+
+    /// Every new diagnostic keeps the `file:field  description` Display contract.
+    #[test]
+    fn glossary_diagnostics_display_in_the_standard_format() {
+        assert!(ValidationError::UnknownTermKey {
+            phase: 5,
+            key: "k".into()
+        }
+        .to_string()
+        .starts_with("phase-5.md:::term"));
+        assert!(ValidationWarning::UntaggedTerm { key: "k".into() }
+            .to_string()
+            .starts_with("node.yaml:terms"));
+        assert!(ValidationWarning::ConventionsProseDrift {
+            row: "r".into(),
+            detail: "d".into()
+        }
+        .to_string()
+        .starts_with("conventions.yaml:rows"));
+    }
 }

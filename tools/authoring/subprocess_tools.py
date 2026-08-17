@@ -62,6 +62,44 @@ def validate_node(node_dir: Path, project_root: Path | None = None) -> list[str]
     return [result.stderr.strip()] if result.stderr.strip() else [f"Validation failed with exit code {result.returncode}"]
 
 
+def validate_node_warnings(node_dir: Path, project_root: Path | None = None) -> list[str]:
+    """Run the Rust validate CLI and return its non-fatal warnings.
+
+    Warnings go to stderr and never affect the exit code, by design (content-spec
+    v1.3): stdout stays the errors array so a caller piping `--json` into a
+    parser is unaffected. That also meant the authoring gate has been discarding
+    them since v1.3. Content-spec v1.5 adds two warnings the gate actually wants
+    (an unreachable glossary term, and prose/yaml drift on the conventions
+    table), so they are read here rather than re-implemented in Python — one
+    checker, not two that can disagree.
+
+    The `--json` form writes warnings to stderr as a JSON array; the plain form
+    writes `warning: ...` lines. Both shapes are accepted, because a caller can
+    reasonably invoke either.
+    """
+    root = project_root or resolve_project_root()
+    binary = resolve_binary("validate", root)
+    result = subprocess.run(
+        [str(binary), "--json", str(node_dir)],
+        capture_output=True, text=True,
+        cwd=str(root),
+    )
+    stderr = result.stderr.strip()
+    if not stderr:
+        return []
+    try:
+        warnings = json.loads(stderr)
+        if isinstance(warnings, list):
+            return [w if isinstance(w, str) else str(w) for w in warnings]
+    except json.JSONDecodeError:
+        pass
+    return [
+        line[len("warning:"):].strip()
+        for line in stderr.splitlines()
+        if line.strip().startswith("warning:")
+    ]
+
+
 def ingest_node(node_dir: Path, dry_run: bool = False, project_root: Path | None = None) -> bool:
     """Run Rust ingest CLI. Returns True on success.
 

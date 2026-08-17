@@ -28,7 +28,9 @@ use uuid::Uuid;
 use db::glossary_repo::{self, NodeGlossary, PeekRow};
 use db::{content_repo, probe_repo};
 use domain::content_spec::PhaseType;
-use domain::glossary::{gate_for, GlossaryGate, Phase5Policy, TermCardPayload};
+use domain::glossary::{
+    bulk_full_phase, card_full_phase, gate_for, GlossaryGate, Phase5Policy, TermCardPayload,
+};
 
 /// The site's phase-5 policy, read once.
 ///
@@ -88,13 +90,11 @@ pub async fn get_glossary(
     let gate = resolve_gate(&pool, node_id, user_id, &view).await?;
 
     // In a closed-book context nothing is served in full that the learner has
-    // not already earned: `full_phase = None` withholds the "tagged in the phase
+    // not already earned: `bulk_full_phase` withholds the "tagged in the phase
     // in front of you" allowance, so the bulk response cannot be mined for the
-    // very terms the check is testing.
-    let full_phase = match gate {
-        GlossaryGate::Open => view.phase,
-        GlossaryGate::PeekLogged | GlossaryGate::Locked => None,
-    };
+    // very terms the check is testing. The decision is a pure function in
+    // `domain::glossary` precisely so it is unit-tested rather than trusted.
+    let full_phase = bulk_full_phase(gate, view.phase);
 
     let glossary = glossary_repo::node_glossary(&pool, &branch, node_id, user_id, full_phase)
         .await
@@ -132,14 +132,10 @@ pub async fn get_term(
         ));
     }
 
-    let full_phase = match gate {
-        GlossaryGate::Open => view.phase,
-        // A peek is a peek: the learner gets the card they asked for, at the
-        // price of it being recorded. Withholding it here would make the
-        // confirmation dialogue a lie.
-        GlossaryGate::PeekLogged => view.phase,
-        GlossaryGate::Locked => None,
-    };
+    // A peek is a peek: the learner gets the card they asked for, at the price
+    // of it being recorded. Withholding it here would make the confirmation
+    // dialogue a lie.
+    let full_phase = card_full_phase(gate, view.phase);
 
     let card = glossary_repo::term_card(&pool, &branch, node_id, user_id, &term_key, full_phase)
         .await

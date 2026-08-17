@@ -227,6 +227,40 @@ pub fn gate_for(phase_type: &str, in_probe_section: bool, policy: Phase5Policy) 
     }
 }
 
+/// Which phase, if any, the **bulk** panel response may treat as "the text in
+/// front of the learner".
+///
+/// In an open context that is the phase on screen: a term tagged there is served
+/// in full, because the card while reading is never gated against the page. In
+/// either closed-book context it is `None` — so the panel payload carries no
+/// spoiler fields at all, and a peek has to go one card at a time through the
+/// endpoint that records it.
+///
+/// Note that `PeekLogged` withholds here even though a peek is *permitted*. The
+/// difference is what a bulk response makes possible: one request would hand
+/// over every term in the node, and a peek that costs nothing and is logged as
+/// one line is not the instrument D-G9c ratified.
+pub fn bulk_full_phase(gate: GlossaryGate, phase: Option<i16>) -> Option<i16> {
+    match gate {
+        GlossaryGate::Open => phase,
+        GlossaryGate::PeekLogged | GlossaryGate::Locked => None,
+    }
+}
+
+/// The same question for a **single card** request.
+///
+/// Here `PeekLogged` does pass the phase through: the learner asked for one
+/// named term, accepted the confirmation, and the request is being recorded.
+/// Withholding the card at that point would make the confirmation a lie.
+/// `Locked` never reaches this function — the handler refuses first — and
+/// returns `None` if it somehow does.
+pub fn card_full_phase(gate: GlossaryGate, phase: Option<i16>) -> Option<i16> {
+    match gate {
+        GlossaryGate::Open | GlossaryGate::PeekLogged => phase,
+        GlossaryGate::Locked => None,
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Payloads — the only shape that crosses the wire
 // ─────────────────────────────────────────────────────────────────────────────
@@ -817,6 +851,24 @@ mod tests {
             Phase5Policy::Peek,
             "unrecognised values fall back to the default, never to open"
         );
+    }
+
+    #[test]
+    fn a_bulk_response_is_never_full_in_a_closed_book_context() {
+        // The load-bearing half of "locked payloads never reach the client":
+        // one request must not be able to hand over every term in the node.
+        assert_eq!(bulk_full_phase(GlossaryGate::Open, Some(2)), Some(2));
+        assert_eq!(bulk_full_phase(GlossaryGate::PeekLogged, Some(5)), None);
+        assert_eq!(bulk_full_phase(GlossaryGate::Locked, Some(5)), None);
+    }
+
+    #[test]
+    fn a_single_card_is_served_under_peek_and_refused_under_lock() {
+        // A peek that is confirmed and recorded must actually produce the card,
+        // or the confirmation is a lie.
+        assert_eq!(card_full_phase(GlossaryGate::Open, Some(2)), Some(2));
+        assert_eq!(card_full_phase(GlossaryGate::PeekLogged, Some(5)), Some(5));
+        assert_eq!(card_full_phase(GlossaryGate::Locked, Some(5)), None);
     }
 
     // ── the directive scanner ────────────────────────────────────────────────

@@ -30,7 +30,11 @@ from pathlib import Path
 import yaml
 
 from .report import parse_dimension_results
-from .subprocess_tools import resolve_project_root, validate_node
+from .subprocess_tools import (
+    resolve_project_root,
+    validate_node,
+    validate_node_warnings,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -270,6 +274,38 @@ def _check_prerequisite_existence(node_dir: Path, project_root: Path) -> CheckRe
     )
 
 
+def _check_validator_warnings(node_dir: Path, project_root: Path) -> CheckResult:
+    """Surface the Rust validator's non-fatal warnings as a gate WARNING.
+
+    Never a FAIL: a warning says "this is inert" or "these two representations
+    have parted company", not "this is wrong". W-3 (a glossary term declared but
+    tagged nowhere in the branch, so no learner can ever unlock it) and W-4
+    (prose/yaml drift on the conventions table) are the two an author most wants
+    to see before committing.
+    """
+    try:
+        warnings = validate_node_warnings(node_dir, project_root)
+    except FileNotFoundError as exc:
+        return CheckResult(
+            name="validator_warnings",
+            status=CheckStatus.WARNING,
+            detail=f"Rust validate binary unavailable: {exc}",
+        )
+
+    if not warnings:
+        return CheckResult(
+            name="validator_warnings",
+            status=CheckStatus.PASS,
+            detail="No non-fatal findings",
+        )
+
+    return CheckResult(
+        name="validator_warnings",
+        status=CheckStatus.WARNING,
+        detail="; ".join(warnings),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -336,6 +372,20 @@ def run_mechanical_checks(
 
     # 4. Prerequisite existence.
     results.append(_check_prerequisite_existence(node_dir, root))
+
+    # 5. Non-fatal validator warnings (content-spec v1.5).
+    #
+    # The four glossary rules M14a s5.4 asks for are checks 23-26 and warnings
+    # W-3/W-4 in `validate_node()`, which check 1 above already runs. The two
+    # *errors* therefore reach the gate as `rust_validator` FAILs with no work
+    # here. What did not reach it are the warnings: they go to stderr and never
+    # touch the exit code, so the gate has been discarding them since v1.3.
+    #
+    # Surfacing them is the whole of this gate's glossary work. Re-implementing
+    # the rules in Python would be a second checker that can disagree with the
+    # first, and the prose/yaml drift rule in particular is exactly the kind of
+    # thing that would drift.
+    results.append(_check_validator_warnings(node_dir, root))
 
     return results
 
