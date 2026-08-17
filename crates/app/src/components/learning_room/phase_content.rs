@@ -21,6 +21,12 @@ pub fn PhaseContentArea(
     #[prop(into)]
     accent_color: String,
 ) -> impl IntoView {
+    // The glossary context, when the page provides one. `PhaseContentArea` is
+    // also mounted outside the learning room in tests and future callers, so a
+    // missing context is a no-op rather than a panic.
+    #[cfg(target_arch = "wasm32")]
+    let glossary_ctx =
+        use_context::<crate::components::learning_room::term_card::GlossaryContext>();
     // ── Effect: hydrate content after mount ───────────────────────────────────
     #[cfg(target_arch = "wasm32")]
     {
@@ -81,6 +87,16 @@ pub fn PhaseContentArea(
 
                 // 4. Inline concept links
                 hydrate_concept_links(&container);
+
+                // 5. Term cards (content-spec v1.5). Appended to the existing
+                //    hydration callback rather than given a hook of its own:
+                //    the rAF deferral and the container lookup above are
+                //    exactly what a fifth hydrator needs.
+                if let Some(ctx) = glossary_ctx {
+                    use crate::components::learning_room::term_card::hydrate_term_cards;
+                    hydrate_term_cards(&container, ctx);
+                    observe_probe_section(&container, ctx);
+                }
             });
 
             let _ = window.request_animation_frame(cb.as_ref().unchecked_ref());
@@ -108,4 +124,66 @@ pub fn PhaseContentArea(
             />
         </div>
     }
+}
+
+/// Track whether the calibration-probe block is the section in view.
+///
+/// The calibration probe is the other closed-book instrument and it lives
+/// *inside* phase 0, so the glossary gate there is per-section rather than
+/// per-phase (M14a §4.4). The server already emits the discriminator —
+/// `section_block` writes `class="phase-section phase-section--probe"` — and
+/// the page already derives UI state from scroll position on
+/// `#phase-content-scroll`, which is how `mark_complete_visible` works. This
+/// reuses that established pattern rather than inventing a second one.
+///
+/// The flag can only ever *tighten* the gate: the server ignores it outside
+/// phase 0, and refines it with the probe evidence M13 records. Phase 5, the
+/// gate that actually protects a measurement, is decided from the phase number
+/// server-side and never consults this.
+#[cfg(target_arch = "wasm32")]
+fn observe_probe_section(
+    container: &web_sys::HtmlElement,
+    ctx: crate::components::learning_room::term_card::GlossaryContext,
+) {
+    use wasm_bindgen::closure::Closure;
+    use wasm_bindgen::JsCast;
+
+    let Ok(Some(_)) = container.query_selector(".phase-section--probe") else {
+        // No probe block in this phase: nothing to observe, and the flag must
+        // not be left set from the phase the learner just navigated away from.
+        ctx.probe_section.set(false);
+        return;
+    };
+
+    let update = move || {
+        let Some(document) = web_sys::window().and_then(|w| w.document()) else {
+            return;
+        };
+        let Ok(Some(section)) = document.query_selector(".phase-section--probe") else {
+            ctx.probe_section.set(false);
+            return;
+        };
+        let Some(scroll) = document.get_element_by_id("phase-content-scroll") else {
+            return;
+        };
+        let section_rect = section.get_bounding_client_rect();
+        let view_rect = scroll.get_bounding_client_rect();
+        // "In view" means the block covers the middle of the reading column —
+        // the same judgement a reader makes, and stable against a block that is
+        // taller or shorter than the viewport.
+        let midline = view_rect.top() + view_rect.height() / 2.0;
+        let in_view = section_rect.top() <= midline && section_rect.bottom() >= midline;
+        ctx.probe_section.set(in_view);
+    };
+
+    update();
+
+    let cb = Closure::<dyn Fn()>::new(move || update());
+    if let Some(scroll) = web_sys::window()
+        .and_then(|w| w.document())
+        .and_then(|d| d.get_element_by_id("phase-content-scroll"))
+    {
+        let _ = scroll.add_event_listener_with_callback("scroll", cb.as_ref().unchecked_ref());
+    }
+    cb.forget();
 }
