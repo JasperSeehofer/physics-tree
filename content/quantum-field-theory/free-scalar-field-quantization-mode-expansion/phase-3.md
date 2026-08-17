@@ -98,7 +98,7 @@ The two agree, as they must — the first calculation *is* the second, with the 
 
 $$D(\mathbf{r}) \;\equiv\; \langle 0\lvert\,\varphi(t,\mathbf{x})\,\varphi(t,\mathbf{y})\,\rvert0\rangle, \qquad \mathbf{r} \equiv \mathbf{x}-\mathbf{y},$$
 
-for the free real scalar, in the massless case exactly and in the massive case to the point where its behaviour can be read off. This is the first object in the branch built by *using* the mode expansion rather than deriving it, and it is a fluency exercise: do it with a pen, not by reading.
+for the free real scalar, in the massless case exactly and in the massive case to the point where its behaviour can be read off. This is the first object in the branch built by *using* the ::term[mode-expansion]{mode expansion} rather than deriving it, and it is a fluency exercise: do it with a pen, not by reading.
 
 **Step 1 — substitute both expansions.** Write $\varphi(t,\mathbf{x})$ and $\varphi(t,\mathbf{y})$ with independent integration variables $\mathbf{k}$ and $\mathbf{k}'$. The product has four terms: $aa$, $aa^{\dagger}$, $a^{\dagger}a$, $a^{\dagger}a^{\dagger}$. Sandwiched between $\langle0\rvert$ and $\lvert0\rangle$, exactly $\boxed{?}$ of them survives, because $a_{\mathbf{k}}\lvert0\rangle = 0$ and $\langle0\rvert a^{\dagger}_{\mathbf{k}} = 0$.
 
@@ -161,7 +161,7 @@ $$m_{1}^{2} = 5, \qquad m_{2}^{2} = 2, \qquad g = 2.$$
 
 (c) Diagonalize $\Omega^{2}(\mathbf{k})$. Give the two eigenvalues as functions of $\mathbf{k}$ and the two normalized eigenvectors as explicit numerical combinations of $\varphi_{1}$ and $\varphi_{2}$. Then answer the question that makes this exercise worth doing: **is the diagonalizing rotation $\mathbf{k}$-dependent?** Say why or why not, and say what would have changed had the mixing term been $g\,\partial_{\mu}\varphi_{1}\partial^{\mu}\varphi_{2}$ instead.
 
-(d) Write the mode expansion of the theory. How many independent families of ladder operators are there, and what is the commutator between operators from different families?
+(d) Write the ::term[mode-expansion]{mode expansion} of the theory. How many independent families of ::term[ladder-operators]{ladder operators} are there, and what is the commutator between operators from different families?
 
 (e) **The parameters are not the masses.** State the two physical masses of this theory as numbers. Then explain why a measurement could never return $m_{1}$ or $m_{2}$, and what those two symbols in the Lagrangian actually are.
 

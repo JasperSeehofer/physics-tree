@@ -163,7 +163,7 @@ Copper-like numbers: $M = 63.5\ \mathrm{u} = 1.055\times10^{-25}\ \mathrm{kg}$, 
 
 *A notation warning first, and it is a real one.* Cosmology writes the scale factor as $a$; this node writes the annihilation operator as $a_{\mathbf{k}}$. They collide on every line of this part. **The scale factor is written $\alpha$ throughout below.** Note the collision rather than working around it silently — it is a live convention trap in the literature, and mixing the two symbols in one calculation is how signs get lost.
 
-A spatially flat FLRW spacetime in conformal time $\eta$, signature $(+,-,-,-)$:
+A spatially flat FLRW spacetime in conformal time $\eta$, ::term[metric-signature]{signature} $(+,-,-,-)$:
 
 $$ds^{2} = \alpha(\eta)^{2}\left(d\eta^{2} - d\mathbf{x}^{2}\right),$$
 

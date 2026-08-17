@@ -251,3 +251,24 @@ phases:
     requires:
       - spaced_prompt
       - interleaving_problem
+
+# =============================================================================
+# GLOSSARY TERMS — content-spec v1.5 (mission M14). See the scope note on node 1
+# of this branch: the full retrofit is a separate content mission (M14a Q4).
+# This record exists because node 1 tags the term and a tag must resolve.
+# =============================================================================
+terms:
+  - key: invariant-measure
+    term: 'Lorentz-invariant measure'
+    symbol: '$\int\!\frac{d^{3}k}{(2\pi)^{3}}\frac{1}{2\omega_{\mathbf{k}}}$'
+    units: '—'
+    definition: |
+      The momentum-space measure that is unchanged by a boost, obtained from the
+      four-dimensional measure by integrating the on-shell delta function. It is
+      what forces the covariant state normalization.
+    caveat: |
+      $d^{3}k$ alone is **not** invariant. The $1/2\omega_{\mathbf{k}}$ is what
+      makes it so, and it is the same factor the mode-normalization convention
+      moves around.
+    teaser: 'the momentum measure a boost leaves alone'
+    convention_row: state-normalization

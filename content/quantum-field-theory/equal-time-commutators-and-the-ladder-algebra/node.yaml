@@ -226,3 +226,29 @@ phases:
     requires:
       - spaced_prompt
       - interleaving_problem
+
+# =============================================================================
+# GLOSSARY TERMS — content-spec v1.5 (mission M14).
+#
+# SCOPE NOTE. This node's full retrofit is a separate content mission (M14a Q4,
+# ratified): tagging 15k words is authoring judgment against the misconception
+# ledger and it collides with M13b's probe retrofit under law 8. What is here is
+# the minimum M14b's worked example requires — node 1 *tags* this term in its
+# Abstract Stage, and a tag must resolve to the record of the node that owns it.
+# Nothing in this node's markdown is tagged yet.
+# =============================================================================
+terms:
+  - key: equal-time-ccr
+    term: 'Equal-time canonical commutation relation'
+    symbol: '$\left[\varphi(\mathbf{x}),\pi(\mathbf{y})\right] = i\delta^{3}(\mathbf{x}-\mathbf{y})$'
+    units: '—'
+    definition: |
+      The canonical commutator imposed between the field and its conjugate
+      momentum density at a single instant. It is the postulate that makes the
+      field quantum, and it is equivalent to the ladder algebra — this node
+      proves the equivalence in both directions.
+    caveat: |
+      "Equal-time" is not a convenience. Nothing here derives the restriction, and
+      a commutator at unequal times is a different object entirely.
+    teaser: 'the postulate that makes the field quantum, imposed at one instant'
+    convention_row: sign-of-i-in-the-ccr
