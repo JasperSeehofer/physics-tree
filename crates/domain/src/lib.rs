@@ -1,5 +1,6 @@
 pub mod content;
 pub mod content_spec;
+pub mod glossary;
 pub mod graph;
 pub mod pace;
 pub mod probe;
@@ -14,6 +15,11 @@ pub use content_spec::{
     requires_to_heading, validate_node, validate_node_warnings, BloomLevel, Misconception,
     MisconceptionType, NodeMeta, ParsedNode, PhaseEntry, PhaseGate, PhaseType, Prerequisite,
     PrerequisiteKind, PrerequisiteStatus, Relaxation, Tier, ValidationError, ValidationWarning,
+};
+pub use glossary::{
+    gate_for, redact, redact_convention, scan_term_tags, term_keys, BranchConventions,
+    ConventionRow, ConventionRowPayload, ConventionStatus, GlossaryGate, Phase5Policy,
+    TermCardPayload, TermEntry, TermTag,
 };
 pub use graph::{
     concept_path, has_learning_room, learning_room_path, node_destination, node_destination_label,

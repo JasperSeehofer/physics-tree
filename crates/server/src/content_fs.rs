@@ -9,6 +9,7 @@
 //! validation itself stays pure in `domain::content_spec`.
 
 use domain::content_spec::{extract_h2_headings, NodeMeta, ParsedNode};
+use domain::glossary::{prose_convention_rows, scan_term_tags, BranchConventions};
 use domain::probe::ProbeSpec;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -115,6 +116,114 @@ pub fn read_phase_content(dir: &Path, phase_number: u8) -> Option<String> {
     std::fs::read_to_string(dir.join(format!("phase-{phase_number}.md"))).ok()
 }
 
+/// The branch directory a node directory sits in (`content/{branch}/{slug}`).
+fn branch_dir(node_dir: &Path) -> Option<PathBuf> {
+    node_dir.parent().map(|p| p.to_path_buf())
+}
+
+/// Read `content/{branch}/conventions.yaml`, if the branch has one (v1.5).
+///
+/// A missing file is `Ok(None)` — the pre-v1.5 shape and the shape of every
+/// branch that has not yet had its conventions table lifted out of prose. A
+/// *malformed* file is an error, for the same reason `probe.yaml` is: the
+/// schema is `deny_unknown_fields`, so a typo must not silently drop the row
+/// that carries a convention trap.
+pub fn load_branch_conventions(node_dir: &Path) -> Result<Option<BranchConventions>, String> {
+    let Some(branch) = branch_dir(node_dir) else {
+        return Ok(None);
+    };
+    let path = branch.join("conventions.yaml");
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return Ok(None);
+    };
+    let parsed: BranchConventions =
+        serde_saphyr::from_str(&text).map_err(|e| format!("conventions.yaml:parse  {e}"))?;
+    Ok(Some(parsed))
+}
+
+/// The directory name of a node's branch, for the `conventions.yaml` branch
+/// check.
+pub fn branch_name(node_dir: &Path) -> Option<String> {
+    branch_dir(node_dir)?
+        .file_name()
+        .and_then(|n| n.to_str())
+        .map(|s| s.to_string())
+}
+
+/// Every `::term[key]` occurrence in one node directory's phase files, as
+/// `(phase_number, key)`.
+pub fn node_term_tags(node_dir: &Path) -> Vec<(u8, String)> {
+    let mut tags = Vec::new();
+    for n in 0u8..=6 {
+        let Some(body) = read_phase_content(node_dir, n) else {
+            continue;
+        };
+        for tag in scan_term_tags(&body) {
+            tags.push((n, tag.key));
+        }
+    }
+    tags
+}
+
+/// Every term the node's branch declares, as `(owner concept_id, key)`, and
+/// every key tagged anywhere in that branch.
+///
+/// One walk, two answers, because both come from reading the same seven-ish
+/// node directories and doing it twice would double the cost of every ingest.
+/// A branch that cannot be read yields two empty vecs, which the validator
+/// reads as "not supplied" and skips — the `known_concept_ids` convention.
+pub fn discover_branch_glossary(node_dir: &Path) -> (Vec<(String, String)>, Vec<String>) {
+    let mut declared: Vec<(String, String)> = Vec::new();
+    let mut tagged: Vec<String> = Vec::new();
+
+    let Some(branch) = branch_dir(node_dir) else {
+        return (declared, tagged);
+    };
+    let Ok(entries) = std::fs::read_dir(&branch) else {
+        return (declared, tagged);
+    };
+
+    let mut dirs: Vec<PathBuf> = entries
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.is_dir() && p.join("node.yaml").exists())
+        .collect();
+    dirs.sort();
+
+    for dir in dirs {
+        if let Ok(text) = std::fs::read_to_string(dir.join("node.yaml")) {
+            if let Ok(meta) = serde_saphyr::from_str::<NodeMeta>(&text) {
+                for term in &meta.terms {
+                    declared.push((meta.concept_id.clone(), term.key.clone()));
+                }
+            }
+        }
+        for (_, key) in node_term_tags(&dir) {
+            if !tagged.contains(&key) {
+                tagged.push(key);
+            }
+        }
+    }
+
+    (declared, tagged)
+}
+
+/// The slugified row keys of a node's `### Conventions` prose table, wherever
+/// in its seven phases it lives (phase 2 in practice, but the spec does not
+/// pin it there).
+fn node_prose_convention_rows(node_dir: &Path) -> Vec<String> {
+    for n in 0u8..=6 {
+        let Some(body) = read_phase_content(node_dir, n) else {
+            continue;
+        };
+        let rows = prose_convention_rows(&body);
+        if !rows.is_empty() {
+            return rows;
+        }
+    }
+    Vec::new()
+}
+
 /// Parse a node directory into the pure `ParsedNode` the validator consumes.
 pub fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
     let yaml_path = dir.join("node.yaml");
@@ -155,10 +264,33 @@ pub fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
     }
 
     let probe = load_probe(dir)?.map(|p| p.spec);
-    let known_concept_ids = if probe.is_some() {
-        // Only check 21 needs the corpus, and only a probe can trigger it. A
-        // node without one should not pay for a tree walk.
+
+    // The v1.5 glossary inputs. `term_tags` is always cheap (seven files
+    // already read once above, and re-read here rather than threaded through,
+    // because `parse_node_dir` is called a handful of times per run). The
+    // branch walk is paid for only when this node has something glossary-shaped
+    // to say — a node with neither declarations nor tags cannot fail checks
+    // 23–26, so it should not pay for the corpus.
+    let term_tags = node_term_tags(dir);
+    let conventions = load_branch_conventions(dir)?;
+    let needs_branch = !meta.terms.is_empty() || !term_tags.is_empty() || conventions.is_some();
+
+    let (branch_terms, branch_term_tags) = if needs_branch {
+        discover_branch_glossary(dir)
+    } else {
+        (Vec::new(), Vec::new())
+    };
+
+    let known_concept_ids = if probe.is_some() || conventions.is_some() {
+        // Check 21 (route targets) and check 26 (conventions opened_by /
+        // closed_by) both resolve a concept_id against the corpus.
         discover_concept_ids(dir)
+    } else {
+        Vec::new()
+    };
+
+    let prose_convention_rows = if conventions.is_some() {
+        node_prose_convention_rows(dir)
     } else {
         Vec::new()
     };
@@ -170,6 +302,11 @@ pub fn parse_node_dir(dir: &Path) -> Result<ParsedNode, String> {
         phase_estimated_minutes,
         probe,
         known_concept_ids,
+        term_tags,
+        branch_terms,
+        branch_term_tags,
+        conventions,
+        prose_convention_rows,
     })
 }
 

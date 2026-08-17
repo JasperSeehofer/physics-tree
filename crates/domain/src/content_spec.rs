@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
+use crate::glossary::{BranchConventions, TermEntry};
 use crate::probe::{ProbeSpec, RuleKind, SKIPPABLE_PHASES, SPEC_VERSION};
 
 /// Node-level metadata — deserialization target for node.yaml.
@@ -58,6 +59,16 @@ pub struct NodeMeta {
     /// is inert and produces a `ValidationWarning`, not an error.
     #[serde(default)]
     pub relaxation: Option<Relaxation>,
+
+    /// Glossary term records this node is the first to define (v1.5).
+    ///
+    /// Additive and defaulted like `tier` and `relaxation`, so every existing
+    /// node.yaml stays byte-identical. The node that *defines* a term owns its
+    /// record, which makes "defined by" structural rather than a field that can
+    /// go stale — see M14a §1.1. Any node may *tag* any branch key; only the
+    /// owner declares it.
+    #[serde(default)]
+    pub terms: Vec<TermEntry>,
 }
 
 fn default_node_type() -> String {
@@ -450,6 +461,30 @@ pub struct ParsedNode {
     /// — the same convention `phase_estimated_minutes` already uses, so a caller
     /// that cannot cheaply enumerate the corpus is not forced to lie about it.
     pub known_concept_ids: Vec<String>,
+
+    // ── v1.5 / glossary (checks 23–26, warnings W-3 and W-4) ────────────────
+    /// Every `::term[key]` occurrence in this node's phase files, as
+    /// `(phase_number, key)`, in document order. Built by the same fence-aware
+    /// scanner the renderer uses, so the validator and the page cannot disagree
+    /// about which occurrences count.
+    #[allow(clippy::type_complexity)]
+    pub term_tags: Vec<(u8, String)>,
+    /// Every term declared anywhere in this node's *branch*, as
+    /// `(owner concept_id, key)`.
+    ///
+    /// Empty means "not supplied" and checks 23 and 24's branch half are
+    /// skipped, exactly as `known_concept_ids` works for check 21.
+    pub branch_terms: Vec<(String, String)>,
+    /// Every term key tagged anywhere in the branch. Empty means "not supplied"
+    /// and the orphan warning W-3 is skipped.
+    pub branch_term_tags: Vec<String>,
+    /// The branch's `conventions.yaml`, when it has one. `None` is the pre-v1.5
+    /// shape and every conventions check is skipped.
+    pub conventions: Option<BranchConventions>,
+    /// Row keys slugified from this node's `### Conventions` prose table, used
+    /// only by the drift warning W-4. Empty means the node authors no such
+    /// table, which is the normal case for six of the seven live nodes.
+    pub prose_convention_rows: Vec<String>,
 }
 
 /// A structured validation error produced by `validate_node()`.
@@ -581,6 +616,39 @@ pub enum ValidationError {
     /// no correctness-gated item of this node.
     ProbeCorrectnessRuleWithoutItem {
         rule: String,
+    },
+
+    // ── v1.5 / glossary (checks 23–26) ──────────────────────────────────────
+    /// Check 23 (G-15). A `::term[key]` in a phase file names a key no node in
+    /// the branch declares. The passport's equivalent — "0 unknown keys" — was
+    /// a one-off manual check and never CI.
+    UnknownTermKey {
+        phase: u8,
+        key: String,
+    },
+    /// Check 24 (G-16). Two term records share a key. Keys are branch-scoped,
+    /// so `owner` names the other declaring node when the clash is cross-node.
+    DuplicateTermKey {
+        key: String,
+        owner: String,
+    },
+    /// Check 25 (G-17). `conventions.yaml` declares `branch:` that disagrees
+    /// with the directory it sits in, or two rows share a key.
+    ConventionsBranchMismatch {
+        declared: String,
+        directory: String,
+    },
+    /// Check 25 (G-17).
+    DuplicateConventionRow {
+        key: String,
+    },
+    /// Check 26 (G-17). A row's `opened_by` / `closed_by` names a concept_id
+    /// that does not exist in `content/`. Skipped when the corpus is not
+    /// supplied, like check 21.
+    UnknownConventionNode {
+        row: String,
+        field: String,
+        concept_id: String,
     },
 }
 
@@ -726,6 +794,40 @@ impl fmt::Display for ValidationError {
                     "probe.yaml:rules[{rule}]  Correctness rule names no correctness-gated item"
                 )
             }
+            ValidationError::UnknownTermKey { phase, key } => {
+                write!(
+                    f,
+                    "phase-{phase}.md:::term  Unknown term key '{key}'; no node in this branch declares it"
+                )
+            }
+            ValidationError::DuplicateTermKey { key, owner } => {
+                write!(
+                    f,
+                    "node.yaml:terms  Duplicate term key '{key}'; already declared by '{owner}'"
+                )
+            }
+            ValidationError::ConventionsBranchMismatch {
+                declared,
+                directory,
+            } => {
+                write!(
+                    f,
+                    "conventions.yaml:branch  '{declared}' does not match the directory '{directory}'"
+                )
+            }
+            ValidationError::DuplicateConventionRow { key } => {
+                write!(f, "conventions.yaml:rows  Duplicate row key '{key}'")
+            }
+            ValidationError::UnknownConventionNode {
+                row,
+                field,
+                concept_id,
+            } => {
+                write!(
+                    f,
+                    "conventions.yaml:rows[{row}].{field}  Unknown concept_id '{concept_id}'"
+                )
+            }
         }
     }
 }
@@ -752,6 +854,29 @@ pub enum ValidationWarning {
     /// with W-1, an inert probe is nearly always a missing `tier: graduate`
     /// rather than a deliberate no-op. Non-fatal. (Added v1.4 / M13.)
     ProbeAtNonGraduateTier { tier: String },
+
+    /// W-3 (v1.5 / G-18). A declared term that is tagged nowhere in the branch.
+    /// The record is authored and unreachable: no learner can ever open its
+    /// card, because unlock is derived from the tag index. A warning rather
+    /// than an error because a node may legitimately declare a term ahead of
+    /// the phase that will tag it — the passport shipped exactly one such
+    /// orphan (`pi`) and had no check to notice.
+    UntaggedTerm { key: String },
+
+    /// W-4 (v1.5 / G-18). Prose ↔ yaml drift on conventions.
+    ///
+    /// The prose table in `phase-2.md` stays canonical for the *page* (it
+    /// carries the warnings and the Peskin/Srednicki comparison, none of which
+    /// belong in a panel) and `conventions.yaml` is canonical for the *panel*.
+    /// They are two representations of one set of rows, and this is the only
+    /// mechanism that notices when they part company. `detail` says which side
+    /// has the row.
+    ConventionsProseDrift { row: String, detail: String },
+
+    /// W-4 (v1.5 / G-18), the term half: a `convention_row:` naming no row in
+    /// the branch's `conventions.yaml`. The card simply drops its conventions
+    /// line, so this is a lost cross-link rather than a broken node.
+    UnknownConventionRowRef { term: String, row: String },
 }
 
 impl fmt::Display for ValidationWarning {
@@ -767,6 +892,21 @@ impl fmt::Display for ValidationWarning {
                 write!(
                     f,
                     "probe.yaml:  A structured probe has no effect at tier {tier}; the calibration probe routes only at tier graduate"
+                )
+            }
+            ValidationWarning::UntaggedTerm { key } => {
+                write!(
+                    f,
+                    "node.yaml:terms  '{key}' is declared but tagged nowhere in the branch; no learner can unlock it"
+                )
+            }
+            ValidationWarning::ConventionsProseDrift { row, detail } => {
+                write!(f, "conventions.yaml:rows  '{row}' {detail}")
+            }
+            ValidationWarning::UnknownConventionRowRef { term, row } => {
+                write!(
+                    f,
+                    "node.yaml:terms[{term}].convention_row  '{row}' names no row in the branch conventions.yaml"
                 )
             }
         }
@@ -798,6 +938,61 @@ pub fn validate_node_warnings(node: &ParsedNode) -> Vec<ValidationWarning> {
         warnings.push(ValidationWarning::ProbeAtNonGraduateTier {
             tier: tier.name().to_string(),
         });
+    }
+
+    // W-3. Declared but never tagged: an unreachable record. Skipped when the
+    // branch tag index was not supplied.
+    if !node.branch_term_tags.is_empty() {
+        for term in &node.meta.terms {
+            if !node.branch_term_tags.contains(&term.key) {
+                warnings.push(ValidationWarning::UntaggedTerm {
+                    key: term.key.clone(),
+                });
+            }
+        }
+    }
+
+    // W-4. Prose ↔ yaml drift, in both directions, plus the `convention_row`
+    // cross-link. Mitigation, not guarantee — a warning is not a mechanism, and
+    // M14a §7 risk 5 says so in as many words.
+    if let Some(conventions) = &node.conventions {
+        let row_keys: Vec<&str> = conventions.rows.iter().map(|r| r.key.as_str()).collect();
+
+        for term in &node.meta.terms {
+            if let Some(row) = &term.convention_row {
+                if !row_keys.contains(&row.as_str()) {
+                    warnings.push(ValidationWarning::UnknownConventionRowRef {
+                        term: term.key.clone(),
+                        row: row.clone(),
+                    });
+                }
+            }
+        }
+
+        if !node.prose_convention_rows.is_empty() {
+            for prose in &node.prose_convention_rows {
+                if !row_keys.contains(&prose.as_str()) {
+                    warnings.push(ValidationWarning::ConventionsProseDrift {
+                        row: prose.clone(),
+                        detail: "is in this node's prose table but not in conventions.yaml"
+                            .to_string(),
+                    });
+                }
+            }
+            // The other direction, restricted to rows this node opens: a row
+            // opened elsewhere has no business in this node's prose.
+            for row in &conventions.rows {
+                if row.opened_by == node.meta.concept_id
+                    && !node.prose_convention_rows.contains(&row.key)
+                {
+                    warnings.push(ValidationWarning::ConventionsProseDrift {
+                        row: row.key.clone(),
+                        detail: "is opened by this node in conventions.yaml but is absent from its prose table"
+                            .to_string(),
+                    });
+                }
+            }
+        }
     }
 
     warnings
@@ -1110,7 +1305,106 @@ pub fn validate_node(node: &ParsedNode) -> Vec<ValidationError> {
         check_probe(node, probe, &mut errors);
     }
 
+    // 23–26. The v1.5 glossary. A node with no `terms:` and no `::term` tags
+    // adds no checks, which is every node authored before this mission.
+    check_glossary(node, &mut errors);
+
     errors
+}
+
+/// Checks 23–26 — the structural invariants of the v1.5 glossary.
+///
+/// Three of the four are the QA the passport never had: its "0 unknown keys"
+/// PASS was a one-off manual count, not CI, and its `src` attributions are
+/// documented as stale. What is deliberately *not* checked here is whether a
+/// definition is any good; that is authoring judgment and stays with review.
+fn check_glossary(node: &ParsedNode, errors: &mut Vec<ValidationError>) {
+    // 24. Duplicate keys. Within this node's own block first — that clash needs
+    // no branch corpus and is the one an author makes by copy-paste.
+    let mut seen: Vec<&str> = Vec::new();
+    for term in &node.meta.terms {
+        if seen.contains(&term.key.as_str()) {
+            errors.push(ValidationError::DuplicateTermKey {
+                key: term.key.clone(),
+                owner: node.meta.concept_id.clone(),
+            });
+        } else {
+            seen.push(&term.key);
+        }
+        // Then across the branch: a key declared by *another* node is the same
+        // error, and it is the one that only shows up at branch scope.
+        if let Some((owner, _)) = node
+            .branch_terms
+            .iter()
+            .find(|(owner, key)| key == &term.key && owner != &node.meta.concept_id)
+        {
+            errors.push(ValidationError::DuplicateTermKey {
+                key: term.key.clone(),
+                owner: owner.clone(),
+            });
+        }
+    }
+
+    // 23. Every tag resolves. Skipped when the branch corpus is not supplied —
+    // a caller validating one directory in isolation cannot know the branch.
+    if !node.branch_terms.is_empty() {
+        for (phase, key) in &node.term_tags {
+            let declared = node.branch_terms.iter().any(|(_, k)| k == key);
+            if !declared {
+                errors.push(ValidationError::UnknownTermKey {
+                    phase: *phase,
+                    key: key.clone(),
+                });
+            }
+        }
+    }
+
+    // 25–26. The branch conventions file, when there is one.
+    let Some(conventions) = &node.conventions else {
+        return;
+    };
+
+    let mut seen_rows: Vec<&str> = Vec::new();
+    for row in &conventions.rows {
+        if seen_rows.contains(&row.key.as_str()) {
+            errors.push(ValidationError::DuplicateConventionRow {
+                key: row.key.clone(),
+            });
+        } else {
+            seen_rows.push(&row.key);
+        }
+
+        if node.known_concept_ids.is_empty() {
+            continue;
+        }
+        for (field, id) in [("opened_by", &row.opened_by), ("closed_by", &row.closed_by)] {
+            if !node.known_concept_ids.contains(id) {
+                errors.push(ValidationError::UnknownConventionNode {
+                    row: row.key.clone(),
+                    field: field.to_string(),
+                    concept_id: id.clone(),
+                });
+            }
+        }
+    }
+}
+
+/// The branch a conventions file declares must match the directory it sits in.
+///
+/// Separate from `check_glossary` because only a caller that knows the path can
+/// supply the directory name; `validate_node` is pure and does not.
+pub fn check_conventions_branch(
+    conventions: &BranchConventions,
+    directory: &str,
+) -> Option<ValidationError> {
+    if conventions.branch == directory {
+        None
+    } else {
+        Some(ValidationError::ConventionsBranchMismatch {
+            declared: conventions.branch.clone(),
+            directory: directory.to_string(),
+        })
+    }
 }
 
 /// Checks 16–22 — the structural invariants of a `probe.yaml` sidecar.
@@ -1479,6 +1773,7 @@ mod tests {
             depth_tier: "branch".into(),
             tier: None,
             relaxation: None,
+            terms: Vec::new(),
         };
 
         // Build headings for each phase based on its requires
@@ -1501,6 +1796,11 @@ mod tests {
             phase_estimated_minutes: HashMap::new(),
             probe: None,
             known_concept_ids: Vec::new(),
+            term_tags: Vec::new(),
+            branch_terms: Vec::new(),
+            branch_term_tags: Vec::new(),
+            conventions: None,
+            prose_convention_rows: Vec::new(),
         }
     }
 
@@ -1575,6 +1875,7 @@ mod tests {
             depth_tier: "trunk".into(),
             tier: None,
             relaxation: None,
+            terms: Vec::new(),
         };
 
         let mut phase_headings: HashMap<u8, Vec<String>> = HashMap::new();
@@ -1596,6 +1897,11 @@ mod tests {
             phase_estimated_minutes: HashMap::new(),
             probe: None,
             known_concept_ids: Vec::new(),
+            term_tags: Vec::new(),
+            branch_terms: Vec::new(),
+            branch_term_tags: Vec::new(),
+            conventions: None,
+            prose_convention_rows: Vec::new(),
         }
     }
 
