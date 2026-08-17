@@ -11,8 +11,10 @@ use serde::Deserialize;
 
 use crate::components::content::breadcrumb::Breadcrumb;
 use crate::components::learning_room::celebration::PhaseCompletionCelebration;
+#[cfg(target_arch = "wasm32")]
+use crate::components::learning_room::cheatsheet_panel::fetch_glossary;
 use crate::components::learning_room::cheatsheet_panel::{
-    fetch_glossary, post_panel_peek, CheatsheetPanel, GlossaryData,
+    post_panel_peek, CheatsheetPanel, GlossaryData,
 };
 use crate::components::learning_room::format_switcher::FormatSwitcher;
 use crate::components::learning_room::mark_complete::MarkCompleteButton;
@@ -455,15 +457,23 @@ pub fn LearningRoomPage() -> impl IntoView {
     });
 
     // ── Effect: refresh the peek log whenever a peek is recorded ────────────
+    // Scoped to the phase on screen, **not** the node. The phase-5 retrieval
+    // check and the phase-0 calibration probe are two different closed-book
+    // instruments, and both display surfaces render this one list: a node-wide
+    // fetch puts probe peeks beside the retrieval result and retrieval peeks
+    // beside the probe verdict, which is exactly the annotation D-G9c is not.
+    // Each surface is rendered inside its own phase's view, so the phase on
+    // screen is the right scope for both.
     #[cfg(target_arch = "wasm32")]
     Effect::new(move |_| {
         let _ = glossary.peeks_recorded.get();
         let slug_val = glossary.slug.get();
+        let phase = glossary.phase_number.get();
         if slug_val.is_empty() {
             return;
         }
         leptos::task::spawn_local(async move {
-            peeks.set(fetch_peeks(&slug_val, None).await);
+            peeks.set(fetch_peeks(&slug_val, Some(phase)).await);
         });
     });
 

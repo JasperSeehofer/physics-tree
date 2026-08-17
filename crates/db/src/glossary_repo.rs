@@ -231,6 +231,15 @@ pub async fn node_glossary(
 ///
 /// Returns `Ok(None)` for a key the branch does not declare, which the handler
 /// turns into a 404 rather than an empty card.
+///
+/// **Visibility here is the same predicate [`node_glossary`] uses**, and that is
+/// deliberate: unlocked anywhere in the branch, or tagged in this node. Without
+/// it the two endpoints disagree — the panel obeys "terms from unreached nodes
+/// are *absent*, not greyed" while a hand-made single-card request could still
+/// enumerate every key in the branch and collect its teaser and attribution.
+/// Every legitimate request satisfies the predicate, because a card is only ever
+/// opened from a `::term` trigger in this node's own prose or from a row of the
+/// panel, and both sets are subsets of it.
 pub async fn term_card(
     pool: &PgPool,
     branch: &str,
@@ -243,6 +252,10 @@ pub async fn term_card(
         return Ok(None);
     };
     let unlocked = unlocked_keys(pool, branch, user_id).await?;
+    let tagged_here = keys_tagged_in_node(pool, branch, node_id).await?;
+    if !unlocked.contains(&stored.entry.key) && !tagged_here.contains(&stored.entry.key) {
+        return Ok(None);
+    }
     let in_phase = keys_tagged_in_phase(pool, branch, node_id, full_phase).await?;
     let open = unlocked.contains(&stored.entry.key) || in_phase.contains(&stored.entry.key);
 
@@ -458,10 +471,14 @@ async fn branch_conventions(
 
 /// Parse the stored status string.
 ///
-/// An unrecognised value reads as `Open` — the most conservative of the five,
-/// because `Open` is the only one that withholds the row's value. A migration
-/// that introduces a sixth status must not make the panel start *revealing*
-/// things it does not understand.
+/// An unrecognised value reads as `Open`, which is the most conservative
+/// *label* of the five — "deliberately not fixed here" claims the least.
+///
+/// Note what this does **not** do: `status` never gates the row's value.
+/// Withholding is `settled`'s job — `redact_convention` sends `this_branch`
+/// only once the learner has reached the closing node — and the two are
+/// orthogonal on purpose, because `state-normalization` is `forced` from the
+/// day node 1 opens it and still must not show its value until node 5.
 fn status_from_str(s: &str) -> ConventionStatus {
     match s {
         "free" => ConventionStatus::Free,
@@ -577,17 +594,27 @@ pub async fn record_peek(
 }
 
 /// Every peek this learner has made in one (node, phase), newest first.
+///
+/// The `branch` predicate on the join is load-bearing, not decoration. Term keys
+/// are **branch-scoped on purpose** — `metric-signature` exists in both the
+/// `quantum-field-theory` and `general-relativity` branches and they are
+/// distinct terms — so a join on `term_key` alone fans one peek event out into
+/// one row per branch that happens to declare the key. The peek log is the
+/// instrument D-G9c ratified; it must not report a learner peeking twice
+/// because another branch reuses a slug.
 pub async fn peeks_for_phase(
     pool: &PgPool,
     user_id: Uuid,
     node_id: Uuid,
+    branch: &str,
     phase_number: i16,
 ) -> Result<Vec<PeekRow>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
         SELECT e.term_key, g.term, e.occurred_at
         FROM glossary_peek_events e
-        LEFT JOIN glossary_terms g ON g.term_key = e.term_key
+        LEFT JOIN glossary_terms g
+               ON g.term_key = e.term_key AND g.branch = $4
         WHERE e.user_id = $1 AND e.node_id = $2 AND e.phase_number = $3
         ORDER BY e.occurred_at DESC
         "#,
@@ -595,6 +622,7 @@ pub async fn peeks_for_phase(
     .bind(user_id)
     .bind(node_id)
     .bind(phase_number)
+    .bind(branch)
     .fetch_all(pool)
     .await?;
 
@@ -616,18 +644,21 @@ pub async fn peeks_for_node(
     pool: &PgPool,
     user_id: Uuid,
     node_id: Uuid,
+    branch: &str,
 ) -> Result<Vec<PeekRow>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
         SELECT e.term_key, g.term, e.occurred_at
         FROM glossary_peek_events e
-        LEFT JOIN glossary_terms g ON g.term_key = e.term_key
+        LEFT JOIN glossary_terms g
+               ON g.term_key = e.term_key AND g.branch = $3
         WHERE e.user_id = $1 AND e.node_id = $2
         ORDER BY e.occurred_at DESC
         "#,
     )
     .bind(user_id)
     .bind(node_id)
+    .bind(branch)
     .fetch_all(pool)
     .await?;
 
@@ -659,9 +690,40 @@ mod tests {
     }
 
     #[test]
-    fn an_unknown_status_reads_as_open_and_therefore_withholds() {
-        // A sixth status arriving from a future migration must not make the
-        // panel start revealing rows it does not understand.
+    fn an_unknown_status_reads_as_the_least_committal_label() {
+        // A sixth status arriving from a future migration reads as `Open`,
+        // which claims the least. It does *not* withhold the row's value —
+        // that is `settled`'s job, and the two are orthogonal (see
+        // `status_from_str`). The test is named for what the code does.
         assert_eq!(status_from_str("something_new"), ConventionStatus::Open);
+    }
+
+    /// `status` and value-visibility are orthogonal, and the shipped content
+    /// depends on it: `state-normalization` is `forced` from the day node 1
+    /// opens it, and still must not show its value until node 5 closes it.
+    #[test]
+    fn status_does_not_gate_the_value_settled_does() {
+        let row = domain::glossary::ConventionRow {
+            key: "state-normalization".into(),
+            object: "State normalization".into(),
+            this_branch: "the value node 5 fixes".into(),
+            also_common: Some("something else".into()),
+            status: ConventionStatus::Forced,
+            status_note: Some("forced once covariance is demanded".into()),
+            opened_by: "node-1".into(),
+            closed_by: "node-5".into(),
+        };
+
+        let unsettled = redact_convention(&row, "Node 1", "Node 5", "node-5", false);
+        assert_eq!(unsettled.status, ConventionStatus::Forced);
+        assert!(unsettled.this_branch.is_none(), "value must be withheld");
+        assert!(unsettled.also_common.is_none());
+        assert!(unsettled.status_note.is_none());
+
+        let settled = redact_convention(&row, "Node 1", "Node 5", "node-5", true);
+        assert_eq!(
+            settled.this_branch.as_deref(),
+            Some("the value node 5 fixes")
+        );
     }
 }

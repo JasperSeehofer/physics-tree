@@ -12,8 +12,27 @@
 //!    [`get_term`], which is where it gets recorded — so the log is written by
 //!    the same request that hands over the definition, and cannot be skipped by
 //!    a client that simply does not POST.
-//! 3. Phase 5 is decided from the phase *number*, which the server owns. The
-//!    client is never asked whether it is in a retrieval check.
+//! 3. Phase 5 is decided from the phase *number* → `phase_type` mapping, which
+//!    the server owns. The client is never asked "are you in a retrieval
+//!    check?", only "which phase is on screen?".
+//!
+//! **The honest threat model, stated once.** Two gates live here and they are
+//! not equally strong.
+//!
+//! - The **spoiler** gate (D5, M14a §7 risk 4) is genuinely server-side and no
+//!   query parameter reaches it. Unlock is a SQL join against
+//!   `user_phase_progress`, and the "tagged in the phase in front of you"
+//!   allowance is scoped to *this node's* tag index — content the client
+//!   already holds in full, because `get_learning_room_content` ships all seven
+//!   phases at once. So no `?phase=` value can extract a definition the learner
+//!   has not earned and cannot already read.
+//! - The **closed-book** gate is client-asserted, and unavoidably so: there is
+//!   no server-held "current phase", and M14a §4.1 reads the phase from the
+//!   page's own `active_phase` signal. A hand-made request that lies about the
+//!   phase evades the `lock` refusal and the peek log alike. That is the cost
+//!   of a per-phase gate in a client-routed page; the real closed-book
+//!   instrument is the paper sitting (M13 Context 1), and the log is a signal,
+//!   not an enforcement.
 
 use axum::{
     extract::{Path, Query, State},
@@ -214,14 +233,18 @@ pub async fn get_peeks(
     let Some(user_id) = session_user(&session).await? else {
         return Ok(Json(Vec::new()));
     };
-    let (node_id, _, _) = resolve_node(&pool, &slug).await?;
+    let (node_id, _, branch) = resolve_node(&pool, &slug).await?;
 
     let peeks = match view.phase {
-        Some(phase) => glossary_repo::peeks_for_phase(&pool, user_id, node_id, phase)
+        Some(phase) => glossary_repo::peeks_for_phase(&pool, user_id, node_id, &branch, phase)
             .await
             .map_err(internal)?,
-        // The probe verdict is a node-level object, so it asks without a phase.
-        None => glossary_repo::peeks_for_node(&pool, user_id, node_id)
+        // No phase asks for the whole node. Kept for a node-level view; the two
+        // display surfaces both ask per phase, because the phase-5 retrieval
+        // check and the phase-0 calibration probe are *different* closed-book
+        // instruments and a peek recorded during one says nothing about the
+        // other.
+        None => glossary_repo::peeks_for_node(&pool, user_id, node_id, &branch)
             .await
             .map_err(internal)?,
     };
