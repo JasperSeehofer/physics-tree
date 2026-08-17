@@ -1,0 +1,100 @@
+# Structured mirror of phase-0.md "## Calibration Probe". The prose is
+# authoritative for the learner; this file is authoritative for the app.
+# TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
+#
+# Every `text` below carries the routing paragraph it mirrors — verbatim where
+# the sentence stands alone, condensed from the same paragraph otherwise, and
+# never re-worded in its condition, action or reason (content-spec v1.4 §4a).
+# A drift between the two is then a one-file read rather than an invisible
+# divergence.
+spec_version: 1.4
+concept_id: equal-time-commutators-and-the-ladder-algebra
+
+items:
+  - id: "1"
+    summary: "The canonical commutation relation for φ and π — arguments, right-hand side, the equal-time restriction, and the two companions"
+  - id: "2"
+    summary: "Is the general unequal-time [φ(x),φ(y)] a postulate (a), a result (b), or undefined (c)? One letter, then one sentence saying why"
+    correctness:
+      wrong_if: >
+        The answer is (a) — that the general, unequal-time [φ(x),φ(y)] is a
+        postulate of the theory, laid down alongside the equal-time relation.
+      # No `basin`: the two-basin rule (M10a §5) classifies *measured* attractors,
+      # and the vault record types this item's wrong answer as C1's non-fluency
+      # ("writes [φ̂(x),φ̂(y)] where the equal-time relation belonged"), not as
+      # geometry- or pQCD-basin interference. An unevidenced basin tag would be a
+      # [MEASURED] claim without a source (Gate-8 amendment 3).
+  - id: "3"
+    summary: "Derive [a_k, a†_k'] from the postulate, or say in one line where you get stuck"
+
+rules:
+  # Routing rule 1 — the fluency gate.
+  - id: R1-item1-postulate-absent
+    kind: fluency
+    when: {all: [{items: ["1"], score: {eq: 0}}]}
+    then:
+      route_to:
+        concept_id: free-scalar-field-quantization-mode-expansion
+        status: internal
+        phase: 2
+    text: >
+      Stop, and go back to node 1 (free-scalar-field-quantization-mode-expansion),
+      specifically its Phase 2. This node's whole content is what that postulate
+      is equivalent to, and there is nothing to be equivalent to if the postulate
+      did not come.
+
+  - id: R2-item3-derivation
+    kind: fluency
+    when:
+      all:
+        - {items: ["3"], score: {eq: 0}}
+        - {items: ["1"], score: {gte: 1}}
+    then:
+      flag_escalation: E2
+      # The prose instructs "**Flag this in the module log**" — the same
+      # instruction node 1's E11 rule carries, and `report` is precisely the
+      # encoding of "record this before continuing" (§1.2). DESIGN §5.3's
+      # "E12 *additionally* carries report: true" cannot be read as excluding
+      # E11, since §2.1's ratified worked example gives E11 `report: true`; it
+      # distinguishes *where* E12's report goes (the vault premise record), not
+      # whether the flag is reported at all. M13c ruling.
+      report: true
+    text: >
+      Take the node in order and do Phase 2's D1 with a pen rather than reading
+      it. Flag this in the module log: it is escalation trigger E2 in the S0.5
+      node map, which splits this node at the two directions of the equivalence,
+      and it is the orchestrator's decision, not yours.
+
+  - id: R3-item3-expected
+    kind: fluency
+    when: {all: [{items: ["3"], score: {in: [1, 2]}}]}
+    then: {}
+    text: >
+      A 1 or 2 on item 3 is the expected outcome; the node is calibrated for it.
+      Anything else — take the node in order.
+
+  # Routing rule 2 — the correctness gate. This one overrides the fluency gate.
+  - id: R4-item2-postulate-or-theorem
+    kind: correctness
+    when: {all: [{items: ["2"], correct: false}]}
+    then:
+      mandate_phases: [2]
+      from_stage: concrete_stage
+      before_phase: 3
+    text: >
+      If you answered (a) — that the general, unequal-time [φ(x),φ(y)] is a
+      postulate — then Phase 2 is mandatory for you, is done before Phase 3, and
+      is done in order from the Concrete Stage. A high score on items 1 and 3
+      does not change this. If you believe the unequal-time commutator was
+      postulated, node 8's derivation of its vanishing at spacelike separation
+      reads as circular: you would be watching someone derive a thing they had
+      assumed.
+
+  # Routing rule 3 — the ordering rule, which nothing overrides.
+  - id: R5-ordering
+    kind: standing
+    then: {}
+    text: >
+      Phases 4, 5 and 6 are strict at every tier and every score: self-explanation,
+      retrieval and spacing strengthen with expertise rather than reversing. A
+      page of 3s is a reason to go faster through Phase 2, never to skip Phase 4.

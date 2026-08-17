@@ -1,7 +1,24 @@
 # Content Specification: 7-Phase Node Template
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** Canonical — all downstream phases (Phase 9 ingest, Phase 10 pilot authoring, Phase 11 Learning Room, Phase 12 AI pipeline) build against this contract.
+
+**v1.4 changes (structured probes).** Every change is additive and optional; no
+v1.3 node needs to change, and the eight `node.yaml` files shipped at v1.3 are
+byte-identical under v1.4. Sources: mission M13a's instrumentation design
+(`.planning/missions/M13-instrument-loop/DESIGN.md`), which answers v1.3's own
+§4 declared limit 3 — *"a `calibration_probe` mapping carrying
+`correctness_gated_items` and `forces_phases` … deferred until a consumer
+exists"*. M13 is that consumer. Implemented by mission M13b.
+
+| # | Change | Section |
+|---|--------|---------|
+| G-10 | New optional sidecar file `probe.yaml`, one per node directory, carrying the calibration probe's routing data beside its prose. `node.yaml` is untouched | §2, §4a |
+| G-11 | Four rule kinds — `standing` / `correctness` / `fluency` / `diagnostic` — with precedence fixed globally by kind rather than per node | §4a |
+| G-12 | The narrowing invariant is **executable**: `allow_skip_phases` survives only under `relaxation: on`, only for phases 2 and 3, and only where no `standing` or `correctness` rule mandates the phase. v1.3's *"a gate may only narrow"* had, in its own words, "no mechanism to notice" | §4a, §8 |
+| G-13 | Validation gains checks 16–22 and warning W-2 | §8 |
+| G-14 | Per-phase `estimated_minutes` — parsed and validated since v1.1 (check 14) and dropped at ingest ever since — is now persisted, so actual-vs-estimated can be compared per phase | §5, §8 |
+| — | Declared limit restated and narrowed: `phase_gate` still takes no learner evidence, so the app **displays** a verdict and does not enforce it. What changes at v1.4 is that the evidence now exists and is durable | §4, §4a |
 
 **v1.3 changes (relaxation control).** Every change is additive and defaults to
 the v1.2 behaviour; no v1.2 node needs to change. Sources: mission M10a's
@@ -143,6 +160,7 @@ Per-node directories follow this layout (D-01, D-02, D-03):
 ```
 content/{branch}/{slug}/
   node.yaml
+  probe.yaml        # optional (v1.4); graduate nodes only
   phase-0.md
   phase-1.md
   phase-2.md
@@ -157,6 +175,7 @@ Where:
 
 - `{branch}` — physics branch name (e.g., `classical-mechanics`, `electromagnetism`)
 - `{slug}` — URL-safe concept identifier matching `concept_id` in `node.yaml` (e.g., `newtons-second-law`)
+- `probe.yaml` — *(v1.4 / G-10)* the structured mirror of `phase-0.md`'s `## Calibration Probe`. Optional; absence is the pre-v1.4 behaviour. See [§4a](#4a-probeyaml-schema-v14)
 - `assets/` — per-node illustrations, SVGs, and media files (self-contained per node)
 
 New v1.1 phased content lives alongside existing v1.0 flat files in the same `content/` tree. Existing v1.0 flat files may be replaced; no need to preserve the old structure.
@@ -569,14 +588,18 @@ widens.
    forbids, with no mechanism to notice. **Extending the policy to take probe
    evidence is a prerequisite of the Learning Room consuming it**, not a
    follow-up to it. Recorded here, unimplemented, deliberately (M9b §5.2/§5.3).
-3. **The evidence model is still one-axis.** The only datum the spec declares per
-   item is a single 0–3 rating; there is nowhere structured to record "item 1 was
-   wrong". The gate is prose that a reviewer reads, not a field a pipeline can
-   find. A structured form (a `calibration_probe` mapping carrying
-   `correctness_gated_items` and `forces_phases`) was considered for v1.3 and
-   deferred: it would be the second half of the same change as limit 2, and
-   authoring it before the consumer exists would fix a shape nothing has yet
-   tested.
+3. ~~**The evidence model is still one-axis.**~~ **Resolved at v1.4 (G-10).**
+   Through v1.3 the only datum the spec declared per item was a single 0–3
+   rating, with nowhere structured to record "item 1 was wrong"; the gate was
+   prose a reviewer read, not a field a pipeline could find. The structured form
+   deferred there — *"a `calibration_probe` mapping carrying
+   `correctness_gated_items` and `forces_phases`"* — is now the sidecar
+   [`probe.yaml`](#4a-probeyaml-schema-v14), and it is a sidecar rather than a
+   `node.yaml` mapping for the reasons in §4a. Limits 1 and 2 stand: no H3-level
+   rule runs, and `phase_gate_with_relaxation` still takes no learner evidence.
+   What v1.4 changes is that the evidence now exists, is validated, and is
+   durable — which is what makes limit 2 a *decision* to take rather than a gap
+   to discover.
 
 ---
 
@@ -709,6 +732,210 @@ widens.
 
 ---
 
+## 4a. `probe.yaml` Schema (v1.4)
+
+*(v1.4 / G-10. Source: mission M13a's instrumentation design. Answers §4 declared
+limit 3, above.)*
+
+A graduate node **MAY** carry a sidecar `probe.yaml` next to its `node.yaml`. It
+is the structured mirror of that node's `## Calibration Probe`: the prose stays
+authoritative **for the learner**, and the sidecar is authoritative **for the
+app**.
+
+### Why a sidecar, and not a `node.yaml` block
+
+`NodeMeta` is the workspace's only `deny_unknown_fields` struct. A `probe:` key
+inside `node.yaml` would mean content and binary must be upgraded in lockstep —
+the key is a hard parse error until the binary knows the field, so every node
+fails at once. It would also roughly double an authoring manifest whose job is to
+declare *what the node is*, not *how one learner is routed through it*, and it
+would make every consumer of `NodeMeta` pay for a field most nodes never use.
+A sidecar leaves every existing `node.yaml` byte-identical.
+
+A fenced ```` ```probe ```` block inside the probe prose was the closest existing
+precedent (the Phase-5 quiz already ships YAML inside markdown) and was rejected
+on three counts: that parser is a hand-rolled line scanner running in WASM which
+cannot express nesting, and routing rules are nested by nature; the verdict must
+be computed server-side because it reads stored scores, *cross-node* scores and
+the node's `relaxation` value; and the routing prose is deliberately discursive,
+so a data block inside it inflates the node's word budget with non-prose.
+
+### Parsing contract
+
+`ProbeSpec` is **also** `deny_unknown_fields`. A typo in a routing rule must be a
+loud ingest failure, never a silently-dropped rule — a probe that misroutes
+quietly is worse than a node that will not ingest, because a self-scoring learner
+cannot detect it. Unknown rule *kinds* and unknown action *fields* are parse
+errors, not ignored keys.
+
+**YAML 1.1 hygiene, binding.** No bare `on` / `off` / `yes` / `no` / `y` / `n`
+anywhere in the schema — not as an enum value, not as an item id. Item ids are
+quoted strings (`"1"`, `"4a"`): bare `1` is an integer, and `4a` is a string but
+inconsistent with its siblings. The enum spellings (`all`/`any`, `eq`/`lte`/`gte`,
+`standing`/`correctness`/`fluency`/`diagnostic`) are chosen to be YAML-1.1-inert.
+`spec_version` accepts `1.4` and `"1.4"` alike and normalizes to the string form,
+so a correct file is never rejected over a quotation mark.
+
+### The schema
+
+```yaml
+spec_version: 1.4                     # required; the only accepted value in v1.4
+concept_id: <slug>                    # must equal node.yaml's concept_id and the dir name
+
+module_probe:                         # optional; present on exactly one node per module
+  module: S0.5
+  restates: C1                        # vault probe id this probe's item 1 reproduces
+  escalation:
+    id: S0.5-3x
+    nodes: [<slug>, …]                # the window the condition is evaluated over
+    all_items_at_most: 1              # condition (a): no item above this …
+    no_item_at_least: 3               #             … and none at this
+    pace_ratio_above: 2.5             # condition (b): logged actual/estimated over `nodes`
+    report_to: orchestrator           # display-only: this fires a report, not an action
+
+items:                                # 2–8, the scoreable atoms of the probe
+  - id: "3"                           # quoted string; stable; referenced by rules
+    label: "3"                        # optional display label, defaults to id
+    summary: "…"                      # one line for the entry form; NOT the prompt
+    gating: true                      # optional, default true; false = diagnostic-only
+    correctness:                      # optional; presence = this item is correctness-gated
+      wrong_if: "…"                   # prose, for the learner's own judgement
+      basin: pQCD                     # optional: geometry | pQCD  (two-basin rule)
+
+rules:                                # evaluated in precedence order, all matches collected
+  - id: R1-fluency-item3
+    kind: fluency                     # standing | correctness | fluency | diagnostic
+    when:                             # omit entirely = unconditional
+      all:
+        - items: ["3"]
+          quantifier: all             # optional: all (default) | any
+          score: {eq: 0}              # eq | lte | gte | in: [..]
+        - items: ["1"]
+          node: <other-slug>          # optional: read another node's latest sitting
+          score: {eq: 0}
+        - items: ["4a"]
+          correct: false              # the correctness predicate
+    then:                             # every field optional
+      mandate_phases: [2]
+      from_stage: concrete_stage      # display-only ordering hint
+      before_phase: 1                 # display-only ordering hint
+      allow_skip_phases: [2, 3]       # only ever honoured under relaxation: on, phases 2|3
+      route_to: {concept_id: <slug>, status: external, phase: 2}
+      flag_escalation: E11
+      report: true                    # surface as "record this before continuing"
+    text: >                           # the paragraph from phase-0.md this rule encodes
+      Stop. The single harmonic oscillator is …
+```
+
+A rule with `then: {}` is a **display rule** — the honest encoding for the many
+"take the node in order, but with a pen" outcomes, which are advice and not
+policy.
+
+### The four rule kinds, and precedence
+
+| `kind` | Meaning | Precedence |
+|---|---|---|
+| `standing` | Applies at every score, overridden by nothing (the phase 4/5/6 ordering rule) | 1 (highest) |
+| `correctness` | The §4 correctness gate — a wrong answer forces phases at any self-rating | 2 |
+| `fluency` | The 0–3 routing table | 3 |
+| `diagnostic` | Measures something other than readiness; never routes | 4 (lowest) |
+
+Precedence is carried by `kind`, not by a per-node integer, because the corpus
+states the ordering as a *type* fact and states it identically on every node —
+*"the correctness gate … this one overrides the fluency gate"*, *"the ordering
+rule, which nothing overrides"*. Encoding it per node would let two nodes
+disagree about a rule this spec fixes globally.
+
+**Every** rule whose `when` is satisfied fires; the corpus routinely has three
+fire at once. Actions merge as: `mandate_phases` union; `flag_escalation` union;
+`route_to` from the highest-precedence firing rule that carries one; and
+`allow_skip_phases` per the narrowing invariant below. Fired rules are returned
+in precedence order, so the app shows the overriding rule first — which is how
+the prose reads it out loud.
+
+### The narrowing invariant, executable (G-12)
+
+`allow_skip_phases` survives into a verdict only if **all three** hold:
+
+1. the node's effective `relaxation` is `on`;
+2. the phase is 2 or 3 (§1: every other phase is strict at every tier);
+3. no firing `standing` or `correctness` rule mandates that phase.
+
+This is §4's *"a gate may only narrow"* made executable. Through v1.3 it was a
+review obligation with, in this document's own words, "no mechanism to notice".
+Check 20 enforces the first two at authoring time; the routing engine enforces
+all three at evaluation time.
+
+### What the schema deliberately does not do
+
+- **No stage-level policy.** The corpus routes at stage granularity in prose
+  ("read Phase 2 at speed", "do Phase 3 from the Mostly Faded Example down").
+  Structured actions stop at *phase* granularity, because that is the granularity
+  `phase_gate` and the Learning Room's unlock state operate on. `from_stage` is a
+  display hint; the rest stays in `text`.
+- **No item prompt text.** The authoritative prompt is the prose in `phase-0.md`.
+  `summary` is a one-line label for the entry form. Duplicating prompts would
+  create the drift the sidecar is otherwise careful to avoid.
+- **No scale table.** Every node restates the 0–3 consequences in its own words;
+  that is prose the learner reads in situ.
+- **No general expression language.** `all`/`any` over explicit item lists, three
+  comparison operators, one correctness predicate. No `or` at the top level, no
+  arithmetic, no "all other items" quantifier — every existing rule is expressible
+  by naming the items it means.
+- **No module-level file.** The module probe rides the node whose probe *is* the
+  module probe. No new content construct, no new directory level.
+
+### Item atomisation
+
+`items` are the **scored atoms**, which are not always the prose's numbered
+items. A probe whose prose says *"score the four items"* while its routing reads
+*"a 0 or 1 on item 4(a)"* has five atoms, not four. Where a node's items carry
+lettered sub-parts that the routing reads individually, the atoms are the
+sub-parts (`"4a"`, `"4b"`), `label` carries the display form (`4(a)`), and **the
+probe prose must carry a one-line instruction to score the sub-parts
+separately**. A sidecar that atomises without that line is a review defect: the
+learner would produce four numbers for a form that asks for five.
+
+### Backward compatibility
+
+| Situation | Behaviour |
+|---|---|
+| No `probe.yaml` (every school and undergraduate node, forever) | Unchanged. Phase 0 renders the markdown probe; no entry form, no verdict, no new API surface reached |
+| `probe.yaml` present, learner anonymous | Spec is served, entry form is not rendered (mirrors phase progress returning `[]` for anonymous) |
+| `probe.yaml` present, no sitting recorded | Entry form rendered, verdict panel absent |
+| `probe.yaml` present at non-graduate tier | Warning **W-2**, non-fatal — mirrors W-1's shape and reasoning exactly |
+| `probe.yaml` malformed | Hard failure for that node, in the existing `file:field  description` format (`probe.yaml:rules[R3].when  Unknown item id '4c'`) |
+| `probe.yaml` edited after a sitting was recorded | The stored verdict is **not** recomputed. Each sitting records the digest of the revision it was judged under, so a drift is displayed rather than silently rewritten |
+
+### What is still not validated
+
+Whether `probe.yaml` **agrees with** the prose in `phase-0.md`. Nothing in the
+toolchain can check that `when: {items: ["4a"], correct: false}` still means what
+the paragraph above it says, and an edit to one and not the other misroutes
+silently. Three things reduce the exposure and none of them removes it: each
+rule's `text` carries the authored paragraph itself; the app **displays** that
+text rather than paraphrasing it, so a drifted rule shows itself the first time
+it fires; and checks 16–22 catch structural drift. Agreement itself is a review
+obligation, like everything else inside the probe.
+
+**The `text` standard, stated precisely.** A rule's `text` is the prose it
+encodes, with two edits allowed and no third. (1) The *condition* clause may be
+dropped, because `when` now carries it — the bullet "**A 0 or 1 on item 4(a)** —
+take the node in order and …" becomes "Take the node in order and …". (2) A
+paragraph whose argument runs across several sentences may be **condensed**, and
+a pronoun whose antecedent was the surrounding prose may be resolved so the text
+stands alone off the page ("that entire argument" → "node 8's derivation of its
+vanishing at spacelike separation"). What is **not** allowed is a re-wording that
+changes, weakens or extends the condition, the action, or the reason given for
+either: those are the three things a reviewer diffs against the prose, and a
+condensation that drops one of them is a MAJOR. §2.1's worked example — the
+ratified reference for this file's style — condenses; roughly a third of the
+shipped corpus does. Reviewers should therefore read for *meaning* against the
+paragraph, not run a string comparison, and should expect the condensed rules to
+be the ones where drift can hide.
+
+---
+
 ## 5. Phase Markdown Format
 
 Each `phase-N.md` file uses a minimal YAML frontmatter block followed by the phase content.
@@ -730,6 +957,12 @@ Fields:
 | `phase` | integer | Phase number (0–6), must match the filename |
 | `type` | string | `phase_type` value matching the `node.yaml` entry |
 | `estimated_minutes` | integer | Estimated time for this phase only |
+
+> **`estimated_minutes` is persisted from v1.4 (G-14).** It has been parsed and
+> cross-checked against the node total since v1.1 (check 14) and dropped on the
+> floor at ingest ever since, so actual-vs-estimated could only be compared at
+> node granularity. It now reaches the database, because the interesting question
+> is not *whether* a node overruns but *which phase* does.
 
 ### Heading Convention
 
@@ -940,8 +1173,19 @@ node.yaml:phases[2]  Unknown phase_type 'concreteness_fadig' (typo?)
 14. **`estimated_minutes` consistency** — when per-phase `estimated_minutes` are present in phase frontmatter, their sum must equal the node-level `estimated_minutes` in `node.yaml`. Mismatch produces `node.yaml:estimated_minutes  Value {node_total} does not match sum of per-phase estimated_minutes ({phase_sum})`. (Resolved: Gap 4 from Phase 10 SPEC-GAPS.md.)
 15. **Tier-conditional requires: `calibration_probe`** — if the effective tier is `graduate`, Phase 0 `requires` must include `calibration_probe`, producing `node.yaml:phases[0]  Missing required block 'calibration_probe' for tier graduate`. Check 8 then requires the matching `## Calibration Probe` heading in `phase-0.md`. (Added v1.2 / M1b G-5.)
 
-The effective tier used by checks 3 and 15 is the declared `tier`, or — when the
-field is absent — `graduate` for `eqf_level >= 6` and `school` otherwise.
+Checks 16–22 run only when the node directory carries a `probe.yaml`. A node
+without one is validated exactly as it was at v1.3. (Added v1.4 / G-13.)
+
+16. **Probe identity** — `spec_version` must equal the version this binary implements (`1.4`), and `concept_id` must equal `node.yaml`'s. `spec_version` is validated rather than decorative, so a v1.5 file cannot be half-read by a v1.4 binary.
+17. **Item ids and count** — item ids must be unique, and there must be 2–8 items. The range is the graduate misconception range, reused deliberately: a probe with one atom cannot route, and one with nine is a node that should have been split.
+18. **Item references resolve** — every item id named by a rule's `when` must exist in this node's `items`, unless that atom names another `node:`, in which case the id belongs to that node's probe and is out of this file's reach.
+19. **Phase numbers in range** — every entry of `mandate_phases`, `allow_skip_phases`, `before_phase` and `route_to.phase` must be in 0–6.
+20. **Narrowing** — `allow_skip_phases` may name only phases 2 and 3, and must be empty on a node whose `relaxation` is `off`, where there is no skip to grant. This is §4's *"a gate may only narrow"* checked for the first time (G-12).
+21. **Route target exists** — a `route_to` with `status: internal` must name a `concept_id` that exists in `content/`; `status: external` is exempt, mirroring G-4's rule for prerequisites. The check is skipped when the caller cannot enumerate the corpus.
+22. **Correctness items and rules name each other** — every item with a `correctness:` block must be read by at least one `correctness` rule, and every `correctness` rule must name at least one correctness-gated item. A gated item no rule reads is a gate that never fires; a correctness rule reading an ungated item is a gate with no criterion.
+
+The effective tier used by checks 3, 15 and W-2 is the declared `tier`, or — when
+the field is absent — `graduate` for `eqf_level >= 6` and `school` otherwise.
 
 ### Warnings (v1.3)
 
@@ -956,6 +1200,12 @@ the errors array.
 | # | Warning | Condition |
 |---|---------|-----------|
 | W-1 | `node.yaml:relaxation  '{value}' has no effect at tier {tier}; the gate is advisory only at tier graduate` | `relaxation` is declared and the **effective** tier is not `graduate` |
+| W-2 | `probe.yaml:  A structured probe has no effect at tier {tier}; the calibration probe routes only at tier graduate` | a `probe.yaml` exists and the **effective** tier is not `graduate` (v1.4 / G-13) |
+
+W-2 mirrors W-1's shape and its reasoning exactly. The calibration probe is
+required, and read, only at graduate tier, so a sidecar below that tier is inert
+— and, like an inert `relaxation`, is nearly always a missing `tier: graduate`
+rather than a deliberate no-op.
 
 W-1 is about the field being *declared* where it cannot act, not about its value:
 an absent `relaxation` never warns, and a node whose tier is *derived* as
@@ -968,9 +1218,15 @@ budget, the time bands, and the content of the calibration probe — including a
 correctness gate (§4) and whether the probe's routing table agrees with the
 node's `relaxation` value — are authoring judgment, enforced by review rather
 than by `validate_node()`. The validator checks structure; it does not read
-physics. Also deliberately absent: `phase_gate` takes no learner evidence, so
-nothing in the toolchain can check a correctness gate against a probe result
-(§4, declared limit 2).
+physics.
+
+At v1.4 one item moves off this list and one is added. Checks 20 and 22 now
+enforce structurally what the correctness gate and the narrowing rule assert; but
+**whether `probe.yaml` agrees with the routing prose it mirrors** is newly
+checkable in principle and still not checked (§4a). And `phase_gate` continues to
+take no learner evidence, so nothing in the toolchain checks a *verdict* against
+the app's actual gating (§4, declared limit 2) — the verdict is displayed and the
+divergence is stated on the card rather than discovered.
 
 ### Running the Validator
 
@@ -987,6 +1243,7 @@ to stderr and do not affect the exit code.
 
 ---
 
+*Content Specification v1.4 — structured probes and the executable narrowing invariant (mission M13)*
 *Content Specification v1.3 — relaxation control and correctness gates (mission M12)*
 *Content Specification v1.2 — PhysicsTree v1.1 milestone, graduate tier (mission M2)*
 *Spec source: `docs/content-spec.md` | Type enforcement: `crates/domain/src/content_spec.rs` | Authoring gate: `tools/authoring/quality_gate.py`*

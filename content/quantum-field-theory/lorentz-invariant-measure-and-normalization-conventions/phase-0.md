@@ -37,7 +37,7 @@ Write your start and stop times at the top. **This is the fifth node, and the es
 
 ## Calibration Probe
 
-Score the two items yourself on the standard scale, honestly, and write the numbers down. Then read both routing rules. **This node has no correctness gate**; routing rule 2 is stronger than one and applies to you whatever you scored.
+Score the two items yourself on the standard scale, honestly, and write the numbers down. **Score item 2's two parts separately** — 2(a) and 2(b) each get their own number, because the routing rules below read them individually. Then read both routing rules. **This node has no correctness gate**; routing rule 2 is stronger than one and applies to you whatever you scored.
 
 | Rating | Meaning | What this node does for you |
 |:---:|---|---|

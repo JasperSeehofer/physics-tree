@@ -31,6 +31,10 @@ pub struct PhaseContent {
     pub html: String,
     pub sections: Vec<String>,
     pub simulations: Vec<String>,
+    /// The phase's authored estimate, so the timer strip can read
+    /// `Phase 2 · 41 min (est. 40)` (design §6(c)). Persisted by ingest since
+    /// v1.4 (G-14); `None` for anything ingested before that.
+    pub estimated_minutes: Option<i16>,
 }
 
 /// Request body for POST /api/learning-room/:slug/progress.
@@ -82,6 +86,7 @@ pub async fn get_learning_room_content(
                 html: rendered.html,
                 sections: rendered.sections,
                 simulations: rendered.simulations,
+                estimated_minutes: row.estimated_minutes,
             }
         })
         .collect();

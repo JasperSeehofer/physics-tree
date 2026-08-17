@@ -1,0 +1,91 @@
+# Structured mirror of phase-0.md "## Calibration Probe". The prose is
+# authoritative for the learner; this file is authoritative for the app.
+# TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
+#
+# NO CORRECTNESS GATE on this node, per the M10a map, and the absence is
+# deliberate: what the map specifies instead is stronger and is R4 below —
+# phases 2 and 3 are BOTH taken at any score. This is the module's designated
+# convention-table node, and its trap is the first invisible one.
+#
+# Items are sub-part atoms (M13a section 8 Q2, option (i)): item 2 carries two
+# scored parts and the routing reads 2(b) individually.
+spec_version: 1.4
+concept_id: lorentz-invariant-measure-and-normalization-conventions
+
+items:
+  - id: "1"
+    summary: "Reduce ∫d⁴k δ(k²−m²)θ(k⁰)f(k) to ∫d³k/2E f, then say why each of the three left-hand objects is Lorentz invariant"
+  - id: "2a"
+    label: "2(a)"
+    summary: "Which one-particle state is relativistically normalized, and what that phrase means precisely"
+  - id: "2b"
+    label: "2(b)"
+    summary: "One specific thing downstream that the other choice changes — a formula, a factor, anything"
+
+rules:
+  # Routing rule 1 — the fluency gate.
+  - id: R1-item1-expected
+    kind: fluency
+    when: {all: [{items: ["1"], score: {eq: 0}}]}
+    then: {}
+    text: >
+      A 0 on item 1 — take Phase 2 in full, including the Derivation, with a pen.
+      This is the expected outcome and the node is calibrated for it.
+
+  # The corpus's only cross-node condition. Node 4's item 1 is split into the
+  # atoms 1(a) and 1(b) by the Q2 atomisation, so "a 0 on node 4's probe" is read
+  # as a 0 on either half of that item.
+  - id: R2-item1-with-node4
+    kind: fluency
+    when:
+      all:
+        - {items: ["1"], score: {eq: 0}}
+        - items: ["1a", "1b"]
+          node: hilbert-space-for-fields-and-continuum-normalization
+          quantifier: any
+          score: {eq: 0}
+    then: {}
+    text: >
+      A 0 on item 1 together with a 0 on node 4's probe — the gap is one node
+      back: re-read node 4's D2, since "which delta normalization" is a question
+      you cannot answer until "why a delta at all" is settled.
+
+  - id: R3-item1-fluent-item2b-absent
+    kind: fluency
+    when:
+      all:
+        - {items: ["1"], score: {eq: 3}}
+        - {items: ["2b"], score: {eq: 0}}
+    then: {}
+    text: >
+      A 3 on item 1 with a 0 or "no" on item 2(b) — the most likely profile on
+      this page, and the sharpest possible statement of what this node is for.
+      The derivation is a change of variables you can do; the consequence is what
+      has never been tracked. Take the node in order and give Phase 3's Full
+      Example the time Phase 2 does not need.
+
+  # Routing rule 2 — the standing rule for this node, which no score changes.
+  - id: R4-phases-2-and-3-unconditional
+    kind: standing
+    then:
+      mandate_phases: [2, 3]
+    text: >
+      Phases 2 and 3 are both taken, at any score, without exception. That is
+      stronger than the module-wide Tier-C rule and it has a node-specific
+      reason. This is the module's designated convention-table node, and a
+      convention error here produces no wrong-looking symbol anywhere: it
+      produces a perfectly sensible formula that is wrong by a factor of 2E per
+      external leg, surfacing five nodes later as a cross section off by an
+      amount no amount of algebra will locate. This node's trap is the first one
+      that is invisible. That is why it does not get a correctness gate — there
+      is no single wrong answer to detect — and why it gets an unconditional
+      phase requirement instead.
+
+  # Routing rule 3 — the ordering rule, which nothing overrides.
+  - id: R5-ordering
+    kind: standing
+    then: {}
+    text: >
+      Phases 4, 5 and 6 are strict at every tier and every score: self-explanation,
+      retrieval and spacing strengthen with expertise rather than reversing. A
+      page of 3s is a reason to go faster through Phase 2, never to skip Phase 4.

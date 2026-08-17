@@ -39,6 +39,9 @@ pub struct NodePhaseRow {
     pub phase_number: i16,
     pub phase_type: String,
     pub content_body: String,
+    /// From `phase-N.md` frontmatter, persisted by ingest since v1.4 (G-14).
+    /// `None` for any node ingested before that column existed.
+    pub estimated_minutes: Option<i16>,
 }
 
 /// Fetch content metadata for a concept by its URL slug.
@@ -192,7 +195,8 @@ pub async fn get_phases_by_node_id(
 ) -> Result<Vec<NodePhaseRow>, sqlx::Error> {
     let rows = sqlx::query(
         r#"
-        SELECT id, node_id, phase_number, phase_type, content_body, created_at, updated_at
+        SELECT id, node_id, phase_number, phase_type, content_body, estimated_minutes,
+               created_at, updated_at
         FROM node_phases
         WHERE node_id = $1
         ORDER BY phase_number
@@ -210,6 +214,7 @@ pub async fn get_phases_by_node_id(
             phase_number: r.get::<i16, _>("phase_number"),
             phase_type: r.get("phase_type"),
             content_body: r.get("content_body"),
+            estimated_minutes: r.try_get("estimated_minutes").ok().flatten(),
         })
         .collect())
 }

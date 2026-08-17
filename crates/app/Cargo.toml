@@ -21,6 +21,7 @@ gloo-net = { version = "0.6", features = ["http"] }
 gloo-timers = { version = "0.3", features = ["futures"] }
 js-sys = "0.3"
 web-sys = { version = "0.3", features = [
+    "Clipboard",
     "HtmlDivElement",
     "HtmlElement",
     "HtmlCanvasElement",
@@ -36,6 +37,7 @@ web-sys = { version = "0.3", features = [
     "EventTarget",
     "History",
     "Location",
+    "Navigator",
     "Url",
     "UrlSearchParams",
 ] }

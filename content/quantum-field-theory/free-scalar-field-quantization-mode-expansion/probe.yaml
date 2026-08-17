@@ -1,0 +1,110 @@
+# Structured mirror of phase-0.md "## Calibration Probe". The prose is
+# authoritative for the learner; this file is authoritative for the app.
+# TIER-C: relaxation OFF (Gate 6 D-G6b) — no rule here grants a skip.
+spec_version: 1.4
+concept_id: free-scalar-field-quantization-mode-expansion
+
+# M10a section 3, FINDING F7: this node's probe IS the S0.5 module probe.
+module_probe:
+  module: S0.5
+  restates: C1
+  escalation:
+    id: S0.5-3x
+    nodes:
+      - free-scalar-field-quantization-mode-expansion
+      - equal-time-commutators-and-the-ladder-algebra
+      - field-hamiltonian-normal-ordering-and-vacuum-energy
+      - hilbert-space-for-fields-and-continuum-normalization
+      - lorentz-invariant-measure-and-normalization-conventions
+    all_items_at_most: 1
+    no_item_at_least: 3
+    pace_ratio_above: 2.5
+    report_to: orchestrator
+
+items:
+  - id: "1"
+    summary: "Quantize the free real scalar: mode expansion, commutators, Feynman propagator, the iε"
+    gating: false          # module entry measurement; a low score is the expected, recorded outcome
+  - id: "2"
+    summary: "π = ∂L/∂φ̇ and the Hamiltonian density H for the KG Lagrangian, with the signature stated"
+  - id: "3"
+    summary: "SHO ladder operators from x̂,p̂: â, â†, [â,â†], Ĥ — the substrate check"
+  - id: "4a"
+    label: "4(a)"
+    summary: "Which transform takes φ(x) → φ̃(k); write it with its measure and its 2π's"
+    correctness:
+      wrong_if: >
+        The answer names the Legendre transform, or the Hamiltonian, or "trading
+        q̇ for p", anywhere in part (a) — i.e. the two transforms have run together.
+      basin: pQCD
+  - id: "4b"
+    label: "4(b)"
+    summary: "What a Legendre transform does: input, output, which variable it trades — and whether you already did one"
+
+rules:
+  # Routing rule 1 — the fluency gate.
+  - id: R1-item3-substrate
+    kind: fluency
+    when: {all: [{items: ["3"], score: {eq: 0}}]}
+    then:
+      route_to: {concept_id: harmonic-oscillator-ladder-operators, status: external}
+      flag_escalation: E11
+      report: true
+    text: >
+      Stop. The single harmonic oscillator is the one piece of this material a
+      physics master's degree does not lose, and this entire node is "do that,
+      once per momentum k". The external prerequisite is the real next action.
+      Flag this in the module log: it is escalation trigger E11, and it is a
+      decision the orchestrator takes, not you.
+
+  - id: R2-item2-lagrangian
+    kind: fluency
+    when:
+      all:
+        - {items: ["2"], score: {eq: 0}}
+        - {items: ["1", "3", "4a", "4b"], score: {gte: 1}}
+    then: {}
+    text: >
+      The gap is in classical-field-theory-lagrangian-density, not here. You can
+      proceed, but do Phase 1 Part A with the Lagrangian open in front of you
+      rather than from memory.
+
+  - id: R3-item4a-fourier
+    kind: fluency
+    when: {all: [{items: ["4a"], score: {lte: 1}}]}
+    then: {}
+    text: >
+      Take the node in order and do Phase 2's Bridging Stage with a pen rather
+      than reading it. The Fourier transform is not background in this node; it
+      is the node's mechanism.
+
+  # Routing rule 2 — the correctness gate. This one overrides the fluency gate.
+  - id: R4-item4a-legendre-collision
+    kind: correctness
+    when: {all: [{items: ["4a"], correct: false}]}
+    then:
+      mandate_phases: [2]
+      from_stage: concrete_stage
+      before_phase: 1
+    text: >
+      Phase 2's Concrete Stage is mandatory for you, is read before Phase 1, and
+      is read before anything else on this node. A confidently held wrong answer
+      is not prior knowledge, so expertise reversal does not apply to it.
+
+  # Routing rule 3 — the ordering rule, which nothing overrides.
+  - id: R5-ordering
+    kind: standing
+    then: {}
+    text: >
+      Phases 4, 5 and 6 are strict at every tier and every score. Self-explanation,
+      retrieval practice and spacing do not reverse with expertise; they strengthen
+      with it. A page of 3s is a reason to go faster through Phase 2, never a
+      reason to skip Phase 4.
+
+  - id: R6-item1-module-measurement
+    kind: diagnostic
+    then: {}
+    text: >
+      Item 1 does not gate this node. It is the module's entry measurement, and a
+      low score is the expected and already-recorded outcome — it is what put S0.5
+      at 24 nodes. Score it, write it down, and move on.

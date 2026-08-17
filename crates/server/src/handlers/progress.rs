@@ -17,15 +17,6 @@ pub struct DashboardResponse {
     pub nodes: Vec<NodeProgress>,
 }
 
-/// Request body for recording an engagement event.
-#[derive(Deserialize)]
-pub struct RecordEventRequest {
-    pub node_id: Option<Uuid>,
-    /// One of the 4 event_kind enum values:
-    /// quiz_checkpoint_passed, content_module_opened, simulation_interacted, module_completed
-    pub event_kind: String,
-}
-
 /// Request body for awarding XP after a quiz attempt.
 #[derive(Deserialize)]
 pub struct AwardXpRequest {
@@ -83,36 +74,18 @@ pub async fn get_dashboard(
     Ok(Json(DashboardResponse { summary, nodes }))
 }
 
-/// POST /api/progress/event — record an engagement event for the current user.
-pub async fn record_event(
-    session: Session,
-    State(pool): State<PgPool>,
-    Json(req): Json<RecordEventRequest>,
-) -> Result<StatusCode, (StatusCode, String)> {
-    let user_id = session
-        .get::<Uuid>("user_id")
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    let Some(user_id) = user_id else {
-        return Err((StatusCode::UNAUTHORIZED, "Not authenticated.".to_string()));
-    };
-
-    sqlx::query(
-        r#"
-        INSERT INTO engagement_events (user_id, node_id, event_kind)
-        VALUES ($1, $2, $3::event_kind)
-        "#,
-    )
-    .bind(user_id)
-    .bind(req.node_id)
-    .bind(&req.event_kind)
-    .execute(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    Ok(StatusCode::CREATED)
-}
+// `POST /api/progress/event` was retired here (M13). It was registered,
+// functional and never called: it inserted `(user_id, node_id, event_kind)` into
+// `engagement_events`, a table nothing SELECTs, casting a `String` to a 4-value
+// Postgres enum so that a typo was a 500 rather than a 400. Every datum the
+// instrumentation loop needs — phase number, per-item scores, durations,
+// verdicts — is absent from both that payload and that table, so "reuse" would
+// have meant writing the new tables anyway inside one whose name and enum
+// describe engagement analytics. See `handlers::telemetry` for the replacement.
+//
+// The table and its enum are deliberately left in place. It has never held a
+// row, dropping it buys nothing, and a `DROP TABLE` is the kind of thing that
+// should be ratified rather than tucked into a feature migration.
 
 /// POST /api/progress/award-xp — process a quiz result, award XP, update streak.
 ///

@@ -3,5 +3,7 @@ pub mod content;
 pub mod graph;
 pub mod health;
 pub mod learning_room;
+pub mod probe;
 pub mod progress;
 pub mod review;
+pub mod telemetry;

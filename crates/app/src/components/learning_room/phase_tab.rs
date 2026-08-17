@@ -29,6 +29,13 @@ pub fn PhaseTab(
     active: bool,
     /// Callback called with `phase_number` when an unlocked/completed tab is clicked.
     on_click: Callback<i16>,
+    /// Probe-verdict annotation — `mandatory` or `advisory` (M13 design §6(b)).
+    ///
+    /// **Display only.** The tab's lock state comes from `compute_unlock_state`
+    /// and is not affected by what the verdict advises; the verdict card carries
+    /// the line that says so.
+    #[prop(optional_no_strip)]
+    annotation: Option<String>,
 ) -> impl IntoView {
     let tab_id = format!("phase-tab-{}", phase_number);
     let panel_id = format!("phase-panel-{}", phase_number);
@@ -119,6 +126,17 @@ pub fn PhaseTab(
             })}
 
             {name_clone}
+
+            // Probe-verdict annotation — advice, not a gate.
+            {annotation
+                .map(|label| {
+                    let chip = if label == "mandatory" {
+                        "ml-1 rounded-full border border-sun-amber px-1.5 py-0.5 text-[10px] font-normal text-sun-amber"
+                    } else {
+                        "ml-1 rounded-full border border-sky-teal px-1.5 py-0.5 text-[10px] font-normal text-sky-teal"
+                    };
+                    view! { <span class=chip>{label}</span> }
+                })}
         </button>
     }
 }
