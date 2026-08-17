@@ -1,5 +1,6 @@
 pub mod content_repo;
 pub mod fsrs_logic;
+pub mod glossary_repo;
 pub mod graph_repo;
 pub mod phase_progress_repo;
 pub mod probe_repo;

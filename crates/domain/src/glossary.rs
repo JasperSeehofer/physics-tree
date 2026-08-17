@@ -345,6 +345,70 @@ pub fn redact_convention(
 // The `::term[key]{display}` directive — fence-aware scanning
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// The selector `hydrate_term_cards` queries, and therefore the shape
+/// `render_content_markdown` must emit.
+///
+/// It lives here, in the crate both sides depend on, because "hydration wired
+/// to a selector nothing emits" is a bug this codebase has shipped twice:
+/// `hydrate_concept_links` queries `[data-concept-link]`, which `::concept-link`
+/// never emitted, so that tooltip was dead code; and the passport's card
+/// `mouseleave` was attached to a `null`. A constant is not a guarantee on its
+/// own — the guarantee is the renderer test that derives its assertions from
+/// this string via [`selector_parts`].
+pub const TERM_TRIGGER_SELECTOR: &str = "button.term[data-term]";
+
+/// The selector `hydrate_concept_links` queries. Emitted by `::concept-link`
+/// from v1.5 onward; before that the hydrator matched nothing.
+pub const CONCEPT_LINK_SELECTOR: &str = "a.concept-link[data-concept-link]";
+
+/// Split a trivial `tag.class[attr]` selector into `(tag, classes, attributes)`.
+///
+/// Deliberately not a CSS parser: it understands exactly the shape the two
+/// selectors above use, and its only consumer is the renderer test that turns a
+/// selector into assertions about emitted markup. Widening it would let the
+/// selectors drift into shapes the test can no longer check.
+pub fn selector_parts(selector: &str) -> (String, Vec<String>, Vec<String>) {
+    let mut tag = String::new();
+    let mut classes = Vec::new();
+    let mut attrs = Vec::new();
+    let mut current = String::new();
+    let mut mode = 0u8; // 0 = tag, 1 = class, 2 = attribute
+
+    let flush = |mode: u8, current: &mut String, tag: &mut String, classes: &mut Vec<String>| {
+        if current.is_empty() {
+            return;
+        }
+        match mode {
+            0 => *tag = std::mem::take(current),
+            1 => classes.push(std::mem::take(current)),
+            _ => current.clear(),
+        }
+    };
+
+    for ch in selector.chars() {
+        match ch {
+            '.' => {
+                flush(mode, &mut current, &mut tag, &mut classes);
+                mode = 1;
+            }
+            '[' => {
+                flush(mode, &mut current, &mut tag, &mut classes);
+                mode = 2;
+            }
+            ']' => {
+                if mode == 2 && !current.is_empty() {
+                    attrs.push(std::mem::take(&mut current));
+                }
+                mode = 0;
+            }
+            c => current.push(c),
+        }
+    }
+    flush(mode, &mut current, &mut tag, &mut classes);
+
+    (tag, classes, attrs)
+}
+
 /// One `::term[key]{display}` occurrence, with the byte range it occupies.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TermTag {
@@ -835,6 +899,21 @@ mod tests {
     fn term_keys_dedups_in_first_use_order() {
         let md = "::term[b]{B} ::term[a]{A} ::term[b]{B again}";
         assert_eq!(term_keys(md), vec!["b".to_string(), "a".to_string()]);
+    }
+
+    // ── selector plumbing ────────────────────────────────────────────────────
+
+    #[test]
+    fn selector_parts_splits_the_two_live_selectors() {
+        let (tag, classes, attrs) = selector_parts(TERM_TRIGGER_SELECTOR);
+        assert_eq!(tag, "button");
+        assert_eq!(classes, vec!["term".to_string()]);
+        assert_eq!(attrs, vec!["data-term".to_string()]);
+
+        let (tag, classes, attrs) = selector_parts(CONCEPT_LINK_SELECTOR);
+        assert_eq!(tag, "a");
+        assert_eq!(classes, vec!["concept-link".to_string()]);
+        assert_eq!(attrs, vec!["data-concept-link".to_string()]);
     }
 
     // ── prose ↔ yaml drift ───────────────────────────────────────────────────

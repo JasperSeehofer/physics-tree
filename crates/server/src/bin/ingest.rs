@@ -4,9 +4,12 @@
 
 use clap::Parser;
 use db::create_pool;
+use db::glossary_repo;
 use db::probe_repo;
 use domain::content_spec::{validate_node, BloomLevel, ParsedNode};
-use server::content_fs::{discover_node_dirs, load_probe, parse_node_dir, read_phase_content};
+use server::content_fs::{
+    self, discover_node_dirs, load_probe, parse_node_dir, read_phase_content,
+};
 use sqlx::PgPool;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -170,11 +173,87 @@ async fn ingest_node_dir(pool: &PgPool, dir: &Path) -> Result<String, String> {
         }
     }
 
+    // Glossary (content-spec v1.5). Both writes are delete-then-insert scoped
+    // to this node, so removing a `terms:` entry or a `::term` tag removes it
+    // from the database too — the same rule the probe sidecar follows, and the
+    // reason a re-ingest cannot leave a term unlockable that the content no
+    // longer teaches.
+    //
+    // The tag index is built by the *same* fence-aware scanner the renderer
+    // uses, so a `::term` inside a quiz fence is neither rendered as a trigger
+    // nor counted as a teaching site. One scanner, one answer.
+    let term_tags = content_fs::node_term_tags(dir);
+    let term_note = if meta.terms.is_empty() && term_tags.is_empty() {
+        String::new()
+    } else {
+        format!(" (+{} terms/{} tags)", meta.terms.len(), term_tags.len())
+    };
+
+    glossary_repo::replace_node_terms(&mut tx, &branch, node_id, &meta.terms)
+        .await
+        .map_err(|e| format!("    glossary_terms upsert: {e}"))?;
+    glossary_repo::replace_node_term_tags(&mut tx, &branch, node_id, &term_tags)
+        .await
+        .map_err(|e| format!("    glossary_term_tags upsert: {e}"))?;
+
     tx.commit()
         .await
         .map_err(|e| format!("    transaction commit: {e}"))?;
 
-    Ok(format!("  {slug:<36} OK{probe_note}"))
+    Ok(format!("  {slug:<36} OK{probe_note}{term_note}"))
+}
+
+/// Load and store every `conventions.yaml` reachable from the ingested node
+/// directories.
+///
+/// Runs **after** every node is committed, and outside their transactions,
+/// because the file is a *branch* object whose `opened_by` / `closed_by` name
+/// nodes that may only exist after this run. One pass per branch, deduplicated
+/// by directory.
+async fn ingest_branch_conventions(pool: &PgPool, node_dirs: &[PathBuf]) -> Vec<String> {
+    let mut messages = Vec::new();
+    let mut seen: Vec<PathBuf> = Vec::new();
+
+    for dir in node_dirs {
+        let Some(branch_dir) = dir.parent().map(|p| p.to_path_buf()) else {
+            continue;
+        };
+        if seen.contains(&branch_dir) {
+            continue;
+        }
+        seen.push(branch_dir.clone());
+
+        let conventions = match content_fs::load_branch_conventions(dir) {
+            Ok(Some(c)) => c,
+            Ok(None) => continue,
+            Err(e) => {
+                messages.push(format!("  conventions.yaml FAIL\n    {e}"));
+                continue;
+            }
+        };
+
+        // The declared branch must match the directory, or every row would be
+        // filed under a branch no node reads.
+        if let Some(directory) = content_fs::branch_name(dir) {
+            if let Some(err) =
+                domain::content_spec::check_conventions_branch(&conventions, &directory)
+            {
+                messages.push(format!("  conventions.yaml FAIL\n    {err}"));
+                continue;
+            }
+        }
+
+        match glossary_repo::replace_branch_conventions(pool, &conventions).await {
+            Ok(()) => messages.push(format!(
+                "  {:<36} OK ({} conventions rows)",
+                conventions.branch,
+                conventions.rows.len()
+            )),
+            Err(e) => messages.push(format!("  {} FAIL\n    {e}", conventions.branch)),
+        }
+    }
+
+    messages
 }
 
 #[tokio::main]
@@ -244,6 +323,13 @@ async fn main() {
         }
     }
 
+    // Branch conventions, after every node so `opened_by` / `closed_by` resolve.
+    if let Some(pool) = pool_opt.as_ref() {
+        for message in ingest_branch_conventions(pool, &node_dirs).await {
+            println!("{message}");
+        }
+    }
+
     let succeeded = total - failed;
     println!();
     if failed > 0 {
@@ -274,5 +360,14 @@ fn ingest_node_dir_dry(dir: &Path) -> Result<String, String> {
     } else {
         ""
     };
-    Ok(format!("  {slug:<36} OK{probe_note} (dry run)"))
+    let term_note = if parsed.meta.terms.is_empty() && parsed.term_tags.is_empty() {
+        String::new()
+    } else {
+        format!(
+            " (+{} terms/{} tags)",
+            parsed.meta.terms.len(),
+            parsed.term_tags.len()
+        )
+    };
+    Ok(format!("  {slug:<36} OK{probe_note}{term_note} (dry run)"))
 }
