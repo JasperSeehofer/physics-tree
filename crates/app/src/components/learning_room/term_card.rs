@@ -112,6 +112,22 @@ const CARD_HEIGHT_ESTIMATE: f64 = 340.0;
 
 const CARD_WIDTH: f64 = 360.0;
 
+/// May a *passive* trigger — `mouseenter` or `focus` — open a card in this gate?
+///
+/// No, in either closed-book state. Under D-G9c a peek is a **decision**: the
+/// panel will not open without a confirmation, and a card that opens on hover or
+/// on focus is not a decision at all. A pointer resting over tagged prose, or a
+/// keyboard user tabbing through it, would otherwise reveal a definition nobody
+/// asked for *and* write one peek row per tagged term the focus crosses —
+/// pointer noise entering the instrument that is supposed to read which
+/// production is missing. `click` always works, so the peek stays available at
+/// the price the policy names.
+///
+/// Under `Open` all three events behave as the passport's do (M14a §2.2).
+pub fn passive_trigger_allowed(gate: GlossaryGate) -> bool {
+    !gate.is_closed_book()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hydration
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,11 +168,24 @@ fn wire_term_trigger(el: web_sys::HtmlElement, ctx: GlossaryContext) {
 
     // `mouseenter`, `focus` and `click` all call one `show` — the passport's
     // model, and the same three-event shape `wire_concept_link` already uses.
-    // No pointer-type discrimination: `show` is idempotent.
     let show = {
         let el = el.clone();
         let key = key.clone();
         move || {
+            // Idempotent *per key*, and it has to be enforced rather than
+            // assumed: Leptos signals notify on every `set`, and one deliberate
+            // click on a term fires `mouseenter`, `focus` and `click`. Without
+            // this the card refetches three times for one act — and in a
+            // closed-book context that is three peek rows, because the fetch is
+            // what records the peek.
+            let already_showing = ctx
+                .card
+                .get_untracked()
+                .map(|c| c.key == key)
+                .unwrap_or(false);
+            if already_showing {
+                return;
+            }
             let rect = el.get_bounding_client_rect();
             ctx.card.set(Some(TermCardState {
                 key: key.clone(),
@@ -170,7 +199,16 @@ fn wire_term_trigger(el: web_sys::HtmlElement, ctx: GlossaryContext) {
 
     for event in ["mouseenter", "focus", "click"] {
         let show = show.clone();
-        let cb = Closure::<dyn Fn()>::new(move || show());
+        // `click` is the deliberate act and always opens. The two passive
+        // events stand down in a closed-book context — see
+        // `passive_trigger_allowed`.
+        let passive = event != "click";
+        let cb = Closure::<dyn Fn()>::new(move || {
+            if passive && !passive_trigger_allowed(ctx.gate.get_untracked()) {
+                return;
+            }
+            show()
+        });
         let _ = el.add_event_listener_with_callback(event, cb.as_ref().unchecked_ref());
         cb.forget();
     }
@@ -350,10 +388,18 @@ pub fn TermCard(ctx: GlossaryContext, #[prop(into)] branch: Signal<String>) -> i
         let _ = leptos::prelude::window_event_listener(ev::keydown, move |e| {
             if e.key() == "Escape" && ctx.card.get_untracked().is_some() {
                 let key = ctx.card.get_untracked().map(|c| c.key);
-                ctx.card.set(None);
-                if let Some(key) = key {
-                    restore_focus_to_trigger(&key);
+                // Focus first, *then* clear. `HTMLElement::focus()` dispatches
+                // its `focus` event synchronously, and that event is one of the
+                // three that open the card — so clearing first and focusing
+                // second reopens the card Escape was pressed to dismiss, and
+                // Escape silently stops working for every card reached by
+                // hover. Order is the fix; the trigger still gets the focus,
+                // which is the only way a keyboard user gets back to where
+                // they were.
+                if let Some(key) = &key {
+                    restore_focus_to_trigger(key);
                 }
+                ctx.card.set(None);
             }
         });
         let _ = leptos::prelude::window_event_listener(ev::click, move |e| {
@@ -660,6 +706,17 @@ mod tests {
         // Below `sm` the card is a bottom sheet; an inline `left/top` would
         // fight the sheet's own layout classes.
         assert_eq!(card_style(&state(100.0, 120.0, 20.0), 480.0, 800.0), "");
+    }
+
+    #[test]
+    fn hover_and_focus_stand_down_in_a_closed_book_context() {
+        // Under D-G9c a peek is a decision. If `focus` could open a card, a
+        // keyboard user tabbing through phase-5 prose would reveal a definition
+        // and write a peek row for every tagged term on the way past, and the
+        // log would measure the tab key rather than the learner.
+        assert!(passive_trigger_allowed(GlossaryGate::Open));
+        assert!(!passive_trigger_allowed(GlossaryGate::PeekLogged));
+        assert!(!passive_trigger_allowed(GlossaryGate::Locked));
     }
 
     #[test]

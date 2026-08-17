@@ -677,7 +677,7 @@ pub fn render_phase_with(
     policy: domain::Phase5Policy,
 ) -> crate::components::content::markdown_renderer::RenderedContent {
     use crate::components::content::markdown_renderer::{
-        render_content_markdown_with, strip_yaml_frontmatter, RenderedContent, TermRendering,
+        render_content_markdown_with, strip_yaml_frontmatter, RenderedContent,
     };
     use domain::glossary::{gate_for, GlossaryGate};
 
@@ -1381,6 +1381,68 @@ mod tests {
                     );
                 }
             }
+        }
+
+        /// The `lock` half of D-G9c, end to end through `render_phase_with`.
+        ///
+        /// `plain_text_rendering_leaves_no_affordance_at_all` tests the
+        /// *renderer*; nothing tested the **wiring** — that a phase-5 body
+        /// actually reaches the renderer with `PlainText`, and that phase 0
+        /// does not. The flag is one line to flip and this is what makes the
+        /// flip observable.
+        #[test]
+        fn a_hard_lock_strips_the_term_affordance_from_phase_five() {
+            let md = "\n## Retrieval Prompt\n\nWrite the ::term[mode-expansion]{mode expansion} from memory.\n";
+
+            let locked = render_phase_with(md, "retrieval_check", "N", domain::Phase5Policy::Lock);
+            assert!(
+                !locked.html.contains("data-term"),
+                "a hard lock must leave no trigger in the markup: {}",
+                locked.html
+            );
+            assert!(
+                locked.html.contains("mode expansion"),
+                "the display text stays: {}",
+                locked.html
+            );
+
+            let peeking = render_phase_with(md, "retrieval_check", "N", domain::Phase5Policy::Peek);
+            assert!(
+                peeking.html.contains(r#"data-term="mode-expansion""#),
+                "under peek-with-logging the affordance stays — the peek is the \
+                 measurement: {}",
+                peeking.html
+            );
+        }
+
+        /// M14a §4.4's explicit rejection, made executable.
+        ///
+        /// Phase 0 holds the Linkage Map and the Wonder Hook as well as the
+        /// calibration probe. Gating the whole phase would make the feature feel
+        /// arbitrary on the first screen of every node, so the gate is
+        /// per-*section* — and only the probe section loses its triggers, even
+        /// under `lock`.
+        #[test]
+        fn a_hard_lock_gates_the_probe_section_only_and_not_the_rest_of_phase_zero() {
+            let md = "\n## Calibration Probe\n\nRecall the ::term[ladder-operators]{ladder operators}.\n\n## Wonder Hook\n\nAnd the ::term[mode-expansion]{mode expansion} is where this goes.\n";
+
+            let out = render_phase_with(md, "schema_activation", "N", domain::Phase5Policy::Lock);
+
+            assert!(
+                !out.html.contains(r#"data-term="ladder-operators""#),
+                "the probe section is closed-book: {}",
+                out.html
+            );
+            assert!(
+                out.html.contains(r#"data-term="mode-expansion""#),
+                "the Wonder Hook is an orientation surface and keeps its cards: {}",
+                out.html
+            );
+            assert!(
+                out.html.contains("ladder operators"),
+                "the probe section keeps its prose, just not the affordance: {}",
+                out.html
+            );
         }
 
         #[test]
