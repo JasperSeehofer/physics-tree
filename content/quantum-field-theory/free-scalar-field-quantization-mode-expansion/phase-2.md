@@ -132,7 +132,7 @@ $$\pi(x) = \int\!\frac{d^{3}k}{(2\pi)^{3}}\,(-i)\sqrt{\frac{\omega_{\mathbf{k}}}
 
 where $kx \equiv k^{\mu}x_{\mu} = \omega_{\mathbf{k}}t - \mathbf{k}\cdot\mathbf{x}$ **on shell** — the $k^{0}$ in the exponent is not an integration variable, it is $\omega_{\mathbf{k}}$, which is why the integral is three-dimensional while the exponent looks four-dimensional.
 
-**The algebra**, equivalent to the postulate:
+**::term[ladder-algebra]{The algebra}**, equivalent to the postulate:
 
 $$\left[a_{\mathbf{k}},\,a^{\dagger}_{\mathbf{k}'}\right] = (2\pi)^{3}\,\delta^{3}(\mathbf{k}-\mathbf{k}'), \qquad \left[a_{\mathbf{k}},a_{\mathbf{k}'}\right] = \left[a^{\dagger}_{\mathbf{k}},a^{\dagger}_{\mathbf{k}'}\right] = 0.$$
 

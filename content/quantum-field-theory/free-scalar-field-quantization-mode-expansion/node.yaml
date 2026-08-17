@@ -334,7 +334,7 @@ terms:
   - key: ladder-algebra
     term: 'Ladder commutator'
     symbol: '$\left[a_{\mathbf{k}},a^{\dagger}_{\mathbf{k}''}\right] = (2\pi)^{3}\delta^{3}(\mathbf{k}-\mathbf{k}'')$'
-    units: '—'
+    units: 'mass dimension $-3$'
     definition: |
       The commutation relation the mode operators inherit from the equal-time
       CCR. It is equivalent to the CCR, and node 2 proves the equivalence in
